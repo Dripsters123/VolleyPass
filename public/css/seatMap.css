@@ -1,0 +1,110 @@
+/* public/css/seatMap.css - seat map styles (updated) */
+
+/* basic box-sizing */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+/* seat map container */
+#seatMap,
+.seat-map-root {
+    min-height: 300px;
+    max-height: calc(95vh - 160px);
+    overflow-y: auto;   /* fallback */
+    overflow-x: hidden;
+    box-sizing: border-box;
+    position: relative;
+}
+/* ensure no scrollbars appear on container/wrapper */
+#seatMap, .seat-map-root {
+    overflow: hidden !important;
+}
+.seat-map-scale-wrapper {
+    overflow: hidden !important;
+}
+
+
+/* wrapper used by JS for centering/clipping */
+.seat-map-scale-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* SEAT: remove fixed sizes so JS controls exact width/height via inline style.
+   Keep minimal visual defaults only for browsers where JS fails. */
+.seat-square {
+    /* remove forced widths so inline style controls final size */
+    width: auto;
+    height: auto;
+    min-width: 0;
+    min-height: 0;
+    line-height: normal;
+    user-select: none;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    border-radius: 4px;
+}
+
+/* mobile fallback — if JS isn't present, small fixed sized seats for mobile */
+@media (max-width: 768px) {
+    .seat-square {
+        width: 48px;
+        height: 48px;
+        line-height: 48px;
+        min-width: 48px;
+        min-height: 48px;
+    }
+}
+
+/* visual selected state */
+.seat-selected,
+.selected {
+    background-color: #16a34a !important;
+    color: white !important;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(16,185,129,0.25);
+}
+
+/* overview grid helpers */
+.overview-grid { width: 100%; }
+.stand-wrapper { max-width: 100%; box-sizing: border-box; overflow: visible; }
+
+/* stand helpers */
+.stand-grid { width: 100%; display:block; box-sizing: border-box; }
+.stand-line { overflow: visible !important; display:flex; box-sizing: border-box; gap: 6px; }
+
+/* vertical side stand */
+.stand-grid-vertical { width:100%; display:flex; box-sizing:border-box; gap:6px; }
+.seat-column-vertical { display:flex; flex-direction:column; box-sizing:border-box; gap:6px; }
+
+/* mobile preview button */
+@media (max-width: 768px) {
+    .stand-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 6px;
+        border: 1px dashed #cbd5e1;
+        color: #64748b;
+        font-size: 12px;
+    }
+}
+
+/* horizontal scrolling wrapper (applied inline by JS for mobile detail) */
+.stand-grid-wrapper {
+    width: 100%;
+    box-sizing: border-box;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* debug outline when JS marks overflow */
+.stand-debug-outline { outline: 2px dashed rgba(255,0,0,0.3); }
