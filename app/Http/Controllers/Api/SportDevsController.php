@@ -43,14 +43,20 @@ class SportDevsController extends Controller
     }
 
     public function matchDetails($id)
-    {
-        $match = $this->api->getMatchById($id);
+{
+    $match = $this->api->getMatchById($id);
 
-        return view('matches.show', [
-            'match' => $match,
-            'arena' => $match['arena'] ?? null,
-        ]);
-    }
+    // Store in session for "recently viewed"
+    $recent = session()->get('recent_matches', []);
+    array_unshift($recent, $id); // push to start
+    session(['recent_matches' => array_slice($recent, 0, 10)]); // max 10 stored
+
+    return view('matches.show', [
+        'match' => $match,
+        'arena' => $match['arena'] ?? null,
+    ]);
+}
+
 
     public function pastMatchDetails($id)
     {

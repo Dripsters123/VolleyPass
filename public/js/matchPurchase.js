@@ -1,25 +1,26 @@
+// public/js/matchPurchase.js
 document.addEventListener('DOMContentLoaded', () => {
     const buyBtn = document.getElementById('buyTicketBtn');
-    const seatModal = document.getElementById('seatSelectionModal');
-    let selectedSeat = null;
-
     if (!buyBtn) return;
 
     const confirmBtn = document.getElementById('confirmSeatBtn');  // seat modal confirm
-    const cancelBtn = document.getElementById('cancelSeatBtn');
     const purchaseConfirmBox = document.getElementById('purchaseConfirmBox');
     const confirmSeatText = document.getElementById('confirmSeatText');
     const finalizeBtn = document.getElementById('finalizePurchaseBtn'); // popup "Jā, pirkt"
     const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
 
-    // ❌ Do not redirect here
+    let selectedSeat = null;
+
+    document.addEventListener('seatSelected', e => {
+        selectedSeat = e.detail;
+    });
+
     if (confirmBtn) {
         confirmBtn.addEventListener('click', () => {
             if (!selectedSeat) {
                 alert('Lūdzu, izvēlieties vietu vispirms.');
                 return;
             }
-            // Show confirmation popup
             confirmSeatText.textContent =
                 `Rinda ${selectedSeat.row}, Vietas ${selectedSeat.number}, Cena: €${selectedSeat.price ?? buyBtn.dataset.ticketPrice}`;
             purchaseConfirmBox.classList.remove('hidden');
@@ -32,13 +33,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ✅ Redirect only here
     if (finalizeBtn) {
         finalizeBtn.addEventListener('click', async () => {
             finalizeBtn.disabled = true;
             finalizeBtn.textContent = 'Pāradresē uz Stripe...';
 
             try {
+                // coerce everything to strings (prevent sending objects/arrays that validation rejects)
+                const payload = {
+                    match_id: String(buyBtn.dataset.matchId ?? ''),
+                    seat_id: selectedSeat?.id ? String(selectedSeat.id) : '',
+                    seat_number: selectedSeat?.number ? String(selectedSeat.number) : '',
+                    seat_row: selectedSeat?.row ? String(selectedSeat.row) : '',
+                    price: selectedSeat?.price != null
+                        ? String(Number(selectedSeat.price))
+                        : String(parseFloat(buyBtn.dataset.ticketPrice || '10'))
+                };
+
                 const response = await fetch('/checkout', {
                     method: 'POST',
                     headers: {
@@ -46,20 +57,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
                         'Accept': 'application/json'
                     },
-                    body: JSON.stringify({
-                        match_id: buyBtn.dataset.matchId,
-                        seat: selectedSeat,
-                        price: selectedSeat.price ?? parseFloat(buyBtn.dataset.ticketPrice || '10')
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
+                const data = await response.json().catch(() => ({}));
+
                 if (response.ok && data.url) {
                     window.location.href = data.url;
-                } else if (data.errors) {
-                    alert(Object.values(data.errors).flat().join('\n'));
+                    return;
+                }
+
+                // Show helpful error message (validation errors come as data.errors)
+                if (data.errors) {
+                    // Laravel validation errors: object with arrays
+                    const flat = Object.values(data.errors).flat().join('\n');
+                    alert('Validation failed:\n' + flat);
+                    console.error('Validation errors:', data.errors);
+                } else if (data.error || data.message) {
+                    alert(data.error || data.message);
+                    console.error('Error response:', data);
                 } else {
-                    alert('Checkout failed. Please try again.');
+                    // fallback
+                    alert('Checkout failed. Please try again. See console for details.');
+                    console.error('Unknown response:', response.status, data);
                 }
             } catch (err) {
                 console.error('Checkout error:', err);
@@ -70,15 +90,4 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
-
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            seatModal.classList.add('hidden');
-            selectedSeat = null;
-        });
-    }
-
-    document.addEventListener('seatSelected', e => {
-        selectedSeat = e.detail;
-    });
 });

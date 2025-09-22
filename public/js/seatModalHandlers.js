@@ -1,52 +1,66 @@
-(function () {
+// public/js/seatModalHandlers.js
+document.addEventListener('DOMContentLoaded', () => {
     const buyBtn = document.getElementById('buyTicketBtn');
-    const seatModal = document.getElementById('seatSelectionModal');
-    const cancelSeatBtn = document.getElementById('cancelSeatBtn');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-    const confirmSeatBtn = document.getElementById('confirmSeatBtn');
-    const purchaseConfirmBox = document.getElementById('purchaseConfirmBox');
-    const finalizeBtn = document.getElementById('finalizePurchaseBtn');
-    const cancelPurchaseBtn = document.getElementById('cancelPurchaseBtn');
-    const selectedSeatInfo = document.getElementById('selectedSeatInfo');
-    const confirmSeatText = document.getElementById('confirmSeatText');
+    const modal = document.getElementById('seatSelectionModal');
     const seatMapContainer = document.getElementById('seatMap');
+    const modalClose = document.getElementById('modalCloseBtn');
+    const selectedSeatInfo = document.getElementById('selectedSeatInfo');
 
-const takenSeats = JSON.parse(buyBtn.dataset.takenSeats || '[]');
-const seatPrices = JSON.parse(buyBtn.dataset.seatPrices || '{}');
-const matchId = buyBtn.dataset.matchId;
-const ticketPrice = parseFloat(buyBtn.dataset.ticketPrice || '10');
+    if (!buyBtn) return;
 
-    let selectedSeat = null;
+    function openModal() {
+        modal.classList.remove('hidden');
 
-    function initMap() {
-        renderSeatMap(seatMapContainer,{
-            rows:6,
-            cols:12,
-            takenSeats:takenSeats,
-            seatPrices:seatPrices,
-            matchId:matchId,
-            onSeatSelect:(seat)=>{
-                selectedSeat=seat;
-                if(seat) selectedSeatInfo.textContent=`Izvēlētā vieta: ${seat.sideLabel} — Rinda ${seat.row}, Sēdeklis ${seat.number} | Cena: €${seat.price}`;
-                else selectedSeatInfo.textContent='Izvēlētā vieta: Nav izvēlēta';
+        // parse data attributes
+        const takenSeats = JSON.parse(buyBtn.dataset.takenSeats || '[]');
+        const seatPrices = JSON.parse(buyBtn.dataset.seatPrices || '{}');
+        const defaultPrice = parseFloat(buyBtn.dataset.ticketPrice || '10');
+
+        // render seat map
+        if (typeof window.renderSeatMap === 'function') {
+            // cleanup previous render if exists
+            if (window.renderSeatMap._cleanup) {
+                try { window.renderSeatMap._cleanup(); } catch(e) {}
             }
-        });
+            window.renderSeatMap(seatMapContainer, {
+                rows: 6,
+                cols: 12,
+                sideColumns: 6,
+                sideRows: 12,
+                takenSeats: takenSeats,
+                seatPrices: seatPrices,
+                ticketPrice: defaultPrice,
+                minSeat: 8,
+                maxSeat: 36,
+                onSeatSelect: (selection) => {
+                    updateSelectedSeat(selection);
+                }
+            });
+        }
     }
 
-    buyBtn.addEventListener('click',()=>{ seatModal.classList.remove('hidden'); initMap(); });
-    cancelSeatBtn.addEventListener('click',()=>{ seatModal.classList.add('hidden'); selectedSeat=null; selectedSeatInfo.textContent='Izvēlētā vieta: Nav izvēlēta'; });
-    modalCloseBtn.addEventListener('click',()=>{ seatModal.classList.add('hidden'); selectedSeat=null; selectedSeatInfo.textContent='Izvēlētā vieta: Nav izvēlēta'; });
+    function updateSelectedSeat(selection) {
+        if (!selection) {
+            selectedSeatInfo.textContent = 'Izvēlētā vieta: Nav izvēlēta';
+            return;
+        }
+        selectedSeatInfo.textContent = `Rinda ${selection.row}, Vieta ${selection.number}, Cena: €${selection.price}`;
+        // store selected for other scripts via a custom event (existing matchPurchase.js listens)
+        document.dispatchEvent(new CustomEvent('seatSelected', { detail: selection }));
+    }
 
-    confirmSeatBtn.addEventListener('click',()=>{
-        if(!selectedSeat){ alert('Lūdzu, vispirms izvēlieties vietu.'); return; }
-        confirmSeatText.textContent=`${selectedSeat.sideLabel} — Rinda ${selectedSeat.row}, Sēdeklis ${selectedSeat.number}. Cena: €${selectedSeat.price}`;
-        purchaseConfirmBox.classList.remove('hidden');
+    buyBtn.addEventListener('click', openModal);
+    modalClose.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        updateSelectedSeat(null);
     });
 
-    cancelPurchaseBtn.addEventListener('click',()=>{ purchaseConfirmBox.classList.add('hidden'); });
-    finalizeBtn.addEventListener('click',()=>{
-        if(!selectedSeat){ alert('Kļūda: nav izvēlētas vietas.'); return; }
-        document.dispatchEvent(new CustomEvent('finalizePurchase',{detail:{matchId:matchId,seat:selectedSeat,price:selectedSeat.price ?? ticketPrice}}));
-        purchaseConfirmBox.classList.add('hidden'); seatModal.classList.add('hidden');
+    // close by clicking outside content
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+            updateSelectedSeat(null);
+        }
     });
-})();
+
+});

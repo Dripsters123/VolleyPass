@@ -1,21 +1,18 @@
-// public/js/seatMap.js
-// Robust seat map: side stands vertical (sideColumns x sideRows), compute seatSize to fit popup.
-// No reliance on transform scale; layout uses fixed left/center/right column widths to prevent overlap.
 
 function renderSeatMap(container, options = {}) {
     if (!container) return;
 
-    const rows = Number(options.rows) || 6;                // top/bottom rows
-    const cols = Number(options.cols) || 12;               // top/bottom cols
-    const sideColumns = Number(options.sideColumns ?? 6);  // left/right columns count
-    const sideRows = Number(options.sideRows ?? 12);       // seats per side column (1..12)
+    const rows = Number(options.rows) || 6;               
+    const cols = Number(options.cols) || 12;               
+    const sideColumns = Number(options.sideColumns ?? 6);  
+    const sideRows = Number(options.sideRows ?? 12);       
     const takenSeats = Array.isArray(options.takenSeats) ? options.takenSeats : [];
     const seatPrices = options.seatPrices || {};
     const onSeatSelect = typeof options.onSeatSelect === 'function' ? options.onSeatSelect : null;
     const defaultPrice = Number(options.defaultPrice ?? options.ticketPrice ?? 10);
     const gap = Number(options.gap ?? 6);
 
-    // DOM container setup
+    
     container.innerHTML = '';
     container.classList.add('seat-map-root');
     container.style.boxSizing = 'border-box';
@@ -23,11 +20,11 @@ function renderSeatMap(container, options = {}) {
     container.style.overflowY = 'auto';
     if (!container.style.minHeight) container.style.minHeight = options.minHeight || '60vh';
 
-    // seat creation helper (displayNumber optional for vertical side stands)
+   
     function createSeat(label, r, c, seatSize = 30, displayNumber = null) {
         const seat = document.createElement('div');
         seat.className = 'seat-square border border-gray-400 flex items-center justify-center text-sm seat-item';
-        // inline size controlled here; CSS removed forced min sizes so these take effect
+       
         seat.style.width = seat.style.height = seatSize + 'px';
         seat.style.lineHeight = seatSize + 'px';
         seat.style.fontSize = Math.max(8, Math.floor(seatSize / 2)) + 'px';
@@ -67,7 +64,7 @@ function renderSeatMap(container, options = {}) {
         return seat;
     }
 
-    // buildStandGrid: supports 'row' (horizontal) and 'col' (vertical side stacks)
+    
     function buildStandGrid(label, seatDir, seatSize, mobileDetail = false) {
         if (mobileDetail && seatDir === 'row') {
             const wrapper = document.createElement('div');
