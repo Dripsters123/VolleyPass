@@ -34,15 +34,15 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+    // Konfigurācija 
     'sportdevs' => [
     'key' => env('SPORTDEVS_API_KEY'),
     'url' => env('SPORTDEVS_API_URL', 'https://volleyball.sportdevs.com'),
     ],
-'stripe' => [
+    'stripe' => [
     'key' => env('STRIPE_KEY'),
     'secret' => env('STRIPE_SECRET'),
-],
+    ],
 
 
 ];

@@ -4,6 +4,8 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\Api\SportDevsController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\TicketsController; 
+use App\Http\Controllers\SeatController; 
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -53,9 +55,11 @@ Route::get('/calendar/match/{id}', [SportDevsController::class, 'matchDetails'])
 | Dashboard (Requires Auth)
 |--------------------------------------------------------------------------
 */
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])
+        ->name('dashboard');
+});
+
 
 /*
 |--------------------------------------------------------------------------
@@ -88,5 +92,10 @@ Route::get('/volleyball/matches/past/{id}', [SportDevsController::class, 'pastMa
 
     // routes/web.php
 Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('stripe.webhook');
+
+Route::get('/seats/{matchId}', [SeatController::class, 'index']);
+Route::post('/seats/{seatId}/reserve', [SeatController::class, 'reserve']);
+Route::get('/matches/{matchId}', [SeatController::class, 'show'])->name('matches.show');
+
 
 require __DIR__.'/auth.php';

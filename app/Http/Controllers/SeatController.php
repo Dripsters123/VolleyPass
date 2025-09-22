@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Seat;
+use App\Models\VolleyballMatch;
 use Illuminate\Http\Request;
 
 class SeatController extends Controller
@@ -12,36 +13,37 @@ class SeatController extends Controller
         return Seat::where('match_id', $matchId)->get();
     }
 
-    public function reserve(Request $request, $seatId)
+    public function reserve(Request $request, $seatNumber)
     {
-        $seat = Seat::lockForUpdate()->findOrFail($seatId);
+        // Find seat by seat_number instead of numeric ID
+        $seat = Seat::lockForUpdate()->where('seat_number', $seatNumber)->firstOrFail();
 
         if ($seat->is_taken) {
             return response()->json(['error' => 'Seat already taken'], 409);
         }
 
-        // Temporary hold before Stripe payment (optional)
+        // Reserve seat for current user
         $seat->update(['is_taken' => true, 'user_id' => auth()->id()]);
 
         return response()->json($seat);
     }
+
     public function show($matchId)
-{
-    $seats = Seat::where('match_id', $matchId)->get();
+    {
+        $match = VolleyballMatch::with('arena')->findOrFail($matchId);
 
-    // List of seat IDs that are taken
-    $takenSeats = $seats->where('is_taken', true)
-                        ->map(fn($s) => $s->seat_number)
-                        ->toArray();
+        $seats = Seat::where('match_id', $matchId)->get();
 
-    return view('matches.seats', [
-        'matchId' => $matchId,
-        'takenSeats' => $takenSeats,
-        'rows' => 6,
-        'cols' => 12,
-        'sideRows' => 12,
-        'sideCols' => 6
-    ]);
-}
+        // Directly use seat_number for JS
+        $takenSeats = $seats->filter(fn($s) => $s->is_taken)
+                            ->pluck('seat_number')
+                            ->toArray();
 
+        $seatPrices = [];
+        foreach ($seats as $seat) {
+            $seatPrices[$seat->seat_number] = $seat->price ?? $match->ticket_price ?? 10;
+        }
+
+        return view('matches.show', compact('match', 'takenSeats', 'seatPrices'));
+    }
 }

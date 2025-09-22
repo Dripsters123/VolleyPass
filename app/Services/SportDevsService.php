@@ -10,6 +10,7 @@ use App\Models\VolleyballMatch;
 
 class SportDevsService
 {
+    // SportsDevsAPI servisa implementēšana
     protected string $url;
     protected string $key;
 
@@ -18,14 +19,14 @@ class SportDevsService
         $this->url = rtrim(config('services.sportdevs.url', 'https://volleyball.sportdevs.com'), '/');
         $this->key = (string) config('services.sportdevs.key');
     }
-
+    // Galvenā funkcija kas atbild par API pieprasījumu
     private function request(string $endpoint, array $params = [])
     {
         $response = Http::baseUrl($this->url)
             ->withToken($this->key)
             ->acceptJson()
             ->get($endpoint, $params);
-
+         // Kļūdas gadījumā ieraksta kļūdu žurnālā un atgriež HTTP kļūdas atbildi
         if ($response->failed()) {
             Log::error('SportDevs API error', [
                 'endpoint' => $endpoint,
