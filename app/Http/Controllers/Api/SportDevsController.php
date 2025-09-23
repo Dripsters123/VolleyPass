@@ -16,31 +16,29 @@ class SportDevsController extends Controller
         $this->api = $api;
     }
 
-    public function tournaments()
-    {
-        return response()->json($this->api->tournaments());
-    }
-
-    public function liveScores()
-    {
-        return response()->json($this->api->liveScores());
-    }
-
-    public function standings($id)
-    {
-        return response()->json($this->api->standings($id));
-    }
-
     public function matches($id)
     {
         return response()->json($this->api->matches($id));
     }
 
     public function upcomingMatches()
-    {
-        $matches = $this->api->getUpcomingMatches();
-        return view('volleyball', compact('matches'));
+{
+    $matches = $this->api->getUpcomingMatches();
+
+    // Find most popular match by tickets
+    $popularMatch = \App\Models\Ticket::selectRaw('event_id, COUNT(*) as sold')
+        ->groupBy('event_id')
+        ->orderByDesc('sold')
+        ->first();
+
+    $popular = null;
+    if ($popularMatch) {
+        $popular = collect($matches)->firstWhere('id', $popularMatch->event_id);
     }
+
+    return view('volleyball', compact('matches', 'popular'));
+}
+
 
     public function matchDetails($id)
 {

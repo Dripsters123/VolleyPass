@@ -1,23 +1,23 @@
 <x-app-layout>
     <div class="container mx-auto px-4 py-6">
-        <h1 class="text-2xl font-bold mb-4">Upcoming Volleyball Matches</h1>
+        <h1 class="text-2xl font-bold mb-4">Volejbola mači</h1>
 
         <!-- Filter Form -->
         <form id="filter-form" class="mb-6 flex flex-wrap gap-4 items-end">
             <div>
-                <label class="block text-sm font-medium text-gray-700">Tournament</label>
+                <label class="block text-sm font-medium text-gray-700">Turnaments</label>
                 <input type="text" id="tournament" placeholder="Tournament name"
                        class="mt-1 border rounded px-3 py-2 w-full">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700">Home Team</label>
+                <label class="block text-sm font-medium text-gray-700">Mājinieki (Home team)</label>
                 <input type="text" id="home_team" placeholder="Home team"
                        class="mt-1 border rounded px-3 py-2 w-full">
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700">Away Team</label>
+                <label class="block text-sm font-medium text-gray-700">Viesi (Away team)</label>
                 <input type="text" id="away_team" placeholder="Away team"
                        class="mt-1 border rounded px-3 py-2 w-full">
             </div>

@@ -21,8 +21,11 @@
 
             <!-- Desktop Links -->
             <div class="hidden sm:flex items-center space-x-6">
-                <a href="{{ route('home') }}" 
-                   class="px-3 py-1 rounded-md hover:underline {{ request()->routeIs('home') ? 'underline font-semibold' : '' }}">Sākumlapa</a>
+                @guest
+                    <a href="{{ route('home') }}" 
+                       class="px-3 py-1 rounded-md hover:underline {{ request()->routeIs('home') ? 'underline font-semibold' : '' }}">Sākumlapa</a>
+                @endguest
+
                 <a href="{{ route('about') }}" 
                    class="px-3 py-1 rounded-md hover:underline {{ request()->routeIs('about') ? 'underline font-semibold' : '' }}">Par mums</a>
                 <a href="{{ route('contacts') }}" 
@@ -65,7 +68,9 @@
     <!-- Mobile Menu -->
     <div x-show="open" x-transition class="sm:hidden bg-white/90 text-blue-900 border-t">
         <div class="px-4 py-3 space-y-2">
-            <a href="{{ route('home') }}" class="block px-3 py-1 rounded-md hover:bg-blue-100">Sākumlapa</a>
+            @guest
+                <a href="{{ route('home') }}" class="block px-3 py-1 rounded-md hover:bg-blue-100">Sākumlapa</a>
+            @endguest
             <a href="{{ route('about') }}" class="block px-3 py-1 rounded-md hover:bg-blue-100">Par mums</a>
             <a href="{{ route('contacts') }}" class="block px-3 py-1 rounded-md hover:bg-blue-100">Kontakti</a>
             <a href="{{ route('volleyball.index') }}" class="block px-3 py-1 rounded-md hover:bg-blue-100">Maču pārskats</a>
