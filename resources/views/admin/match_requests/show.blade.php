@@ -10,7 +10,6 @@
       <div><strong>Laiks:</strong> {{ $req->start_time->format('Y-m-d H:i') }} — {{ $req->end_time->format('Y-m-d H:i') }}</div>
       <div><strong>Formāts:</strong> {{ $req->players_per_team }}</div>
 
-      {{-- Logos --}}
       <div class="flex items-center gap-4 mt-4">
         <div>
           <strong>Mājas logo:</strong><br>
@@ -30,14 +29,12 @@
         </div>
       </div>
 
-      {{-- Referee --}}
       @if($req->referee_name)
         <div class="mt-4">
           <strong>Tiesnesis:</strong> {{ $req->referee_name }}
         </div>
       @endif
 
-      {{-- Players --}}
       @if(!empty($req->players_home) || !empty($req->players_away))
         <div class="mt-6">
           <h3 class="font-semibold text-lg mb-2">Spēlētāji</h3>
@@ -62,7 +59,6 @@
         </div>
       @endif
 
-      {{-- Coaches --}}
       @if($req->coach_home || $req->coach_away)
         <div class="mt-4">
           <strong>Treneri:</strong><br>
@@ -71,7 +67,6 @@
         </div>
       @endif
 
-      {{-- Score update --}}
       @if($req->request_type === 'score_update')
         <div class="mt-6 p-3 bg-yellow-50 border rounded">
           <h3 class="font-semibold mb-1">Priekšlikts rezultāts</h3>
