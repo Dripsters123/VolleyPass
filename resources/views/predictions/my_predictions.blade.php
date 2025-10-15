@@ -34,7 +34,6 @@
                         </div>
 
                         <div class="text-right">
-                            {{-- Allow quick edit: if match hasn't started, link back to predictions page (they can update there) --}}
                             @if($m && now()->lt(\Carbon\Carbon::parse($m->start_time)))
                                 <div class="text-sm mb-2"><a href="{{ route('predictions.index') }}#match-{{ $m->id }}" class="text-blue-600 hover:underline">Edit</a></div>
                             @endif
