@@ -105,7 +105,7 @@ class SeatController extends Controller
 
             $seatPrices[$humanKey] = $s->price;
             $seatIdMap[$humanKey] = $s->id;
-            $seatIdMap[$s->seat_number] = $s->id;         // <-- add raw seat_number
+            $seatIdMap[$s->seat_number] = $s->id;        
             if (!isset($seatIdMap[$slugKey])) {
             $seatPrices[$slugKey] = $s->price;
             $seatIdMap[$slugKey] = $s->id;
