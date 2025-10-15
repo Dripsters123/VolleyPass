@@ -1,7 +1,6 @@
 <x-app-layout title="VolleyPass – Sākumlapa">
     <div class="max-w-7xl mx-auto px-6 py-12">
 
-        {{-- Hero --}}
         <div class="mb-10 rounded-xl bg-gradient-to-r from-orange-400 to-blue-600 text-white p-8 shadow-lg">
             <h1 class="text-4xl font-bold">VolleyPass</h1>
             <p class="mt-2">Īstā vieta, kur pirkt biļetes volejbola spēlēm.</p>
@@ -9,7 +8,6 @@
 
         <div class="grid lg:grid-cols-3 gap-8 items-start">
             
-            {{-- LEFT: Upcoming Matches --}}
             <section class="lg:col-span-2">
                 <h2 class="text-2xl font-semibold mb-6">Tuvākie pasākumi</h2>
 
