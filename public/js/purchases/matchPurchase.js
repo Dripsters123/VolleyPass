@@ -162,6 +162,7 @@
 
         const checkoutResp = await safeFetch('/checkout', {
           method: 'POST',
+          credentials: 'include',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
