@@ -1,9 +1,7 @@
-{{-- resources/views/wallet/buy_discount.blade.php --}}
 <x-app-layout>
 <div class="container mx-auto p-4">
     <h1 class="text-2xl font-bold mb-4">Nopirkt atlaižu karti</h1>
 
-    <!-- Wallet Panel -->
     <div id="wallet-panel" class="mb-6 p-4 rounded shadow-sm bg-white">
         <div class="flex items-center justify-between">
             <div>
@@ -13,7 +11,6 @@
         </div>
     </div>
 
-    <!-- Available Discount Cards -->
     <div class="mb-6">
         <h2 class="text-xl font-semibold mb-2">Pieejamās atlaižu kartes</h2>
         <p class="text-sm text-gray-600 mb-4">
@@ -46,7 +43,6 @@
         </div>
     </div>
 
-    <!-- User Discount Cards -->
     <div class="mb-6">
         <h3 class="text-lg font-semibold mb-2">Manas atlaižu kartes</h3>
         <div id="my-cards-list" class="space-y-2">
@@ -70,7 +66,6 @@
         </div>
     </div>
 
-    <!-- NOTE: Discount codes are applied only at ticket checkout -->
     <div class="mb-6">
         <div class="p-4 bg-yellow-50 border rounded">
             <strong class="block mb-1">Svarīgi</strong>
@@ -82,7 +77,6 @@ Vienā pirkumā var izmantot tikai vienu atlaižu kodu (kodu atkārtošana nav a
         </div>
     </div>
 
-    <!-- Result & Error Boxes -->
     <div id="purchase-result" class="hidden p-4 border-l-4 border-green-500 bg-green-50 rounded mb-4">
         <div class="mb-2">
             <strong>Purchased!</strong>
@@ -139,15 +133,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // ---- SUCCESS ----
             const card = data.discount_card;
 
-            // Update wallet coins locally
             const cost = @json($costMap)[card.discount_percent] || 0;
             let cur = parseInt(walletBalanceEl.textContent || '0', 10);
             walletBalanceEl.textContent = Math.max(0, cur - cost);
 
-            // Add new card to the user's card list
             const node = document.createElement('div');
             node.className = 'p-3 border rounded bg-gray-50 flex items-center justify-between';
             node.innerHTML = `<div>
@@ -157,7 +148,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div><button class="copy-code-btn px-3 py-1 text-sm rounded border" data-code="${card.code}">Copy</button></div>`;
             if (myCardsList) myCardsList.prepend(node);
 
-            // Show the purchased code box
             purchasedCodeEl.textContent = card.code;
             resultBox.classList.remove('hidden');
 
@@ -175,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // Copy handlers
     document.body.addEventListener('click', function (e) {
         if (e.target.matches('.copy-code-btn') || e.target.matches('#copy-purchased-code')) {
             const code = e.target.dataset.code || purchasedCodeEl.textContent;
