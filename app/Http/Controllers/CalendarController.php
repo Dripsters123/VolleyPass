@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\VolleyballMatch;
+
+class CalendarController extends Controller
+{
+    public function index()
+    {
+        return view('calendar.index');
+    }
+
+    public function events()
+    {
+        $matches = VolleyballMatch::where('is_local', true)
+            ->orderBy('start_time', 'asc')
+            ->get(['id', 'home_team_name', 'away_team_name', 'start_time', 'end_time', 'location']);
+
+        $events = $matches->map(function ($match) {
+            return [
+                'id'    => $match->id,
+                'title' => "{$match->home_team_name} vs {$match->away_team_name}",
+                'start' => $match->start_time,
+                'end'   => $match->end_time,
+                'url'   => route('local.matches.show', $match->id),
+                'location' => $match->location,
+            ];
+        });
+
+        return response()->json($events);
+    }
+}

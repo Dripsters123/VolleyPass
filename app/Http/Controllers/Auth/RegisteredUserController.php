@@ -28,25 +28,39 @@ class RegisteredUserController extends Controller
      * @throws \Illuminate\Validation\ValidationException
      */
 
-    public function store(Request $request): RedirectResponse
+  public function store(Request $request): RedirectResponse
     {
-        // Datu validācija
-        $request->validate([
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
-        // Profila izveidošana un paroles šifrēšana
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            // Password: at least 12 characters, mixed case, numbers and symbols
+            'password' => [
+                'required',
+                'confirmed',
+                Rules\Password::min(12)
+                    ->mixedCase()
+                    ->numbers()
+                    ->symbols(),
+            ],
+        ];
+
+        $messages = [
+            'email.unique' => 'Šāds e-pasts jau eksistē. Ja tas ir Jūsu e-pasts — izmēģiniet pieslēgties vai atiestatīt paroli.',
+            'password.confirmed' => 'Paroles apstiprinājums neatbilst.',
+        ];
+
+        $validated = $request->validate($rules, $messages);
+
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
         ]);
 
         event(new Registered($user));
-
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        // After registration redirect to dashboard (authenticated "sākums")
+        return redirect()->route('dashboard');
     }
 }
