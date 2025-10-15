@@ -91,9 +91,7 @@
     container.classList.add('seat-map-root');
     container.style.boxSizing = 'border-box';
     container.style.width = container.style.width || (options.width || '100%');
-    // changed default minHeight to auto so the map can size naturally
     container.style.minHeight = options.minHeight || '70vh';
-    // changed overflow to visible so the bottom stand isn't clipped and doesn't require internal scrolling
     container.style.overflow = 'auto';
     container.style.position = 'relative';
 
