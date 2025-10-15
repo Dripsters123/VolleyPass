@@ -22,7 +22,7 @@ class AppServiceProvider extends ServiceProvider
      */
 public function boot()
 {
-    // Make wallet available to all views
+   
     View::composer('layouts.navigation', function ($view) {
         $wallet = null;
         if(auth()->check()) {

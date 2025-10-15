@@ -1,7 +1,6 @@
 <x-app-layout title="VolleyPass – Sākumlapa">
     <div class="max-w-7xl mx-auto px-6 py-12">
 
-        {{-- Hero --}}
         <div class="mb-10 rounded-xl bg-gradient-to-r from-orange-400 to-blue-600 text-white p-8 shadow-lg">
             <h1 class="text-4xl font-bold">VolleyPass</h1>
             <p class="mt-2">Īstā vieta, kur pirkt biļetes volejbola spēlēm.</p>
@@ -9,7 +8,6 @@
 
         <div class="grid lg:grid-cols-3 gap-8 items-start">
             
-            {{-- LEFT: Upcoming Matches --}}
             <section class="lg:col-span-2">
                 <h2 class="text-2xl font-semibold mb-6">Tuvākie pasākumi</h2>
 
@@ -29,7 +27,7 @@
                     }"
                     class="relative"
                 >
-                    {{-- Matches --}}
+                    
                     <template x-for="match in visible" :key="match.id">
                         <div class="mb-6 p-6 bg-white rounded-2xl shadow-md">
                             <div class="flex justify-between items-center">
@@ -53,7 +51,7 @@
                         </div>
                     </template>
 
-                    {{-- Arrows --}}
+    
                     <button @click="prev" 
                         class="absolute left-[-30px] top-1/2 -translate-y-1/2 bg-white shadow p-3 rounded-full"
                         x-show="start > 0">
@@ -67,12 +65,10 @@
                 </div>
             </section>
 
-            {{-- RIGHT: Sidebar --}}
             <aside>
                 <div class="bg-white rounded-2xl shadow-lg p-8 h-full flex flex-col items-center">
                     <h3 class="text-2xl font-bold mb-6">VolleyPass</h3>
 
-                    {{-- Popular Match --}}
                     @if(!empty($popular))
                         <div class="w-full bg-orange-50 border border-orange-200 rounded-2xl p-6 mb-8 text-center">
                             <div class="text-gray-700 font-semibold mb-2">🌟 Populārākais pasākums</div>

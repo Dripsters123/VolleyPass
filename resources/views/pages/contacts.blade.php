@@ -2,12 +2,10 @@
     <div class="max-w-5xl mx-auto px-6 py-12">
         <div class="grid md:grid-cols-2 gap-8 items-stretch">
 
-            <!-- LEFT: Contact Info -->
             <div class="bg-white rounded-2xl shadow-lg flex items-center justify-center h-[500px]">
                 <div class="w-full max-w-sm p-6 space-y-6">
                     <h2 class="text-2xl font-bold text-blue-700 mb-6">Kontakti</h2>
 
-                    <!-- Phone -->
                     <div class="flex items-center gap-4">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -19,7 +17,6 @@
                         </div>
                     </div>
 
-                    <!-- Email -->
                     <div class="flex items-center gap-4">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -31,7 +28,6 @@
                         </div>
                     </div>
 
-                    <!-- Address -->
                     <div class="flex items-center gap-4">
                         <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -45,7 +41,6 @@
                         </div>
                     </div>
 
-                    <!-- Socials -->
                     <div class="pt-4 flex justify-center gap-6">
                         <a href="#" class="text-blue-600 hover:text-blue-700">Facebook</a>
                         <a href="#" class="text-blue-600 hover:text-blue-700">Instagram</a>
@@ -54,8 +49,6 @@
                 </div>
             </div>
 
-            <!-- RIGHT: Personal Card -->
-            <!-- RIGHT: Personal Card -->
 <div class="bg-white rounded-2xl shadow-lg overflow-hidden h-[500px]">
   <div class="bg-gradient-to-r from-orange-400 to-blue-600 text-white px-6 py-4">
     <h2 class="text-xl font-bold">Kristers Skrastiņš</h2>

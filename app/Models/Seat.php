@@ -65,7 +65,6 @@ class Seat extends Model
             try {
                 $dt = Carbon::parse($value);
             } catch (\Throwable $e) {
-                // don't write garbage — null instead
                 $this->attributes['reserved_until'] = null;
                 return;
             }

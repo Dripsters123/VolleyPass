@@ -39,6 +39,7 @@ class VolleyballMatch extends Model
     ];
 
     protected $casts = [
+        'arena' => 'array',
         'home_players' => 'array',
         'away_players' => 'array',
         'judges' => 'array',
@@ -69,19 +70,11 @@ class VolleyballMatch extends Model
         return $this->hasMany(Ticket::class, 'event_id');
     }
 
-   
-    /**
-     * Generate seats for this match.
-     *
-     * Uses DB::table(...)->insertOrIgnore(...) in chunks to make generation idempotent
-     * and safe against duplicate-key races. Returns number of newly inserted rows.
-     *
-     * @param array|null $sides
-     * @param int|null $rows
-     * @param int|null $cols
-     * @param float|null $price
-     * @return int
-     */
+    public function statistics()
+    {
+        return $this->hasMany(VolleyballMatchStatistic::class, 'match_id');
+    }
+
    public function generateSeats(array $sides = null, int $rows = null, int $cols = null, ?float $price = null): int
 {
     if (! $this->is_local) {
@@ -160,7 +153,7 @@ class VolleyballMatch extends Model
                             $side = $sides[$sideIndex];
                             for ($row = 1; $row <= $rowsPerSide; $row++) {
                                 for ($number = 1; $number <= $seatsPerRow; $number++) {
-                                    $seatNumber = "{$side}-{$row}-{$number}"; 
+                                    $seatNumber = "{$side}-{$row}-{$number}";
                                     $toInsert[] = [
                                         'match_id'    => $match->id,
                                         'seat_number' => $seatNumber,
@@ -177,7 +170,6 @@ class VolleyballMatch extends Model
                             }
                         }
 
-                        
                         $chunks = array_chunk($toInsert, 250);
                         $totalInserted = 0;
                         foreach ($chunks as $chunk) {
@@ -185,7 +177,6 @@ class VolleyballMatch extends Model
                             if (is_int($res)) {
                                 $totalInserted += $res;
                             } else {
-                                
                                 foreach ($chunk as $row) {
                                     if (DB::table('seats')->where('match_id', $row['match_id'])->where('seat_number', $row['seat_number'])->exists()) {
                                         $totalInserted++;

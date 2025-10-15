@@ -10,9 +10,7 @@ use App\Models\DiscountCard;
 
 class WalletController extends Controller
 {
-    /**
-     * Display wallet page — directly shows buy_discount.blade.php
-     */
+  
     public function show(Request $request)
     {
         $user = $request->user();
@@ -20,7 +18,6 @@ class WalletController extends Controller
             return redirect()->route('login');
         }
 
-        // Make sure wallet exists (coins only, no balance)
         $wallet = Wallet::firstOrCreate(
             ['user_id' => $user->id],
             ['coins' => 0]
