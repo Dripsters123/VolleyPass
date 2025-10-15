@@ -21,5 +21,11 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
             'password' => 'password'
         ]);
+        
+         $this->call([
+            LocalMatchSeeder::class,
+            ProductsSeeder::class,
+            PredictionsSeeder::class,
+        ]);
     }
 }

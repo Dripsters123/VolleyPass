@@ -1,7 +1,6 @@
 <x-app-layout title="VolleyPass – Mana Pārskata lapa">
     <div class="max-w-7xl mx-auto px-6 py-12">
 
-        <!-- Header gradient -->
         <div class="mb-10 rounded-xl bg-gradient-to-r from-orange-400 to-blue-600 text-white p-8 shadow-lg">
             <div class="flex items-center justify-between">
                 <h1 class="text-3xl font-bold">Sveiks, {{ auth()->user()->name }}!</h1>
@@ -10,10 +9,8 @@
             <p class="mt-2 text-orange-100">Tavs personīgais volejbola pārskats un ieteikumi</p>
         </div>
 
-        <!-- Grid -->
         <div class="grid lg:grid-cols-3 gap-8 items-start">
 
-            <!-- Left: Ieteikumi -->
             <section class="lg:col-span-2">
                 <div class="bg-white rounded-2xl shadow-xl p-8">
                     <h2 class="text-2xl font-bold text-gray-800 mb-6">Ieteikumi tev</h2>
@@ -39,9 +36,8 @@
                 </div>
             </section>
 
-            <!-- Right sidebar -->
             <aside class="space-y-6">
-                <!-- Recent Purchases -->
+                
                 <div class="bg-white rounded-2xl shadow-lg p-6">
                     <h2 class="text-lg font-bold text-orange-600 mb-3">Nesenie pirkumi</h2>
                     <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">
@@ -56,7 +52,6 @@
                     </ul>
                 </div>
 
-                <!-- Recently Viewed -->
                 <div class="bg-white rounded-2xl shadow-lg p-6">
                     <h2 class="text-lg font-bold text-orange-600 mb-3">Nesen apskatītās</h2>
                     <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">
@@ -72,7 +67,6 @@
                     </ul>
                 </div>
 
-                <!-- Upcoming Matches -->
                 <div class="bg-white rounded-2xl shadow-lg p-6">
                     <h2 class="text-lg font-bold text-orange-600 mb-3">Nākošās spēles</h2>
                     <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">

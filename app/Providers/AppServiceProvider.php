@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\View;
+use App\Models\Wallet;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,10 +20,15 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+public function boot()
 {
-    $schedule = app(Schedule::class);
-
-    $schedule->command('sync:past-matches')->daily();
+    // Make wallet available to all views
+    View::composer('layouts.navigation', function ($view) {
+        $wallet = null;
+        if(auth()->check()) {
+            $wallet = Wallet::where('user_id', auth()->id())->first();
+        }
+        $view->with('wallet', $wallet);
+    });
 }
 }

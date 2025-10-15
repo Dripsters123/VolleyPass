@@ -45,11 +45,10 @@
                             </div>
 
                             <div class="mt-2 text-sm text-gray-600">
-                                <p><strong>Turnīrs:</strong> <span x-text="match.tournament_name || 'Nav zināms'"></span></p>
                                 <p><strong>Datums:</strong> 
                                     <span x-text="match.start_time ? new Date(match.start_time).toLocaleString('lv-LV') : 'Nav datuma'"></span>
                                 </p>
-                                <p><strong>Vieta:</strong> <span x-text="match.arena?.name || 'Nav zināma'"></span></p>
+                                
                             </div>
                         </div>
                     </template>
@@ -84,12 +83,8 @@
                                 {{ $popular['away_team_name'] ?? 'TBA' }}
                             </div>
 
-                            <p class="text-sm text-gray-600">{{ $popular['tournament_name'] ?? 'Turnīrs nav zināms' }}</p>
                             <p class="text-sm text-gray-500 mt-1">
                                 Datums: {{ !empty($popular['start_time']) ? \Carbon\Carbon::parse($popular['start_time'])->format('d.m.Y H:i') : 'Nav datuma' }}
-                            </p>
-                            <p class="text-sm text-gray-500">
-                                Vieta: {{ $popular['arena']['name'] ?? 'Nav vietas' }}
                             </p>
                             <p class="text-sm text-gray-700 mt-2">Biļetes pārdotas: {{ $popularSold ?? 0 }}</p>
 

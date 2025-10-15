@@ -55,16 +55,19 @@
             </div>
 
             <!-- RIGHT: Personal Card -->
-            <div class="bg-white rounded-2xl shadow-lg overflow-hidden h-[500px]">
-                <div class="bg-gradient-to-r from-orange-400 to-blue-600 text-white px-6 py-4">
-                    <h2 class="text-xl font-bold">Kristers Skrastiņš</h2>
-                </div>
-                <div class="h-[440px] flex items-center justify-center p-6">
-                    <img src="{{ asset('images/selfie.jpg') }}" 
-                         alt="Kristers Skrastiņš" 
-                         class="w-full h-full object-cover rounded-xl shadow-md">
-                </div>
-            </div>
+            <!-- RIGHT: Personal Card -->
+<div class="bg-white rounded-2xl shadow-lg overflow-hidden h-[500px]">
+  <div class="bg-gradient-to-r from-orange-400 to-blue-600 text-white px-6 py-4">
+    <h2 class="text-xl font-bold">Kristers Skrastiņš</h2>
+  </div>
+  <div class="h-[440px] flex items-center justify-center p-6">
+    <img src="{{ asset('images/selfie.jpg') }}" 
+         alt="Kristers Skrastiņš" 
+         class="h-full w-full object-contain rounded-xl shadow-md">
+  </div>
+</div>
+
+
 
         </div>
     </div>
