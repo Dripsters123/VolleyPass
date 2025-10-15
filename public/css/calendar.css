@@ -1,0 +1,41 @@
+
+.calendar-container {
+    background-color: white;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+
+.fc-toolbar-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+
+.fc-button {
+    font-size: 0.9rem;
+    padding: 0.4rem 0.6rem;
+}
+
+
+.fc-event-title {
+    font-size: 0.85rem;
+    line-height: 1rem;
+}
+
+
+.fc-scroller {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+
+@media (max-width: 640px) {
+    .fc-toolbar-title {
+        font-size: 1rem;
+    }
+    .fc-event-title {
+        font-size: 0.75rem;
+    }
+}
