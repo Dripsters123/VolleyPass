@@ -33,7 +33,6 @@ class RegisteredUserController extends Controller
         $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
-            // Password: at least 12 characters, mixed case, numbers and symbols
             'password' => [
                 'required',
                 'confirmed',
@@ -60,7 +59,6 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
         Auth::login($user);
 
-        // After registration redirect to dashboard (authenticated "sākums")
         return redirect()->route('dashboard');
     }
 }

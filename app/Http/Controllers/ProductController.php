@@ -111,10 +111,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product removed.');
     }
 
-    /**
-     * Start Stripe Checkout for single product buy.
-     * Creates a pending Order, returns session url JSON.
-     */
     public function buy(Request $request, Product $product)
     {
         if ($product->status !== 'active') {

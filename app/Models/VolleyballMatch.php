@@ -39,7 +39,6 @@ class VolleyballMatch extends Model
     ];
 
     protected $casts = [
-        'arena' => 'array',
         'home_players' => 'array',
         'away_players' => 'array',
         'judges' => 'array',
@@ -70,11 +69,7 @@ class VolleyballMatch extends Model
         return $this->hasMany(Ticket::class, 'event_id');
     }
 
-    public function statistics()
-    {
-        return $this->hasMany(VolleyballMatchStatistic::class, 'match_id');
-    }
-
+   
     /**
      * Generate seats for this match.
      *
@@ -165,7 +160,7 @@ class VolleyballMatch extends Model
                             $side = $sides[$sideIndex];
                             for ($row = 1; $row <= $rowsPerSide; $row++) {
                                 for ($number = 1; $number <= $seatsPerRow; $number++) {
-                                    $seatNumber = "{$side}-{$row}-{$number}"; // canonical format
+                                    $seatNumber = "{$side}-{$row}-{$number}"; 
                                     $toInsert[] = [
                                         'match_id'    => $match->id,
                                         'seat_number' => $seatNumber,
@@ -182,7 +177,7 @@ class VolleyballMatch extends Model
                             }
                         }
 
-                        // Batch insert with ignore to avoid duplicate-key exceptions if concurrent
+                        
                         $chunks = array_chunk($toInsert, 250);
                         $totalInserted = 0;
                         foreach ($chunks as $chunk) {
@@ -190,7 +185,7 @@ class VolleyballMatch extends Model
                             if (is_int($res)) {
                                 $totalInserted += $res;
                             } else {
-                                // best-effort fallback: count presence after insert
+                                
                                 foreach ($chunk as $row) {
                                     if (DB::table('seats')->where('match_id', $row['match_id'])->where('seat_number', $row['seat_number'])->exists()) {
                                         $totalInserted++;

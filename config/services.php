@@ -35,10 +35,7 @@ return [
         ],
     ],
     // Konfigurācija 
-    'sportdevs' => [
-    'key' => env('SPORTDEVS_API_KEY'),
-    'url' => env('SPORTDEVS_API_URL', 'https://volleyball.sportdevs.com'),
-    ],
+
     'stripe' => [
     'key' => env('STRIPE_KEY'),
     'secret' => env('STRIPE_SECRET'),

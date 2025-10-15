@@ -36,7 +36,7 @@
                         </svg>
                     </button>
                     <div x-show="matchesDropdown" x-transition class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg text-blue-900 z-50">
-                        <a href="{{ route('local.matches.index') }}" class="block px-4 py-2 hover:bg-gray-100">Lokālie mači</a>
+                        <a href="{{ route('local.matches.index') }}" class="block px-4 py-2 hover:bg-gray-100">Volejbola mači</a>
                         <a href="{{ route('calendar.index') }}" class="block px-4 py-2 hover:bg-gray-100">Kalendārs</a>
                         @auth
                             <a href="{{ route('match_requests.create') }}" class="block px-4 py-2 hover:bg-gray-100">Izveidot pieprasījumu</a>
@@ -114,7 +114,7 @@
 
     <div x-show="open" x-transition class="sm:hidden bg-white text-blue-900 shadow-lg">
         <div class="p-3 space-y-2">
-            <a href="{{ route('local.matches.index') }}" class="block px-3 py-2 hover:bg-gray-100">Lokālie mači</a>
+            <a href="{{ route('local.matches.index') }}" class="block px-3 py-2 hover:bg-gray-100">Volejbola mači</a>
             <a href="{{ route('calendar.index') }}" class="block px-3 py-2 hover:bg-gray-100">Kalendārs</a>
             <a href="{{ route('products.index') }}" class="block px-3 py-2 hover:bg-gray-100">Skatīt produktus</a>
 

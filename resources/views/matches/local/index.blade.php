@@ -4,7 +4,7 @@
     <div class="mb-3">
       <div class="flex items-center justify-between gap-3">
         <div>
-          <h1 class="text-2xl md:text-3xl font-bold text-blue-700">Lokālie mači</h1>
+          <h1 class="text-2xl md:text-3xl font-bold text-blue-700">Volejbola mači</h1>
           <p class="text-sm text-gray-600 mt-1">Apskati tuvākos mačus, filtrē un izvēlies savu vietu.</p>
         </div>
 
