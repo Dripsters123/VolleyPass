@@ -75,18 +75,6 @@ class VolleyballMatch extends Model
         return $this->hasMany(VolleyballMatchStatistic::class, 'match_id');
     }
 
-    /**
-     * Generate seats for this match.
-     *
-     * Uses DB::table(...)->insertOrIgnore(...) in chunks to make generation idempotent
-     * and safe against duplicate-key races. Returns number of newly inserted rows.
-     *
-     * @param array|null $sides
-     * @param int|null $rows
-     * @param int|null $cols
-     * @param float|null $price
-     * @return int
-     */
    public function generateSeats(array $sides = null, int $rows = null, int $cols = null, ?float $price = null): int
 {
     if (! $this->is_local) {
@@ -182,7 +170,6 @@ class VolleyballMatch extends Model
                             }
                         }
 
-                        // Batch insert with ignore to avoid duplicate-key exceptions if concurrent
                         $chunks = array_chunk($toInsert, 250);
                         $totalInserted = 0;
                         foreach ($chunks as $chunk) {
@@ -190,7 +177,6 @@ class VolleyballMatch extends Model
                             if (is_int($res)) {
                                 $totalInserted += $res;
                             } else {
-                                // best-effort fallback: count presence after insert
                                 foreach ($chunk as $row) {
                                     if (DB::table('seats')->where('match_id', $row['match_id'])->where('seat_number', $row['seat_number'])->exists()) {
                                         $totalInserted++;
