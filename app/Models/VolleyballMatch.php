@@ -153,7 +153,7 @@ class VolleyballMatch extends Model
                             $side = $sides[$sideIndex];
                             for ($row = 1; $row <= $rowsPerSide; $row++) {
                                 for ($number = 1; $number <= $seatsPerRow; $number++) {
-                                    $seatNumber = "{$side}-{$row}-{$number}"; // canonical format
+                                    $seatNumber = "{$side}-{$row}-{$number}";
                                     $toInsert[] = [
                                         'match_id'    => $match->id,
                                         'seat_number' => $seatNumber,
