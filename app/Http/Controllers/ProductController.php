@@ -15,7 +15,7 @@ class ProductController extends Controller
 {
     public function __construct()
     {
-        // Do NOT call $this->middleware here — routes handle auth.
+
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
@@ -23,7 +23,6 @@ class ProductController extends Controller
     {
         $query = Product::query()->where('status', 'active')->orderBy('created_at', 'desc');
 
-        // optional: show only my products (if ?mine=1)
         if ($request->filled('mine') && auth()->check()) {
             $query->where('user_id', auth()->id());
         }
@@ -34,7 +33,6 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
-        // show even sold products, but buy button only for active
         return view('products.show', compact('product'));
     }
 
@@ -111,10 +109,6 @@ class ProductController extends Controller
         return redirect()->route('products.index')->with('success', 'Product removed.');
     }
 
-    /**
-     * Start Stripe Checkout for single product buy.
-     * Creates a pending Order, returns session url JSON.
-     */
     public function buy(Request $request, Product $product)
     {
         if ($product->status !== 'active') {
