@@ -1,4 +1,3 @@
-// public/js/purchases/matchPurchase.js
 (function () {
   'use strict';
 
@@ -31,7 +30,6 @@
     const finalizeBtn = document.getElementById('finalizePurchaseBtn');
     const buyBtn = document.getElementById('buyTicketBtn');
 
-    // discount UI nodes
     const discountInput = document.getElementById('discountCodeInput');
     const applyBtn = document.getElementById('applyDiscountBtn');
     const clearBtn = document.getElementById('clearDiscountBtn');
@@ -49,14 +47,12 @@
     document.addEventListener('seatSelected', e => {
       selectedSeat = e.detail || [];
       finalizeBtn.disabled = !(selectedSeat && selectedSeat.length > 0);
-      // When selection changes, clear discount preview (user must reapply)
-      // keep appliedDiscountCode intact, but warn user to reapply for new seat set
+
       if (appliedDiscountCode) {
         discountInfo.textContent = `Kods "${appliedDiscountCode}" pielietots — pārbaudiet summu pirms maksājuma. Ja mainīji vietas, klikšķini "Pielietot" vēlreiz.`;
       }
     });
 
-    // APPLY discount preview (AJAX -> /payment/validate-discount)
     if (applyBtn && discountInput) {
       applyBtn.addEventListener('click', async () => {
         const code = (discountInput.value || '').trim();
@@ -130,7 +126,6 @@
       finalizeBtn.textContent = 'Apstrādā...';
 
       try {
-        // 1) Reserve each seat with backend
         for (const sel of selectedSeat) {
           const res = await safeFetch(`/seats/${sel.dbId}/reserve`, {
             method: 'POST',
@@ -150,7 +145,6 @@
           }
         }
 
-        // 2) Create checkout session
         const payload = {
           match_id: buyBtn.dataset.matchId,
           seats: selectedSeat.map(s => ({
