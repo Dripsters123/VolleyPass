@@ -28,19 +28,16 @@ class SeatController extends Controller
             return DB::transaction(function () use ($seatId, $user) {
                 $seat = Seat::where('id', $seatId)->lockForUpdate()->firstOrFail();
 
-                // already sold
                 if ($seat->ticket_id !== null) {
                     return response()->json(['error' => 'Seat already taken'], 409);
                 }
 
-                // currently reserved by someone else and still valid
                 if ($seat->reserved_by !== null && $seat->reserved_by !== $user->id) {
                     if ($seat->reserved_until === null || $seat->reserved_until->isFuture()) {
                         return response()->json(['error' => 'Seat temporarily reserved'], 409);
                     }
                 }
 
-                // reserve for this user for 15 minutes
                 $seat->reserved_by = $user->id;
                 $seat->reserved_until = Carbon::now()->addMinutes(15);
                 $seat->save();
@@ -87,8 +84,7 @@ class SeatController extends Controller
 
             if (($row === null || $number === null) && !empty($s->seat_number)) {
     $raw = trim($s->seat_number);
-    // allow optional numeric prefix (e.g. "1-left-1-1") OR "left-1-1"
-    // capture side, row, number from the trailing three parts
+
     if (preg_match('/(?:^\d+-)?([^\-]+)-(\d+)-(\d+)$/u', $raw, $m)) {
         $side = $side ?? $m[1];
         $row = $row ?? intval($m[2]);
@@ -102,7 +98,6 @@ class SeatController extends Controller
             $humanKey = "{$label}-{$row}-{$number}";
             $slugKey = Str::slug($label, '-') . "-{$row}-{$number}";
 
-            // mark as taken only if ticket_id exists
             if (!is_null($s->ticket_id)) {
                 $takenSeats[] = $humanKey;
                 $takenSeatIds[] = $s->id;
