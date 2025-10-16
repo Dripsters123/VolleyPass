@@ -17,7 +17,6 @@ class PredictionsSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Ensure admin exists
         $admin = User::firstWhere('role', 'admin');
         if (!$admin) {
             $admin = User::factory()->create([
@@ -28,7 +27,6 @@ class PredictionsSeeder extends Seeder
             ]);
         }
 
-        // Give admin a loaded wallet
         $adminWallet = Wallet::firstOrCreate(
             ['user_id' => $admin->id],
             ['coins' => 100000]
@@ -49,14 +47,12 @@ class PredictionsSeeder extends Seeder
             ]);
         }
 
-        // Ensure users exist
         $users = User::all();
         if ($users->count() < 4) {
             User::factory()->count(6)->create();
             $users = User::all();
         }
 
-        // Ensure matches exist
         $matches = VolleyballMatch::all();
         if ($matches->isEmpty()) {
             \Log::warning('PredictionsSeeder: no VolleyballMatch entries found. Run LocalMatchSeeder first.');
@@ -84,7 +80,7 @@ class PredictionsSeeder extends Seeder
 
                 $rewardCoins = 0;
                 if ($status === 'won') {
-                    $rewardCoins = rand(100, 500); // 100–500 coins per win
+                    $rewardCoins = rand(100, 500); 
                     $wallet = Wallet::firstOrCreate(['user_id' => $user->id], ['coins' => 0]);
                     $wallet->increment('coins', $rewardCoins);
 

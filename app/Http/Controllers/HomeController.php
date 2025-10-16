@@ -11,14 +11,14 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Upcoming local matches shown on the homepage (used by resources/views/pages/home.blade.php)
+
         $matchesCollection = VolleyballMatch::where('is_local', true)
             ->where('start_time', '>=', now())
             ->orderBy('start_time')
             ->take(12)
             ->get();
 
-        // Convert to arrays for Alpine/JS usage in blade
+        
         $matches = $matchesCollection->map(function ($m) {
             return [
                 'id' => $m->id,
@@ -31,7 +31,6 @@ class HomeController extends Controller
             ];
         })->toArray();
 
-        // Determine a popular local match by counting sold tickets (simple heuristic)
         $popularData = Ticket::select('event_id', DB::raw('COUNT(*) as sold'))
             ->whereIn('event_id', $matchesCollection->pluck('id')->all())
             ->groupBy('event_id')
@@ -55,7 +54,7 @@ class HomeController extends Controller
                 $popularSold = (int) $popularData->sold;
             }
         } else {
-            // fallback: show the soonest local match as "popular" if nothing is sold yet
+            
             $first = $matchesCollection->first();
             if ($first) {
                 $popular = [
