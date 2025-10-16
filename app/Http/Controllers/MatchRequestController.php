@@ -192,7 +192,6 @@ class MatchRequestController extends Controller
         ];
 
         $messages = [
-            // same as store messages...
             'home_team.required' => 'Mājas komandas nosaukums ir obligāts.',
             'home_team.regex' => 'Mājas komandas nosaukumā nevar būt ciparu vai simbolu.',
             'away_team.required' => 'Viesu komandas nosaukums ir obligāts.',
@@ -353,11 +352,30 @@ class MatchRequestController extends Controller
         return view('admin.match_requests.inbox', ['requests' => $paginated]);
     }
 
-    public function show($id)
-    {
-        $req = MatchRequest::with('user')->findOrFail($id);
+   public function show($id)
+{
+  
+    $req = MatchRequest::with('user')->find($id);
+    if ($req) {
+        
+        if ($req->request_type === 'score_update') {
+            return view('admin.match_requests.show_score_update', compact('req'));
+        }
+        
         return view('admin.match_requests.show', compact('req'));
     }
+
+
+    $prod = ProductRequest::with('user')->find($id);
+    if ($prod) {
+       
+        return redirect()->route('admin.product_requests.show', $prod->id);
+    }
+
+    abort(404);
+}
+
+
 
     public function accept($id)
     {
@@ -369,11 +387,19 @@ class MatchRequestController extends Controller
             ->with('success', 'Pieprasījums apstiprināts — rediģējiet maču un pievienojiet cenu.');
     }
 
-    public function reject($id)
-    {
-        $req = MatchRequest::findOrFail($id);
-        $req->update(['status' => 'rejected']);
+   public function reject($id, Request $request)
+{
+    \Log::info("Reject endpoint hit", ['id' => $id, 'user_id' => auth()->id()]);
 
-        return back()->with('success', 'Pieprasījums noraidīts.');
+    $req = MatchRequest::find($id);
+    if (! $req) {
+        \Log::warning("MatchRequest not found for reject", ['id' => $id]);
+        return redirect()->route('admin.match_requests.inbox')->with('error', "Pieprasījums #{$id} nav atrasts.");
     }
+
+    $req->update(['status' => 'rejected']);
+    return redirect()->route('admin.match_requests.inbox')->with('success', 'Pieprasījums noraidīts.');
+}
+
+
 }

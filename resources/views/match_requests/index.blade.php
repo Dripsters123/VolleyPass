@@ -1,6 +1,6 @@
 <x-app-layout>
   <div class="max-w-5xl mx-auto p-6 bg-white rounded mt-8 shadow">
-    <h1 class="text-2xl font-bold mb-4 text-blue-700">Mani mača pieprasījumi</h1>
+    <h1 class="text-2xl font-bold mb-4 text-blue-700">Mani pieprasījumi</h1>
 
     <form method="GET" class="mb-4 flex gap-2 items-center">
       <select name="type" class="p-2 border rounded">

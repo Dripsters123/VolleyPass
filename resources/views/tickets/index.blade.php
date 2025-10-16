@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            My Tickets
+           Manas biļetes
         </h2>
     </x-slot>
 
@@ -13,14 +13,14 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-100">
                         <tr>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Match</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Type</th>
-                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Quantity</th>
-                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Paid</th>
-                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Seats</th>
-                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Status</th>
-                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Purchased</th>
-                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Coins</th>
+                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Mačš</th>
+                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Tips</th>
+                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Daudzums</th>
+                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Summa</th>
+                            <th class="px-4 py-2 text-left text-sm font-semibold text-gray-700">Sēdvietas</th>
+                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Statuss</th>
+                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Nopirkts</th>
+                            <th class="px-4 py-2 text-center text-sm font-semibold text-gray-700">Monētas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
@@ -62,18 +62,18 @@
                                         <form action="{{ route('tickets.claim', $ticket->id) }}" method="POST" onsubmit="return confirm('Apstiprināt monētu pieprasījumu?');">
                                             @csrf
                                             <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
-                                                Claim {{ $ticket->quantity * 50 }} coins
+                                                Saņemt {{ $ticket->quantity * 50 }} coins
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-500 text-sm">Claimed</span>
+                                        <span class="text-gray-500 text-sm">Monētas saņemtas</span>
                                     @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
                                 <td colspan="8" class="px-4 py-6 text-center text-gray-500">
-                                    No tickets purchased.
+                                    Nav nopirktu biļešu!
                                 </td>
                             </tr>
                         @endforelse
@@ -125,16 +125,16 @@
                                 <form action="{{ route('tickets.claim', $ticket->id) }}" method="POST" onsubmit="return confirm('Apstiprināt monētu pieprasījumu?');">
                                     @csrf
                                     <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">
-                                        Claim {{ $ticket->quantity * 50 }} coins
+                                        Saņemt {{ $ticket->quantity * 50 }} coins
                                     </button>
                                 </form>
                             @else
-                                <span class="text-gray-500 text-sm">Coins claimed</span>
+                                <span class="text-gray-500 text-sm">Monētas saņemtas</span>
                             @endif
                         </div>
                     </div>
                 @empty
-                    <div class="text-center text-gray-500 py-6">No tickets purchased.</div>
+                    <div class="text-center text-gray-500 py-6">Nav nopirktu biļešu!</div>
                 @endforelse
             </div>
 

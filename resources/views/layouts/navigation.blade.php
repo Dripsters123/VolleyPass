@@ -37,7 +37,7 @@
                     </button>
                     <div x-show="matchesDropdown" x-transition class="absolute left-0 mt-2 w-56 bg-white rounded-md shadow-lg text-blue-900 z-50">
                         <a href="{{ route('local.matches.index') }}" class="block px-4 py-2 hover:bg-gray-100">Volejbola mači</a>
-                        <a href="{{ route('calendar.index') }}" class="block px-4 py-2 hover:bg-gray-100">Kalendārs</a>
+                        <a href="{{ route('calendar.index') }}" class="block px-4 py-2 hover:bg.gray-100">Kalendārs</a>
                         @auth
                             <a href="{{ route('match_requests.create') }}" class="block px-4 py-2 hover:bg-gray-100">Izveidot pieprasījumu</a>
                             @if(auth()->user()->role === 'admin')
@@ -70,13 +70,13 @@
                 @auth
                     <a href="{{ route('tickets.index') }}" class="px-3 py-1 border rounded-md hover:bg-white/10 text-sm">Manas biļetes</a>
                     <a href="{{ route('predictions.index') }}" class="px-3 py-1 border rounded-md hover:bg-white/10 text-sm">Prognozes</a>
+                    <a href="{{ route('match_requests.my') }}" class="px-3 py-1 border rounded-md hover:bg-white/10 text-sm">Mani pieprasījumi</a>
 
                     @if(auth()->user()->role === 'admin')
                         <a href="{{ route('admin.match_requests.inbox') }}" 
                           class="px-3 py-1 border rounded-md hover:bg-white/10 text-sm">
                             Admin Inbox
                         </a>
-                        
                     @endif
                 @endauth
 
@@ -99,6 +99,10 @@
                              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg text-blue-900 z-50">
                             <a href="{{ route('profile.edit') }}" class="block px-4 py-2 hover:bg-gray-100">Profils</a>
                             <a href="{{ route('wallet.show') }}" class="block px-4 py-2 hover:bg-gray-100">Atlaides kartes</a>
+
+                            <!-- ADDED: Mani pieprasījumi (user dropdown) -->
+                            <a href="{{ route('match_requests.my') }}" class="block px-4 py-2 hover:bg-gray-100">Mani pieprasījumi</a>
+
                             <a href="{{ route('products.index') }}?mine=1" class="block px-4 py-2 hover:bg-gray-100">Mani produkti</a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -122,6 +126,7 @@
                 <a href="{{ route('wallet.show') }}" class="block px-3 py-2 hover:bg-gray-100">Atlaides kartes</a>
                 <a href="{{ route('tickets.index') }}" class="block px-3 py-2 hover:bg-gray-100">Manas biļetes</a>
                 <a href="{{ route('predictions.index') }}" class="block px-3 py-2 hover:bg-gray-100">Prognozes</a>
+                <a href="{{ route('match_requests.my') }}" class="block px-3 py-2 hover:bg-gray-100">Mani pieprasījumi</a>
 
                 @if(auth()->user()->role === 'admin')
                     <a href="{{ route('admin.match_requests.inbox') }}" 

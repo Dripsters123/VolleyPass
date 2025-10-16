@@ -26,9 +26,6 @@ class PaymentController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
-    /**
-     * Debug helper (appends to storage/logs/stripe_debug.log)
-     */
     protected function stripeDebugLog($label, $data)
     {
         try {
@@ -40,10 +37,7 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Create a Stripe Checkout session for buying seats (tickets).
-     * Accepts optional single discount_code which is validated against DiscountCard.
-     */
+
     public function checkout(Request $request)
     {
         $request->validate([
@@ -63,7 +57,6 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Unauthenticated'], 401);
         }
 
-        // Prevent stacking (arrays or comma lists)
         if (is_array($request->input('discount_code'))) {
             return response()->json(['error' => 'Only a single discount code may be used'], 400);
         }
@@ -84,7 +77,6 @@ class PaymentController extends Controller
             $appliedDiscount = $d;
         }
 
-        // Reserve seats for the short term (15 minutes)
         DB::beginTransaction();
         try {
             $reservationWindow = Carbon::now()->addMinutes(15);
@@ -105,13 +97,11 @@ class PaymentController extends Controller
                     return response()->json(['error' => "Seat {$seatId} not found"], 404);
                 }
 
-                // Already purchased?
                 if (!is_null($seat->ticket_id)) {
                     DB::rollBack();
                     return response()->json(['error' => "Seat {$seatId} already taken"], 409);
                 }
 
-                // Reserved by someone else?
                 if ($seat->reserved_by !== null && $seat->reserved_by !== $user->id) {
                     if ($seat->reserved_until === null || $seat->reserved_until->isFuture()) {
                         DB::rollBack();
@@ -119,7 +109,6 @@ class PaymentController extends Controller
                     }
                 }
 
-                // set reservation
                 $seat->reserved_by = $user->id;
                 $seat->reserved_until = $reservationWindow;
                 $seat->save();
@@ -132,7 +121,6 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Failed to reserve seats'], 500);
         }
 
-        // Build line items applying discount per-seat if needed
         $discountPercent = $appliedDiscount ? (int)$appliedDiscount->discount_percent : 0;
         $lineItems = [];
         $originalTotal = 0.0;
@@ -181,7 +169,6 @@ class PaymentController extends Controller
                 'metadata' => $sessionMetadata,
             ]);
 
-            // debug
             $this->stripeDebugLog('checkout.created_session', ['session_id' => $session->id, 'metadata' => $sessionMetadata]);
 
             return response()->json(['url' => $session->url]);
@@ -192,9 +179,6 @@ class PaymentController extends Controller
         }
     }
 
-    /**
-     * Success redirect - finalize purchase (idempotent)
-     */
     public function success(Request $request)
     {
         $sessionId = $request->query('session_id');
@@ -221,7 +205,6 @@ class PaymentController extends Controller
         $seatsArray = json_decode($metadata->seats ?? '[]', true) ?: [];
         $paymentIntentId = is_object($session->payment_intent) ? $session->payment_intent->id : $session->payment_intent;
 
-        // Consume discount if present (best-effort)
         if (!empty($metadata->discount_code)) {
             try {
                 $dcode = (string) $metadata->discount_code;
@@ -239,7 +222,6 @@ class PaymentController extends Controller
             }
         }
 
-        // Idempotent ticket creation & seat finalization
         try {
             $existing = Ticket::where('stripe_payment_intent', $paymentIntentId)->first();
             if ($existing) {
@@ -258,12 +240,10 @@ class PaymentController extends Controller
                 $totalAmount += $price;
             }
 
-            // fallback amount if seat prices missing
             if ($totalAmount <= 0 && property_exists($session, 'amount_total')) {
                 $totalAmount = $session->amount_total / 100;
             }
 
-            // create ticket without mass assignment
             $ticket = new Ticket();
             $ticket->user_id = $userId;
             $ticket->event_id = $matchId;
@@ -279,7 +259,6 @@ class PaymentController extends Controller
 
             $this->stripeDebugLog('success.ticket_created', $ticket->toArray());
 
-            // attach seats idempotently & clear reservations
             foreach ($seatIds as $seatId) {
                 $seat = Seat::where('id', $seatId)
                     ->where('match_id', $matchId)
@@ -318,9 +297,7 @@ class PaymentController extends Controller
         return view('payment.cancel');
     }
 
-    /**
-     * Webhook handler. Idempotent and will finalize seats & tickets.
-     */
+
     public function webhook(Request $request)
     {
         $payload = $request->getContent();
@@ -363,7 +340,6 @@ class PaymentController extends Controller
             $paymentIntent = is_object($session->payment_intent) ? $session->payment_intent->id : $session->payment_intent;
             $amountPaid = property_exists($session, 'amount_total') ? ($session->amount_total / 100) : null;
 
-            // Consume discount if provided in metadata (mark inactive and attach stripe intent)
             if (!empty($metadata->discount_code)) {
                 try {
                     $dcode = (string)$metadata->discount_code;
@@ -400,7 +376,7 @@ class PaymentController extends Controller
                 }
 
                 if (empty($seatIds) && $amountPaid !== null) {
-                    // create ticket without seat assignment
+                   
                     $ticket = new Ticket();
                     $ticket->user_id = $userId ?: null;
                     $ticket->event_id = $matchId ?: null;
@@ -460,9 +436,6 @@ class PaymentController extends Controller
         return response()->json(['status' => 'ignored'], 200);
     }
 
-    /**
-     * Validate a discount code (preview only) — used by client to show preview before checkout.
-     */
     public function validateDiscount(Request $request)
     {
         $request->validate([

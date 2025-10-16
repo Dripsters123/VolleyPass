@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductRequest;
+use App\Models\MatchRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -158,21 +159,33 @@ class ProductRequestController extends Controller
             ->with('success', 'Produkts veiksmīgi izveidots un pieprasījums apstiprināts.');
     }
 
-    public function reject(Request $request, ProductRequest $productRequest)
-    {
-        if ($productRequest->status !== 'pending') {
-            return back()->with('error', 'Šis pieprasījums jau apstrādāts.');
-        }
+  public function reject($id)
+{
+    \Log::info('Reject request received', [
+        'url' => request()->fullUrl(),
+        'payload' => request()->all(),
+    ]);
 
-        $validated = $request->validate([
-            'admin_note' => 'nullable|string|max:1000',
-        ]);
+    $req = ProductRequest::find($id);
 
-        $productRequest->update([
-            'status' => 'rejected',
-            'admin_note' => $validated['admin_note'] ?? null,
-        ]);
-
-        return back()->with('success', 'Pieprasījums ir noraidīts.');
+    if (! $req) {
+        \Log::warning("Reject attempted but ProductRequest not found", ['id' => $id]);
+        return redirect()->route('admin.match_requests.inbox')
+            ->with('error', "Pieprasījums #{$id} nav atrasts.");
     }
+
+    try {
+        $req->update(['status' => 'rejected']);
+        \Log::info("ProductRequest rejected", ['id' => $id, 'user_id' => auth()->id()]);
+    } catch (\Throwable $e) {
+        \Log::error("ProductRequest reject failed", ['id' => $id, 'error' => $e->getMessage()]);
+        return redirect()->route('admin.match_requests.inbox')
+            ->with('error', 'Neizdevās noraidīt pieprasījumu.');
+    }
+
+    return redirect()->route('admin.match_requests.inbox')
+        ->with('success', "Produkta pieprasījums #{$id} noraidīts.");
+}
+
+
 }
