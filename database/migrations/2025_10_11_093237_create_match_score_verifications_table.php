@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('match_id')->constrained('volleyball_matches')->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); 
-            $table->integer('home_score')->nullable();
-            $table->integer('away_score')->nullable();
+            $table->integer('home_score');
+            $table->integer('away_score');
             $table->boolean('approved')->default(false); 
             $table->integer('approvals')->default(0);   
             $table->json('confirmations')->nullable();  

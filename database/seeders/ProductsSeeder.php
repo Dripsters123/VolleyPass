@@ -19,12 +19,14 @@ class ProductsSeeder extends Seeder
     {
         $faker = Faker::create();
 
-        // Ensure we have at least 4 non-admin users
         $users = User::where('role', '!=', 'admin')->get();
         if ($users->count() < 4) {
             User::factory()->count(6)->create();
             $users = User::where('role', '!=', 'admin')->get();
         }
+
+  
+        $this->ensurePlaceholderExists();
 
         $requestTypes = ['create_product', 'update_product', 'delete_request', 'price_change'];
 
@@ -34,84 +36,101 @@ class ProductsSeeder extends Seeder
             $price = $faker->randomFloat(2, 3, 120);
             $description = $faker->paragraphs(2, true);
 
-            // Create product
-            $product = Product::create([
-                'user_id' => $seller->id,
-                'title' => $title,
-                'description' => $description,
-                'price' => $price,
-                'currency' => 'eur',
-                'status' => 'active',
-                'image_path' => null,
-            ]);
-
-            // Generate simple SVG thumbnail
             try {
-                $svg = $this->generateProductSvg($product->title);
-                $path = "product_images/product_{$product->id}_" . Str::slug($product->title) . ".svg";
-                Storage::disk('public')->put($path, $svg);
-                $product->image_path = $path;
-                $product->save();
+                $svg = $this->generateProductSvg($title);
+                $slug = Str::slug($title);
+                $filename = 'product_images/product_' . now()->format('Ymd_His') . '_' . uniqid() . '_' . $slug . '.svg';
+                Storage::disk('public')->put($filename, $svg);
+                $imagePath = $filename;
             } catch (\Throwable $e) {
-                \Log::warning("ProductsSeeder: failed to save image for product {$product->id}: " . $e->getMessage());
+                \Log::warning("ProductsSeeder: failed to generate image for title '{$title}': " . $e->getMessage());
+                $imagePath = 'product_images/placeholder.svg';
             }
 
-            // Randomly mark some products as sold
+            $product = Product::create([
+                'user_id'    => $seller->id,
+                'title'      => $title,
+                'description'=> $description,
+                'price'      => $price,
+                'currency'   => 'eur',
+                'status'     => 'active',
+                'image_path' => $imagePath,
+            ]);
+
             if (random_int(1, 100) <= 20) {
-                $buyer = $users->where('id', '!=', $seller->id)->random();
-                $order = Order::create([
-                    'buyer_id' => $buyer->id,
-                    'product_id' => $product->id,
-                    'amount' => $product->price,
-                    'currency' => $product->currency,
-                    'status' => 'paid',
-                    'stripe_payment_intent' => 'seeded-intent-' . Str::random(12),
-                ]);
+                $buyerCandidates = $users->filter(fn($u) => $u->id !== $seller->id)->values();
+                if ($buyerCandidates->isNotEmpty()) {
+                    $buyer = $buyerCandidates->random();
+                    $order = Order::create([
+                        'buyer_id' => $buyer->id,
+                        'product_id' => $product->id,
+                        'amount' => $product->price,
+                        'currency' => $product->currency,
+                        'status' => 'paid',
+                        'stripe_payment_intent' => 'seeded-intent-' . Str::random(12),
+                    ]);
 
-                $product->status = 'sold';
-                $product->save();
+                    $product->status = 'sold';
+                    $product->save();
 
-                // Credit seller wallet
-                try {
-                    $coinsRate = floatval(config('app.product_sale_coins_rate', 1.0));
-                    $coins = round($product->price * $coinsRate, 2);
-                    $wallet = Wallet::firstOrCreate(['user_id' => $seller->id], ['balance' => 0]);
+                    try {
+                        $coinsRate = floatval(config('app.product_sale_coins_rate', 1.0));
+                        $coins = round($product->price * $coinsRate, 2);
+                        $wallet = Wallet::firstOrCreate(['user_id' => $seller->id], ['balance' => 0]);
 
-                    if (method_exists($wallet, 'credit')) {
-                        $wallet->credit($coins, 'earned_sale', $seller->id, $order, 'Seeded product sale');
-                    } else {
-                        $wallet->balance += $coins;
-                        $wallet->save();
-                        if (DB::getSchemaBuilder()->hasTable('wallet_transactions')) {
-                            DB::table('wallet_transactions')->insert([
-                                'wallet_id' => $wallet->id,
-                                'user_id' => $seller->id,
-                                'type' => 'earned_sale',
-                                'amount' => $coins,
-                                'status' => 'completed',
-                                'related_type' => get_class($order),
-                                'related_id' => $order->id,
-                                'note' => 'Seeded product sale',
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
+                        if (method_exists($wallet, 'credit')) {
+                            $wallet->credit($coins, 'earned_sale', $seller->id, $order, 'Seeded product sale');
+                        } else {
+                            $wallet->balance += $coins;
+                            $wallet->save();
+                            if (DB::getSchemaBuilder()->hasTable('wallet_transactions')) {
+                                DB::table('wallet_transactions')->insert([
+                                    'wallet_id' => $wallet->id,
+                                    'user_id' => $seller->id,
+                                    'type' => 'earned_sale',
+                                    'amount' => $coins,
+                                    'status' => 'completed',
+                                    'related_type' => get_class($order),
+                                    'related_id' => $order->id,
+                                    'note' => 'Seeded product sale',
+                                    'created_at' => now(),
+                                    'updated_at' => now(),
+                                ]);
+                            }
                         }
+                    } catch (\Throwable $e) {
+                        \Log::warning("ProductsSeeder: failed to credit seller {$seller->id} for product {$product->id}: " . $e->getMessage());
                     }
-                } catch (\Throwable $e) {
-                    \Log::warning("ProductsSeeder: failed to credit seller {$seller->id} for product {$product->id}: " . $e->getMessage());
                 }
             }
 
             ProductRequest::create([
-                'user_id' => $users->random()->id,
-                'product_id' => $product->id,
-                'request_type' => $faker->randomElement($requestTypes),
-                'title' => $product->title,
+                'user_id'     => $users->random()->id,
+                'product_id'  => $product->id,
+                'request_type'=> $faker->randomElement($requestTypes),
+                'title'       => $product->title,
                 'description' => $product->description,
-                'price' => $product->price,
-                'currency' => $product->currency,
-                'status' => $faker->randomElement(['pending', 'approved', 'rejected']),
+                'price'       => $product->price,
+                'currency'    => $product->currency,
+                'status'      => $faker->randomElement(['pending', 'approved', 'rejected']),
+               
+                'image_path'  => $product->image_path,
             ]);
+        }
+    }
+
+   
+    private function ensurePlaceholderExists(): void
+    {
+        $placeholderPath = 'product_images/placeholder.svg';
+        if (!Storage::disk('public')->exists($placeholderPath)) {
+            try {
+                $svg = $this->generateProductSvg('PRODUCT');
+                Storage::disk('public')->put($placeholderPath, $svg);
+            } catch (\Throwable $e) {
+                \Log::warning("ProductsSeeder: failed to create placeholder image: " . $e->getMessage());
+              
+            }
         }
     }
 

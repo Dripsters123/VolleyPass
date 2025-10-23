@@ -11,21 +11,20 @@ return new class extends Migration
         Schema::create('volleyball_matches', function (Blueprint $table) {
             $table->id();
 
-            
             $table->boolean('is_local')->default(false);
+
             $table->string('home_team_name');
             $table->string('away_team_name');
 
             
-            $table->string('home_coach')->nullable();
-            $table->string('away_coach')->nullable();
+            $table->string('home_coach');
+            $table->string('away_coach');
 
             
-            $table->string('location')->nullable();
-            $table->json('arena')->nullable();
+            $table->string('location');
 
       
-            $table->json('judges')->nullable();
+            $table->json('judges');
 
          
             $table->integer('players_per_team')->default(6);
@@ -35,17 +34,17 @@ return new class extends Migration
 
           
             $table->dateTime('start_time');
-            $table->dateTime('end_time')->nullable();
+            $table->dateTime('end_time');
             $table->dateTime('actual_end_time')->nullable();
             $table->integer('estimated_duration_minutes')->default(90);
 
             
-            $table->integer('home_score')->nullable();
-            $table->integer('away_score')->nullable();
+            $table->integer('home_score')->default(0);
+            $table->integer('away_score')->default(0);
 
            
-            $table->json('home_players')->nullable();
-            $table->json('away_players')->nullable();
+            $table->json('home_players');
+            $table->json('away_players');
 
            
             $table->string('home_logo')->nullable();

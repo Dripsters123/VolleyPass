@@ -23,9 +23,6 @@ class MatchRequestController extends Controller
             ->exists();
     }
 
-    // ========================
-    // USER-LEVEL ACTIONS
-    // ========================
 
     public function create()
     {

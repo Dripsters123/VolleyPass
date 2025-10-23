@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('volleyball_match_sets', function (Blueprint $table) {
             $table->id();
             $table->foreignId('match_id')->constrained('volleyball_matches')->onDelete('cascade');
-            $table->unsignedTinyInteger('set_number'); // 1, 2, 3, etc.
-            $table->unsignedTinyInteger('home_score')->nullable(); // 0–99 safe range
+            $table->unsignedTinyInteger('set_number'); 
+            $table->unsignedTinyInteger('home_score')->nullable();
             $table->unsignedTinyInteger('away_score')->nullable();
             $table->boolean('completed')->default(false);
             $table->timestamps();

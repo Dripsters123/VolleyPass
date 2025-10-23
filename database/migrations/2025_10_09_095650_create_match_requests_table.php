@@ -17,9 +17,9 @@ return new class extends Migration {
             $table->string('away_team');
 
          
-            $table->string('home_coach')->nullable();
-            $table->string('away_coach')->nullable();
-            $table->string('location')->nullable();
+            $table->string('home_coach');
+            $table->string('away_coach');
+            $table->string('location');
             $table->string('home_logo')->nullable();
             $table->string('away_logo')->nullable();
 
@@ -29,11 +29,11 @@ return new class extends Migration {
 
            
             $table->integer('players_per_team');
-            $table->json('home_players')->nullable(); // still array, but separated by team
-            $table->json('away_players')->nullable();
+            $table->json('home_players');
+            $table->json('away_players');
 
           
-            $table->json('judges')->nullable();
+            $table->json('judges');
 
            
             $table->integer('score_home')->nullable();

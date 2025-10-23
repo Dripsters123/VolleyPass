@@ -39,7 +39,6 @@ class VolleyballMatch extends Model
     ];
 
     protected $casts = [
-        'arena' => 'array',
         'home_players' => 'array',
         'away_players' => 'array',
         'judges' => 'array',
@@ -68,11 +67,6 @@ class VolleyballMatch extends Model
     public function tickets()
     {
         return $this->hasMany(Ticket::class, 'event_id');
-    }
-
-    public function statistics()
-    {
-        return $this->hasMany(VolleyballMatchStatistic::class, 'match_id');
     }
 
    public function generateSeats(array $sides = null, int $rows = null, int $cols = null, ?float $price = null): int

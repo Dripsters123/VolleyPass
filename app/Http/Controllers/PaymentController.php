@@ -58,10 +58,10 @@ class PaymentController extends Controller
         }
 
         if (is_array($request->input('discount_code'))) {
-            return response()->json(['error' => 'Only a single discount code may be used'], 400);
+            return response()->json(['error' => 'Tikai vienu atlaižu kodu var izmantot'], 400);
         }
         if (is_string($discountCode) && strpos($discountCode, ',') !== false) {
-            return response()->json(['error' => 'Only a single discount code may be used'], 400);
+            return response()->json(['error' => 'Tikai vienu atlaižu kodu var izmantot'], 400);
         }
 
         $appliedDiscount = null;
@@ -84,7 +84,7 @@ class PaymentController extends Controller
                 $seatId = $s['seat_id'] ?? null;
                 if (! $seatId) {
                     DB::rollBack();
-                    return response()->json(['error' => 'Invalid seat_id'], 400);
+                    return response()->json(['error' => 'Nepareizs seat_id'], 400);
                 }
 
                 $seat = Seat::where('id', $seatId)
@@ -94,18 +94,18 @@ class PaymentController extends Controller
 
                 if (! $seat) {
                     DB::rollBack();
-                    return response()->json(['error' => "Seat {$seatId} not found"], 404);
+                    return response()->json(['error' => "Sēdvietas {$seatId} nav atrasts"], 404);
                 }
 
                 if (!is_null($seat->ticket_id)) {
                     DB::rollBack();
-                    return response()->json(['error' => "Seat {$seatId} already taken"], 409);
+                    return response()->json(['error' => "Sēdvieta {$seatId} ir jau nopirkta"], 409);
                 }
 
                 if ($seat->reserved_by !== null && $seat->reserved_by !== $user->id) {
                     if ($seat->reserved_until === null || $seat->reserved_until->isFuture()) {
                         DB::rollBack();
-                        return response()->json(['error' => "Seat {$seatId} temporarily reserved"], 409);
+                        return response()->json(['error' => "Sēdvieta {$seatId} ir uz laiku rezervēta"], 409);
                     }
                 }
 

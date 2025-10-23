@@ -16,6 +16,7 @@ return new class extends Migration
 
            
             $table->unsignedBigInteger('match_id');
+            $table->unsignedBigInteger('user_id')->nullable()->index();
             $table->foreignId('ticket_id')->nullable()->constrained('tickets')->onDelete('set null');
 
          
@@ -29,7 +30,7 @@ return new class extends Migration
             $table->foreignId('reserved_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamp('reserved_until')->nullable();
 
-            $table->unsignedBigInteger('user_id')->nullable()->index();
+           
             $table->timestamps();
 
             $table->foreign('match_id')

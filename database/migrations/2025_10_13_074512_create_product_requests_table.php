@@ -13,12 +13,11 @@ return new class extends Migration {
             $table->foreignId('product_id')->nullable()->constrained()->nullOnDelete();
             $table->enum('request_type', ['create_product', 'update_product', 'delete_request', 'price_change'])->default('create_product');
             $table->string('title');
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->decimal('price', 10, 2);
             $table->string('currency')->default('eur');
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('admin_note')->nullable();
-            $table->string('image_path')->nullable();
+            $table->string('image_path');
             $table->timestamps();
         });
     }
