@@ -136,14 +136,48 @@ class MatchRequestController extends Controller
             ->with('success', 'Jūsu mača pieprasījums nosūtīts administratoram.');
     }
 
-    public function myRequests()
-    {
-        $requests = MatchRequest::where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc')
-            ->get();
+    public function myRequests(Request $request)
+{
+    $matchRequests = MatchRequest::where('user_id', Auth::id())
+        ->orderBy('created_at', 'desc')
+        ->get();
 
-        return view('match_requests.index', compact('requests'));
+    $productRequests = ProductRequest::where('user_id', Auth::id())
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    // Normalize both collections into a single collection with type info
+    $requests = collect();
+
+    foreach ($matchRequests as $m) {
+        $m->type = $m->request_type === 'score_update' ? 'score_update' : 'match';
+        $requests->push($m);
     }
+
+    foreach ($productRequests as $p) {
+        $p->type = 'product';
+        $requests->push($p);
+    }
+
+    // Sort by newest first
+    $requests = $requests->sortByDesc(fn($r) => $r->created_at)->values();
+
+    // Paginate manually
+    $perPage = 10;
+    $page = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
+    $itemsForPage = $requests->slice(($page - 1) * $perPage, $perPage)->values();
+
+    $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+        $itemsForPage,
+        $requests->count(),
+        $perPage,
+        $page,
+        ['path' => url()->current(), 'query' => request()->query()]
+    );
+
+    return view('match_requests.index', ['requests' => $paginated]);
+}
+
 
     public function view($id)
     {

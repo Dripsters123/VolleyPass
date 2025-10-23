@@ -17,7 +17,7 @@ class ProductRequestController extends Controller
             ->latest()
             ->paginate(10);
 
-        return view('product_requests.index', compact('requests'));
+        return view('match_requests.index', compact('requests'));
     }
 
     public function create()
@@ -186,5 +186,16 @@ class ProductRequestController extends Controller
         ->with('success', "Produkta pieprasījums #{$id} noraidīts.");
 }
 
+public function cancel(ProductRequest $productRequest)
+{
+    if ($productRequest->user_id !== Auth::id() || $productRequest->status !== 'pending') {
+        abort(403, 'Jūs nevarat atcelt šo pieprasījumu.');
+    }
+
+    $productRequest->delete(); 
+
+    return redirect()->route('product_requests.index')
+        ->with('success', 'Jūsu pieprasījums tika atcelts.');
+}
 
 }

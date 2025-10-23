@@ -134,7 +134,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-
+Route::delete('/product-requests/{productRequest}/cancel', [ProductRequestController::class, 'cancel'])
+        ->name('product_requests.cancel');
     Route::post('/products/{product}/buy', [ProductController::class, 'buy'])->name('products.buy');
     Route::get('/products/purchase-success', [ProductController::class, 'purchaseSuccess'])->name('products.purchase_success');
     Route::get('/products/purchase-cancel', [ProductController::class, 'purchaseCancel'])->name('products.purchase_cancel');
