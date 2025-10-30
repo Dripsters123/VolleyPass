@@ -56,7 +56,7 @@ class ProductRequestController extends Controller
 
         ProductRequest::create($data);
 
-        return redirect()->route('product_requests.index')
+        return redirect()->route('match_requests.my')
             ->with('success', 'Jūsu pieprasījums tika iesniegts administrācijai.');
     }
 
@@ -95,7 +95,7 @@ class ProductRequestController extends Controller
 
         $productRequest->save();
 
-        return redirect()->route('product_requests.index')
+        return redirect()->route('match_requests.my')
             ->with('success', 'Pieprasījums atjaunināts.');
     }
 
@@ -194,7 +194,7 @@ public function cancel(ProductRequest $productRequest)
 
     $productRequest->delete(); 
 
-    return redirect()->route('product_requests.index')
+    return redirect()->route('match_requests.my')
         ->with('success', 'Jūsu pieprasījums tika atcelts.');
 }
 

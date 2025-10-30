@@ -34,7 +34,7 @@
                                     <a href="{{ route('product_requests.edit', $r->id) }}" class="px-3 py-1 bg-yellow-500 text-white rounded text-sm">Rediģēt</a>
 
                                     <!-- Cancel Button -->
-                                    <form action="{{ route('product_requests.cancel', $r->id) }}" method="POST" onsubmit="return confirm('Vai tiešām vēlaties atcelt šo pieprasījumu?');" class="inline">
+                                    <form action="{{ route('match_requests.my', $r->id) }}" method="POST" onsubmit="return confirm('Vai tiešām vēlaties atcelt šo pieprasījumu?');" class="inline">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded text-sm">Atcelt</button>

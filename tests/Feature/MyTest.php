@@ -1,20 +1,31 @@
 <?php
 
-use App\Models\User;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Faker\Factory as Faker;
 
+uses(RefreshDatabase::class);
 
+it('registers a random user successfully', function () {
+    Event::fake();
 
-it('Allows the user to register', function () {
+    $faker = Faker::create();
+
+    $name = $faker->firstName();
+    $email = $faker->unique()->safeEmail();
+    $password = 'Password123!';
+
     $page = visit('/register');
 
-User::factory()->create([
-    'email' => 'kristers@example.com',
-    'password' => bcrypt('password'),
-]);
+    $page->fill('input[name=name]', $name)
+         ->fill('input[name=email]', $email)
+         ->fill('input[name=password]', $password)
+         ->fill('input[name=password_confirmation]', $password)
+         ->click('button[type=submit]') 
+         ->assertSee('Sveiks');       
 
-    $page->fill('name', 'kristers')
-         ->fill('email', 'kristers@example.com')
-         ->fill('password', 'password')
-         ->fill('password_confirmation', 'password')
-         ->click('Reģistrēties');
+    $this->assertAuthenticated();
+
+    Event::assertDispatched(Registered::class);
 });

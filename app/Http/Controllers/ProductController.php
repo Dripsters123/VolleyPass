@@ -5,9 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Order;
-use App\Models\Wallet;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
 
@@ -25,139 +23,136 @@ class ProductController extends Controller
         if ($request->filled('mine') && auth()->check()) {
             $query->where('user_id', auth()->id());
         }
-
         $products = $query->paginate(12);
         return view('products.index', compact('products'));
     }
 
     public function show(Product $product)
     {
+        if ($product->status !== 'active') abort(404);
         return view('products.show', compact('product'));
     }
-
     public function create()
-    {
-        return view('products.create');
+{
+    return view('products.create');
+}
+
+public function store(Request $request)
+{
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'description' => 'nullable|string',
+        'price' => 'required|numeric|min:0',
+        'image' => 'nullable|image|max:2048',
+    ]);
+
+    $path = $request->file('image')?->store('products', 'public');
+
+    $product = Product::create([
+        'user_id' => auth()->id(),
+        'title' => $request->title,
+        'description' => $request->description,
+        'price' => $request->price,
+        'currency' => 'eur',
+        'image_path' => $path,
+        'status' => 'active',
+    ]);
+
+    return redirect()->route('products.show', $product)
+        ->with('success', 'Product created successfully!');
+}
+    // Funkcija, kas apstrādā produkta pirkšanas procesu, izmantojot Stripe
+public function buy(Request $request, Product $product)
+{
+    // Neļauj lietotājam nopirkt savu produktu
+    if ($product->user_id == $request->user()->id) {
+        return redirect()->route('products.show', $product)
+            ->with('error', 'Jūs nevarat iegādāties savu produktu.');
     }
 
-    public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0.01',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:5120',
-        ]);
-
-        $product = Product::create([
-            'user_id' => auth()->id(),
-            'title' => $request->title,
-            'description' => $request->description,
-            'price' => $request->price,
-            'currency' => 'eur',
-            'status' => 'active',
-        ]);
-
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store("product_images", 'public');
-            $product->image_path = $path;
-            $product->save();
-        }
-
-        return redirect()->route('products.show', $product)->with('success', 'Product created.');
+    // Pārbauda, vai produkts ir aktīvs un pieejams pirkšanai
+    if ($product->status !== 'active') {
+        return redirect()->route('products.show', $product)
+            ->with('error', 'Produkts nav pieejams.');
     }
 
-    public function edit(Product $product)
-    {
-        $this->authorize('update', $product);
-        return view('products.edit', compact('product'));
-    }
+    // Ja lietotājs nav pieslēdzies – pāradresē uz pieteikšanās lapu
+    $user = $request->user();
+    if (! $user) return redirect()->route('login');
 
-    public function update(Request $request, Product $product)
-    {
-        $this->authorize('update', $product);
+    // Izveido jaunu pasūtījumu datubāzē ar statusu "pending"
+    $order = Order::create([
+        'buyer_id' => $user->id,
+        'product_id' => $product->id,
+        'amount' => $product->price,
+        'currency' => $product->currency ?? 'eur',
+        'status' => 'pending',
+    ]);
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric|min:0.01',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,svg|max:5120',
-        ]);
-
-        $product->update($request->only(['title','description','price']));
-
-        if ($request->hasFile('image')) {
-            if ($product->image_path) Storage::disk('public')->delete($product->image_path);
-            $path = $request->file('image')->store("product_images", 'public');
-            $product->image_path = $path;
-            $product->save();
-        }
-
-        return redirect()->route('products.show', $product)->with('success', 'Product updated.');
-    }
-
-    public function destroy(Product $product)
-    {
-        $this->authorize('delete', $product);
-
-        if ($product->image_path) Storage::disk('public')->delete($product->image_path);
-
-        $product->status = 'removed';
-        $product->save();
-
-        return redirect()->route('products.index')->with('success', 'Product removed.');
-    }
-
-    public function buy(Request $request, Product $product)
-    {
-        if ($product->status !== 'active') {
-            return response()->json(['error' => 'Product is not available'], 400);
-        }
-
-        $user = $request->user();
-        if (! $user) return response()->json(['error'=>'Unauthenticated'],401);
-
-        $order = Order::create([
-            'buyer_id' => $user->id,
-            'product_id' => $product->id,
-            'amount' => $product->price,
-            'currency' => $product->currency ?? 'eur',
-            'status' => 'pending',
-        ]);
-
-        try {
-            $session = StripeSession::create([
-                'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price_data' => [
-                        'currency' => $product->currency ?? 'eur',
-                        'product_data' => ['name' => $product->title],
-                        'unit_amount' => (int) round($product->price * 100),
-                    ],
-                    'quantity' => 1,
-                ]],
-                'mode' => 'payment',
-                'success_url' => route('products.purchase_success') . '?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('products.purchase_cancel'),
-                'metadata' => [
-                    'order_id' => (string) $order->id,
+    try {
+        // Izveido Stripe Checkout sesiju
+        $session = StripeSession::create([
+            'payment_method_types' => ['card'], // Atļautie maksājuma veidi
+            'line_items' => [[
+                'price_data' => [
+                    'currency' => $product->currency ?? 'eur',
+                    'product_data' => ['name' => $product->title], // Produkta nosaukums Stripe sesijā
+                    'unit_amount' => (int) round($product->price * 100), // Cena centos
                 ],
-            ]);
-        } catch (\Throwable $e) {
-            \Log::error('Product buy: Stripe session creation failed: '.$e->getMessage());
-            return response()->json(['error' => 'Payment provider error'], 500);
-        }
-
-        return response()->json(['url' => $session->url]);
+                'quantity' => 1,
+            ]],
+            'mode' => 'payment',
+            // Norāda URL, uz kuru lietotājs tiks novirzīts pēc veiksmīga maksājuma
+            'success_url' => route('products.purchase_success', ['order' => $order->id]) . '&session_id={CHECKOUT_SESSION_ID}',
+            // Norāda URL, ja lietotājs atceļ maksājumu
+            'cancel_url' => route('products.purchase_cancel', ['order' => $order->id]),
+            'metadata' => [
+                'order_id' => (string) $order->id, // Pievieno pasūtījuma ID metadatos
+            ],
+        ]);
+    } catch (\Throwable $e) {
+        // Ja Stripe radās kļūda – pieraksta to log failā un paziņo lietotājam
+        \Log::error("Stripe checkout session error: {$e->getMessage()}");
+        return redirect()->route('products.show', $product)
+            ->with('error', 'Maksājumu sistēmas kļūda.');
     }
 
-    public function purchaseSuccess(Request $request)
-    {
-        return redirect()->route('products.index')->with('success', 'Payment completed — order processing.');
+    // Pāradresē lietotāju uz Stripe maksājuma lapu
+    return redirect()->away($session->url);
+}
+
+
+// Funkcija, kas apstrādā veiksmīgu pirkumu pēc Stripe maksājuma
+public function purchaseSuccess(Request $request)
+{
+    $order = Order::find($request->order);
+
+    // Ja pasūtījums vēl nav apmaksāts, atjauno tā statusu uz "paid"
+    if ($order && $order->status === 'pending') {
+        $order->status = 'paid';
+        $order->save();
     }
 
-    public function purchaseCancel()
-    {
-        return view('products.purchase_cancel');
+    // Pāradresē lietotāju ar veiksmīga maksājuma ziņu
+    return redirect()->route('products.index')
+        ->with('success', 'Maksājums pabeigts — pasūtījums tiek apstrādāts.');
+}
+
+
+// Funkcija, kas apstrādā atceltu pirkumu (ja lietotājs pārtrauc maksājumu Stripe)
+public function purchaseCancel(Request $request)
+{
+    $order = Order::find($request->order);
+
+    // Ja pasūtījums bija gaidīšanas režīmā, atceļ to
+    if ($order && $order->status === 'pending') {
+        $order->status = 'cancelled';
+        $order->save();
     }
+
+    // Pāradresē atpakaļ uz produkta lapu ar kļūdas ziņu
+    return redirect()->route('products.show', $order->product)
+        ->with('error', 'Pasūtījums tika atcelts.');
+}
+
 }

@@ -43,7 +43,7 @@
       </div>
 
       <div class="mt-4">
-        <label class="block text-gray-700 font-medium">S p e l ē t a j u  s k a i t s  k a t r ā  k o m a n d ā</label>
+        <label class="block text-gray-700 font-medium">Formāts</label>
         <select id="players_per_team" name="players_per_team" class="w-full border rounded px-3 py-2">
           @foreach([2, 4, 6] as $n)
             <option value="{{ $n }}" {{ (old('players_per_team', $request->players_per_team) == $n) ? 'selected' : '' }}>

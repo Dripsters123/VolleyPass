@@ -146,7 +146,7 @@ class MatchRequestController extends Controller
         ->orderBy('created_at', 'desc')
         ->get();
 
-    // Normalize both collections into a single collection with type info
+   
     $requests = collect();
 
     foreach ($matchRequests as $m) {
@@ -159,10 +159,10 @@ class MatchRequestController extends Controller
         $requests->push($p);
     }
 
-    // Sort by newest first
+    
     $requests = $requests->sortByDesc(fn($r) => $r->created_at)->values();
 
-    // Paginate manually
+    
     $perPage = 10;
     $page = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
     $itemsForPage = $requests->slice(($page - 1) * $perPage, $perPage)->values();
