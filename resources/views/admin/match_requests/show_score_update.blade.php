@@ -119,21 +119,37 @@
                 </div>
 
                 <h4 class="font-medium mb-2">Spēlētāji</h4>
+
+                @php
+                    $homePlayers = json_decode($req->home_players ?? '[]', true);
+                    if (!is_array($homePlayers)) {
+                        $homePlayers = [];
+                    }
+                    $awayPlayers = json_decode($req->away_players ?? '[]', true);
+                    if (!is_array($awayPlayers)) {
+                        $awayPlayers = [];
+                    }
+                @endphp
+
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <div class="text-sm text-gray-500">Mājas komanda</div>
                         <div class="text-sm">
-                            @foreach(json_decode($req->home_players ?? '[]', true) as $p)
-                                <div>{{ ($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '') }}</div>
-                            @endforeach
+                            @forelse($homePlayers as $p)
+                                <div>{{ trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) }}</div>
+                            @empty
+                                <div class="text-gray-400">Nav spēlētāju</div>
+                            @endforelse
                         </div>
                     </div>
                     <div>
                         <div class="text-sm text-gray-500">Viesu komanda</div>
                         <div class="text-sm">
-                            @foreach(json_decode($req->away_players ?? '[]', true) as $p)
-                                <div>{{ ($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '') }}</div>
-                            @endforeach
+                            @forelse($awayPlayers as $p)
+                                <div>{{ trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) }}</div>
+                            @empty
+                                <div class="text-gray-400">Nav spēlētāju</div>
+                            @endforelse
                         </div>
                     </div>
                 </div>

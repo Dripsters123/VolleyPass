@@ -148,10 +148,23 @@
         const card = document.createElement('div');
         card.className = 'bg-white p-2 rounded-lg border flex justify-between items-center shadow-sm';
         card.style.marginBottom = '6px';
+
+        // Handle custom seats vs grid seats
+        let seatLabel, seatInfo;
+        if (s.seatData) {
+          // Custom seat
+          seatLabel = s.seatData.number || s.seatData.id || 'Custom Seat';
+          seatInfo = `Custom Seat ${seatLabel}`;
+        } else {
+          // Grid seat
+          seatLabel = s.sideLabel || 'Nezināma tribīne';
+          seatInfo = `Rinda ${s.row}, Vieta ${s.number}`;
+        }
+
         card.innerHTML = `
   <div>
-    <div class="font-semibold text-indigo-700">${s.sideLabel || 'Nezināma tribīne'}</div>
-    <div class="font-medium">Rinda ${s.row}, Vieta ${s.number}</div>
+    <div class="font-semibold text-indigo-700">${seatLabel}</div>
+    <div class="font-medium">${seatInfo}</div>
     <div class="text-sm text-gray-500">Cena: €${(s.price ?? 0).toFixed(2)}</div>
   </div>
   <button class="text-red-500 hover:text-red-700 text-sm font-semibold remove-seat-btn" data-key="${s.id}">✕</button>
@@ -171,10 +184,20 @@
         seats.slice(0, 1).forEach(s => {
           const r = document.createElement('div');
           r.className = 'p-2 border-b flex justify-between items-center';
+
+          let seatLabel, seatInfo;
+          if (s.seatData) {
+            seatLabel = s.seatData.number || s.seatData.id || 'Custom Seat';
+            seatInfo = `Custom ${seatLabel}`;
+          } else {
+            seatLabel = s.sideLabel || 'Nezināma tribīne';
+            seatInfo = `R${s.row} — V${s.number}`;
+          }
+
           r.innerHTML = `
     <div>
-      <div class="font-semibold text-indigo-700">${s.sideLabel || 'Nezināma tribīne'}</div>
-      <div>R${s.row} — V${s.number}</div>
+      <div class="font-semibold text-indigo-700">${seatLabel}</div>
+      <div>${seatInfo}</div>
     </div>
     <div>€${(s.price ?? 0).toFixed(2)}</div>
   `;
@@ -232,12 +255,15 @@
           if (s.ticket_id !== null && s.ticket_id !== undefined) {
             takenSeatIds.push(String(s.id));
             takenSeats.push(humanKey);
+            // Also push the raw seat_number so arena layout seats ("s1") match
+            if (s.seat_number && s.seat_number !== humanKey) takenSeats.push(s.seat_number);
           } else {
             if (s.reserved_until) {
               const ru = Date.parse(s.reserved_until);
               if (!Number.isNaN(ru) && ru > nowTs) {
                 reservedSeatIds.push(String(s.id));
                 reservedSeats.push(humanKey);
+                if (s.seat_number && s.seat_number !== humanKey) reservedSeats.push(s.seat_number);
               }
             }
           }
@@ -270,6 +296,7 @@
                 seatPrices, seatIds,
                 ticketPrice: Number(buyBtn.dataset.ticketPrice || 10),
                 seatIds: seatIds,
+                customElements: parseJsonAttr(buyBtn, 'data-custom-elements', null),
                 selectedDbIds: (window.currentSelectedSeat || []).map(s => String(s.dbId || s.id)).filter(Boolean)
               });
               lastMapRenderAt = Date.now();
@@ -306,6 +333,9 @@
       const reservedSeats = parseJsonAttr(buyBtn, 'data-reserved-seats', []) || [];
       const reservedSeatIds = parseJsonAttr(buyBtn, 'data-reserved-seat-ids', []) || [];
       const seatPrices = parseJsonAttr(buyBtn, 'data-seat-prices', {}) || {};
+      const customElements = parseJsonAttr(buyBtn, 'data-custom-elements', null);
+      const arenaWidth  = Number(buyBtn.dataset.arenaWidth)  || 0;
+      const arenaHeight = Number(buyBtn.dataset.arenaHeight) || 0;
 
       try {
         await waitForRenderSeatMap(2000);
@@ -321,6 +351,8 @@
             takenSeats, takenSeatIds, reservedSeats, reservedSeatIds,
             seatPrices, ticketPrice: Number(buyBtn.dataset.ticketPrice || 10),
             seatIds: currentSeatIdMap,
+            customElements: customElements,
+            arenaWidth, arenaHeight,
             selectedDbIds: (window.currentSelectedSeat || []).map(s => String(s.dbId || s.id)).filter(Boolean),
             onSeatSelect: (selectedSeats) => {
               if (!Array.isArray(selectedSeats)) {
@@ -328,7 +360,9 @@
                 return;
               }
               selectedSeats.forEach(s => {
-                if (!s.dbId) s.dbId = findDbIdForSeat(currentSeatIdMap, s.id, s.row, s.number, s.sideLabel) || null;
+                if (!s.dbId) {
+                  s.dbId = findDbIdForSeat(currentSeatIdMap, s.id, s.row, s.number, s.sideLabel) || null;
+                }
               });
               ensureScaleWrapper();
               updateSummaryUI(selectedSeats);
@@ -350,7 +384,13 @@
       updateSummaryUI([]);
       try {
         const sel = seatMapContainer.querySelectorAll('.selected, .seat-item.selected');
-        sel.forEach(n => n.classList.remove('selected', 'bg-green-600', 'text-white', 'font-semibold'));
+        sel.forEach(n => n.classList.remove('selected', 'bg-blue-600', 'bg-green-600', 'text-white', 'font-bold', 'font-semibold', 'shadow-md'));
+      } catch (e) {}
+      // Clear the internal selection Set so re-opening modal starts fresh
+      try {
+        if (seatMapContainer._seatMap && seatMapContainer._seatMap.selected) {
+          seatMapContainer._seatMap.selected.clear();
+        }
       } catch (e) {}
       window.currentSelectedSeat = [];
       if (summaryPanel) summaryPanel.classList.remove('mobile-pinned-summary');

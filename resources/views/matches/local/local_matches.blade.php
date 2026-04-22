@@ -1,177 +1,358 @@
 <x-app-layout>
-  <div class="max-w-6xl mx-auto mt-6 bg-white shadow-md rounded-lg p-4">
-    <div class="flex flex-col md:flex-row gap-6">
-      <div class="flex-1">
-        <div class="flex items-start justify-between gap-3">
-          <div>
-            <h1 class="text-2xl font-bold text-blue-700">{{ $match->home_team_name }} vs {{ $match->away_team_name }}</h1>
-            <p class="text-sm text-gray-600">
-              {{ $match->start_time->format('Y-m-d H:i') }}
-              @if($match->end_time)
-                — {{ $match->end_time->format('H:i') }}
-              @endif
-            </p>
-          </div>
-          @auth
-            <div class="md:hidden">
-              <button id="rightPanelToggle" class="px-3 py-2 bg-gray-100 rounded border">Skatīt darbības</button>
-            </div>
-          @endauth
-        </div>
 
-        <div class="mt-3 text-sm text-gray-700 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <p><strong>Vieta:</strong> {{ $match->location ?? ($match->arena['name'] ?? '-') }}</p>
-            <p><strong>Mājas treneris:</strong> {{ $match->home_coach ?? '-' }}</p>
-            <p><strong>Viesu treneris:</strong> {{ $match->away_coach ?? '-' }}</p>
-            <p><strong>Tiesneši:</strong>
-              @if(is_array($match->judges) && count($match->judges))
-                {{ implode(', ', $match->judges) }}
-              @else
-                -
-              @endif
-            </p>
-          </div>
-          <div>
-            <p><strong>Formāts:</strong> {{ $match->players_per_team }} pret {{ $match->players_per_team }}</p>
-            <p><strong>Statuss:</strong> {{ ucfirst($match->match_state ?? $match->status_type) }}</p>
-            <p><strong>Biļešu cena:</strong> €{{ number_format($match->ticket_price ?? 0, 2) }}</p>
-          </div>
+  {{-- ── Match hero header ── --}}
+  <section class="bg-gray-950 border-b border-white/10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <a href="{{ route('local.matches.index') }}"
+         class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-white transition-colors mb-5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        Atpakaļ uz mačiem
+      </a>
+
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          @if($match->match_state === 'completed')
+            <span class="inline-block mb-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-500/15 text-red-400 border border-red-500/30">Pabeigts</span>
+          @else
+            <span class="inline-block mb-2 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Gaidāms</span>
+          @endif
+          <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            {{ $match->home_team_name }}
+            <span class="text-gray-500 font-normal mx-2">vs</span>
+            {{ $match->away_team_name }}
+          </h1>
+          <p class="mt-1 text-sm text-gray-400">
+            {{ $match->start_time->translatedFormat('d. M Y, H:i') }}
+            @if($match->end_time) — {{ $match->end_time->format('H:i') }} @endif
+          </p>
         </div>
 
         @if($match->match_state === 'completed')
-          <div class="mt-4 p-3 rounded bg-green-50 border text-green-800">
-            Mačs pabeigts — rezultāts: <strong>{{ $match->home_score }} – {{ $match->away_score }}</strong>
-            @if($match->actual_end_time)
-              (Beigu laiks: {{ $match->actual_end_time->format('Y-m-d H:i') }})
-            @endif
+          <div class="flex items-center gap-4 bg-white/8 rounded-2xl px-6 py-3">
+            <div class="text-center">
+              <p class="text-xs text-gray-400 mb-0.5">Mājas</p>
+              <p class="text-3xl font-extrabold text-white">{{ $match->home_score ?? '–' }}</p>
+            </div>
+            <div class="text-gray-600 text-xl font-bold">:</div>
+            <div class="text-center">
+              <p class="text-xs text-gray-400 mb-0.5">Viesi</p>
+              <p class="text-3xl font-extrabold text-white">{{ $match->away_score ?? '–' }}</p>
+            </div>
+          </div>
+        @elseif($match->ticket_price)
+          <div class="text-center sm:text-right">
+            <p class="text-xs text-gray-400 mb-0.5">Biļetes cena</p>
+            <p class="text-3xl font-extrabold text-emerald-400">€{{ number_format($match->ticket_price, 2) }}</p>
           </div>
         @endif
+      </div>
+    </div>
+  </section>
 
-        @auth
-          @if($match->match_state !== 'completed' && $match->is_local)
-            <div class="mt-4">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row gap-8">
+
+      {{-- ── Main content ── --}}
+      <div class="flex-1 space-y-8">
+
+        {{-- Arena layout – prominent, full-width --}}
+        @if($arena && is_array($arena->elements) && count($arena->elements))
+          <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 class="font-bold text-gray-900">Arēnas izkārtojums</h2>
+                <p class="text-xs text-gray-500 mt-0.5">Noklikšķini uz brīvas vietas, lai izvēlētos</p>
+              </div>
+              <div class="flex items-center gap-4 text-xs text-gray-500">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded bg-blue-500 inline-block"></span>Brīvs
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded bg-red-400 inline-block"></span>Aizņemts
+                </span>
+              </div>
+            </div>
+            <div class="p-5 bg-gray-50 overflow-x-auto">
+              <div id="arena-preview"
+                   style="position:relative;width:{{ $arena->width ?? 600 }}px;height:{{ $arena->height ?? 420 }}px;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;background-image:linear-gradient(rgba(148,163,184,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.1) 1px,transparent 1px);background-size:50px 50px;margin:0 auto;">
+                @foreach($arena->elements as $el)
+                  @if(($el['type'] ?? '') === 'court')
+                    <div style="position:absolute;left:{{ $el['x'] }}px;top:{{ $el['y'] }}px;width:{{ $el['width'] }}px;height:{{ $el['height'] }}px;background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#78350f;border:2px solid #d97706;border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;letter-spacing:.5px;box-shadow:0 2px 8px rgba(245,158,11,.25);">
+                      {{ $el['label'] ?? 'Court' }}
+                    </div>
+                  @elseif(($el['type'] ?? '') === 'seat')
+                    @php
+                      $seatNum = $el['number'] ?? $el['label'] ?? 'S';
+                      $seatId  = $el['id'] ?? (string)$seatNum;
+                      $isTaken = in_array($seatId, $takenSeats ?? []);
+                    @endphp
+                    <div style="position:absolute;left:{{ $el['x'] }}px;top:{{ $el['y'] }}px;width:{{ $el['width'] ?? 40 }}px;height:{{ $el['height'] ?? 40 }}px;background:{{ $isTaken ? '#f87171' : '#3b82f6' }};color:#fff;border:2px solid {{ $isTaken ? '#ef4444' : '#2563eb' }};border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;cursor:{{ $isTaken ? 'not-allowed' : 'pointer' }};box-shadow:0 1px 4px rgba(0,0,0,.15);transition:transform .1s;"
+                         title="{{ $seatNum }}{{ $isTaken ? ' (aizņemts)' : ' – klikšķini lai izvēlētos' }}"
+                         onmouseover="{{ $isTaken ? '' : "this.style.transform='scale(1.12)'" }}"
+                         onmouseout="this.style.transform='scale(1)'">
+                      {{ $seatNum }}
+                    </div>
+                  @endif
+                @endforeach
+              </div>
+            </div>
+            @auth
+              @if($match->match_state !== 'completed' && $match->is_local)
+                <div class="px-5 py-4 bg-white border-t border-gray-100 flex items-center justify-between">
+                  <p class="text-sm text-gray-600">Cena: <span class="font-bold text-gray-900">€{{ number_format($match->ticket_price ?? 0, 2) }}</span> / biļete</p>
+                  <button id="buyTicketBtn"
+                          data-match-id="{{ $match->id }}"
+                          data-ticket-price="{{ $match->ticket_price ?? 10 }}"
+                          data-taken-seats="{{ json_encode($takenSeats) }}"
+                          data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
+                          data-seat-prices="{{ json_encode($seatPrices) }}"
+                          data-seat-ids="{{ json_encode($seatIdMap) }}"
+                          @if($arena) data-arena-width="{{ $arena->width ?? 600 }}" data-arena-height="{{ $arena->height ?? 420 }}" @endif
+                          @if($customElements) data-custom-elements="{{ json_encode($customElements) }}" @endif
+                          class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                            d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                    </svg>
+                    Pirkt biļeti
+                  </button>
+                </div>
+              @endif
+            @endauth
+          </div>
+        @elseif($match->match_state !== 'completed' && $match->is_local)
+          {{-- No arena configured – show simple buy button --}}
+          @auth
+            <div class="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
+              <p class="text-sm text-gray-600">Biļetes cena: <span class="font-bold text-gray-900">€{{ number_format($match->ticket_price ?? 0, 2) }}</span></p>
               <button id="buyTicketBtn"
                       data-match-id="{{ $match->id }}"
                       data-ticket-price="{{ $match->ticket_price ?? 10 }}"
-                      class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
+                      data-taken-seats="{{ json_encode($takenSeats) }}"
+                      data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
+                      data-seat-prices="{{ json_encode($seatPrices) }}"
+                      data-seat-ids="{{ json_encode($seatIdMap) }}"
+                      @if($arena) data-arena-width="{{ $arena->width ?? 600 }}" data-arena-height="{{ $arena->height ?? 420 }}" @endif
+                      @if($customElements) data-custom-elements="{{ json_encode($customElements) }}" @endif
+                      class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:opacity-90 transition-opacity">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                        d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                </svg>
                 Pirkt biļeti
               </button>
             </div>
-          @endif
-        @endauth
+          @endauth
+        @endif
 
-        <div class="mt-6 grid md:grid-cols-2 gap-4">
-          <div>
-            <h3 class="font-semibold text-blue-600 mb-2">Mājas spēlētāji</h3>
-            <ul class="list-disc list-inside text-sm">
-              @foreach($match->home_players ?? [] as $p)
-                <li>{{ $p['first_name'] ?? '' }} {{ $p['last_name'] ?? '' }}</li>
-              @endforeach
+        {{-- Match details --}}
+        <div class="bg-white rounded-2xl border border-gray-200 p-6">
+          <h2 class="font-bold text-gray-900 mb-4">Mača informācija</h2>
+          <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
+            <div class="flex items-start gap-2">
+              <span class="text-gray-400 shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                        d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs text-gray-400">Vieta</p>
+                <p class="font-medium text-gray-800">{{ $match->location ?? ($match->arena['name'] ?? '–') }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-gray-400 shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs text-gray-400">Formāts</p>
+                <p class="font-medium text-gray-800">{{ $match->players_per_team }} pret {{ $match->players_per_team }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-gray-400 shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs text-gray-400">Treneri</p>
+                <p class="font-medium text-gray-800">{{ $match->home_coach ?? '–' }} / {{ $match->away_coach ?? '–' }}</p>
+              </div>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="text-gray-400 shrink-0 mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                </svg>
+              </span>
+              <div>
+                <p class="text-xs text-gray-400">Tiesneši</p>
+                <p class="font-medium text-gray-800">
+                  @if(is_array($match->judges) && count($match->judges))
+                    {{ implode(', ', $match->judges) }}
+                  @else –
+                  @endif
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {{-- Players --}}
+        <div class="grid sm:grid-cols-2 gap-5">
+          <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-orange-400 inline-block"></span>
+              Mājas komanda
+            </h3>
+            <ul class="space-y-1.5">
+              @forelse($match->home_players ?? [] as $p)
+                <li class="text-sm text-gray-700 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-orange-100 flex items-center justify-center text-[10px] font-bold text-orange-600 shrink-0">
+                    {{ strtoupper(substr($p['first_name'] ?? 'P', 0, 1)) }}
+                  </span>
+                  {{ $p['first_name'] ?? '' }} {{ $p['last_name'] ?? '' }}
+                </li>
+              @empty
+                <li class="text-sm text-gray-400 italic">Nav norādīti spēlētāji</li>
+              @endforelse
             </ul>
           </div>
-          <div>
-            <h3 class="font-semibold text-blue-600 mb-2">Viesu spēlētāji</h3>
-            <ul class="list-disc list-inside text-sm">
-              @foreach($match->away_players ?? [] as $p)
-                <li>{{ $p['first_name'] ?? '' }} {{ $p['last_name'] ?? '' }}</li>
-              @endforeach
+          <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span>
+              Viesu komanda
+            </h3>
+            <ul class="space-y-1.5">
+              @forelse($match->away_players ?? [] as $p)
+                <li class="text-sm text-gray-700 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600 shrink-0">
+                    {{ strtoupper(substr($p['first_name'] ?? 'P', 0, 1)) }}
+                  </span>
+                  {{ $p['first_name'] ?? '' }} {{ $p['last_name'] ?? '' }}
+                </li>
+              @empty
+                <li class="text-sm text-gray-400 italic">Nav norādīti spēlētāji</li>
+              @endforelse
             </ul>
           </div>
         </div>
 
+        {{-- Photo gallery --}}
         @php $photos = $match->media->where('type','photo')->take(8); @endphp
         @if($photos->isNotEmpty())
-          <div class="mt-6">
-            <div class="flex items-center justify-between">
-              <h3 class="font-semibold mb-2">Foto</h3>
-              <div class="text-xs text-gray-500">Rādīt līdz 8 bildēm — klikšķiniet lai atvērtu galeriju</div>
+          <div class="bg-white rounded-2xl border border-gray-200 p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-bold text-gray-900">Foto no spēles</h3>
+              <span class="text-xs text-gray-400">Klikšķini lai atvērtu galeriju</span>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
               @foreach($photos as $idx => $m)
-                <button type="button" class="gallery-thumb border rounded overflow-hidden bg-gray-50 focus:outline-none" data-index="{{ $idx }}">
+                <button type="button" class="gallery-thumb group rounded-xl overflow-hidden border border-gray-100 hover:border-blue-300 transition-colors focus:outline-none" data-index="{{ $idx }}">
                   <img src="{{ \Illuminate\Support\Facades\Storage::url($m->path) }}"
-                       alt="{{ $m->caption ?? 'Skati no spēles' }}"
+                       alt="{{ $m->caption ?? 'Foto' }}"
                        loading="lazy"
-                       class="w-full h-28 object-cover">
-                  <div class="p-2 text-xs text-gray-600 text-left">{{ $m->caption ?? 'Skati no spēles' }}</div>
+                       class="w-full h-28 object-cover group-hover:opacity-90 transition-opacity">
+                  @if($m->caption)
+                    <div class="px-2 py-1.5 text-[11px] text-gray-500 text-left bg-white">{{ $m->caption }}</div>
+                  @endif
                 </button>
               @endforeach
             </div>
           </div>
         @endif
+
       </div>
 
-      <div class="w-full md:w-72">
+      {{-- ── Right sidebar ── --}}
+      <div class="w-full md:w-72 shrink-0">
         <div id="rightPanel" class="space-y-4">
+
           @auth
             @if($match->match_state !== 'completed' && auth()->id() === $match->created_by)
-              <div class="border rounded p-4 mb-0">
-                <h4 class="font-semibold mb-2">Iesniegt rezultātu (setos)</h4>
-                <form method="POST" action="{{ route('matches.score.request', $match->id) }}" id="setScoreForm">
+              <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h4 class="font-bold text-gray-900 mb-3">Iesniegt rezultātu</h4>
+                <form method="POST" action="{{ route('matches.score.request', $match->id) }}" id="setScoreForm" class="space-y-3">
                   @csrf
                   <div id="setsContainer" class="space-y-2">
                     @for ($i = 1; $i <= 3; $i++)
                       <div class="grid grid-cols-3 gap-2 items-center set-row">
-                        <label class="text-xs text-gray-600 text-center">Sets {{ $i }}</label>
-                        <input type="number" name="sets[{{ $i }}][home]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Mājas" required>
-                        <input type="number" name="sets[{{ $i }}][away]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Viesu" required>
+                        <label class="text-xs text-gray-500 text-center">Sets {{ $i }}</label>
+                        <input type="number" name="sets[{{ $i }}][home]" min="0" max="100"
+                               class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Māj." required>
+                        <input type="number" name="sets[{{ $i }}][away]" min="0" max="100"
+                               class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Vies." required>
                       </div>
                     @endfor
                   </div>
-                  <div class="flex justify-between mt-2">
-                    <button type="button" id="addSetBtn" class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm hover:bg-gray-300">+ Pievienot setu</button>
-                    <button type="button" id="removeSetBtn" class="bg-gray-200 text-gray-800 px-2 py-1 rounded text-sm hover:bg-gray-300">− Noņemt</button>
+                  <div class="flex gap-2">
+                    <button type="button" id="addSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">+ Setu</button>
+                    <button type="button" id="removeSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">− Setu</button>
                   </div>
-                  <div class="mt-3">
-                    <label class="block text-xs text-gray-600">Beigu laiks (ja zināms)</label>
-                    <input type="datetime-local" name="actual_end_time" class="w-full p-2 border rounded text-sm">
+                  <div>
+                    <label class="block text-xs text-gray-500 mb-1">Beigu laiks</label>
+                    <input type="datetime-local" name="actual_end_time"
+                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   </div>
-                  <div class="mt-3">
-                    <button class="w-full bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700">Nosūtīt pieprasījumu</button>
-                  </div>
+                  <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
+                    Nosūtīt pieprasījumu
+                  </button>
                 </form>
               </div>
             @endif
 
             @if(auth()->id() === $match->created_by || auth()->user()->role === 'admin')
-              <div class="border rounded p-4">
-                <h4 class="font-semibold mb-2">Augšupielādēt foto</h4>
-                <form method="POST" action="{{ route('matches.media.upload', $match->id) }}" enctype="multipart/form-data">
+              <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                <h4 class="font-bold text-gray-900 mb-3">Augšupielādēt foto</h4>
+                <form method="POST" action="{{ route('matches.media.upload', $match->id) }}" enctype="multipart/form-data" class="space-y-3">
                   @csrf
-                  <input type="file" name="file" accept="image/*" required class="mb-2 w-full">
-                  <input type="text" name="caption" placeholder="Apraksts (neobligāts)" class="w-full p-2 border rounded text-sm mb-2">
-                  <div class="text-xs text-gray-500 mb-2">Maks. 8 bildes uz maču.</div>
-                  <button class="w-full bg-green-600 text-white px-3 py-2 rounded hover:bg-green-700">Augšupielādēt</button>
+                  <input type="file" name="file" accept="image/*" required class="w-full text-sm text-gray-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200">
+                  <input type="text" name="caption" placeholder="Apraksts (neobligāts)"
+                         class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                  <p class="text-xs text-gray-400">Maks. 8 bildes uz maču.</p>
+                  <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors">
+                    Augšupielādēt
+                  </button>
                 </form>
               </div>
             @endif
           @endauth
 
           @if(auth()->user()?->role === 'admin')
-            <div class="border rounded p-4">
-              <h4 class="font-semibold mb-2">Admin darbības</h4>
-              <form method="POST" action="{{ route('matches.score.finalize', $match->id) }}">
+            <div class="bg-white rounded-2xl border border-red-100 p-5">
+              <h4 class="font-bold text-red-700 mb-3">Admin – apstiprināt rezultātu</h4>
+              <form method="POST" action="{{ route('matches.score.finalize', $match->id) }}" class="space-y-3">
                 @csrf
-                <div class="space-y-2" id="adminSetsContainer">
+                <div id="adminSetsContainer" class="space-y-2">
                   @for ($i = 1; $i <= 3; $i++)
                     <div class="grid grid-cols-3 gap-2 items-center">
-                      <label class="text-xs text-gray-600 text-center">Sets {{ $i }}</label>
-                      <input type="number" name="sets[{{ $i }}][home]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Mājas">
-                      <input type="number" name="sets[{{ $i }}][away]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Viesu">
+                      <label class="text-xs text-gray-500 text-center">Sets {{ $i }}</label>
+                      <input type="number" name="sets[{{ $i }}][home]" min="0" max="100"
+                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Māj.">
+                      <input type="number" name="sets[{{ $i }}][away]" min="0" max="100"
+                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Vies.">
                     </div>
                   @endfor
                 </div>
-                <button class="w-full bg-red-600 text-white px-3 py-2 rounded mt-3">Apstiprināt un pabeigt</button>
+                <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors">
+                  Apstiprināt un pabeigt
+                </button>
               </form>
             </div>
           @endif
+
         </div>
       </div>
-    </div>
-
-    <div class="mt-4">
-      <a href="{{ route('local.matches.index') }}" class="text-sm text-gray-600 hover:underline">← Atpakaļ uz mačiem</a>
     </div>
   </div>
 
@@ -251,16 +432,6 @@
       document.getElementById('galleryNext')?.addEventListener('click',()=>{ next(); startAutoplay(); });
       document.getElementById('galleryPrev')?.addEventListener('click',()=>{ prev(); startAutoplay(); });
       document.getElementById('galleryModal')?.addEventListener('click',(ev)=>{ if(ev.target.id==='galleryModal') closeGallery(); });
-      const rightPanelToggle = document.getElementById('rightPanelToggle');
-      const rightPanel = document.getElementById('rightPanel');
-      if(rightPanel){
-        const drawer=document.createElement('div'); drawer.className='fixed inset-0 z-50 hidden'; drawer.id='mobileActionsDrawer';
-        drawer.innerHTML=`<div class="absolute inset-0 bg-black bg-opacity-50"></div><div class="absolute right-0 top-0 bottom-0 w-80 bg-white p-4 overflow-auto"><button id="closeMobileActions" class="px-2 py-1 bg-gray-200 rounded mb-2">Aizvērt</button><div id="drawerContent"></div></div>`;
-        document.body.appendChild(drawer);
-        document.getElementById('drawerContent').innerHTML = rightPanel.innerHTML;
-        document.getElementById('closeMobileActions').addEventListener('click',()=>drawer.classList.add('hidden'));
-        rightPanelToggle?.addEventListener('click',()=>drawer.classList.remove('hidden'));
-      }
       if(rightPanel && window.innerWidth<768) rightPanel.style.display='none';
       const modalCloseBtn=document.getElementById('modalCloseBtn');
       const seatModal=document.getElementById('seatSelectionModal');

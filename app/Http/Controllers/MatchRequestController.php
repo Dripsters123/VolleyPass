@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Arena;
 use App\Models\MatchRequest;
 use App\Models\ProductRequest;
+use App\Models\VolleyballMatch;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -26,7 +28,12 @@ class MatchRequestController extends Controller
 
     public function create()
     {
-        return view('match_requests.create');
+        $arenas = Arena::where('user_id', Auth::id())
+            ->orWhere('is_public', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('match_requests.create', compact('arenas'));
     }
 
     public function store(Request $request)
@@ -50,6 +57,11 @@ class MatchRequestController extends Controller
             'location' => 'nullable|string|max:255',
             'home_logo' => 'nullable|file|image|mimes:jpg,png,svg|max:2048',
             'away_logo' => 'nullable|file|image|mimes:jpg,png,svg|max:2048',
+            'arena_name' => 'required|string|max:255',
+            'arena_layout' => 'nullable',
+            'arena_elements' => 'nullable',
+            'arena_width' => 'nullable|integer|min:400|max:2000',
+            'arena_height' => 'nullable|integer|min:300|max:1500',
         ];
 
         $messages = [
@@ -113,7 +125,16 @@ class MatchRequestController extends Controller
             ]);
         }
 
-        $data = array_merge($validated, [
+$arenaLayout = $validated['arena_layout'] ?? [];
+        if (is_string($arenaLayout)) {
+            $arenaLayout = json_decode($arenaLayout, true) ?: [];
+        }
+        $arenaElements = $validated['arena_elements'] ?? [];
+        if (is_string($arenaElements)) {
+            $arenaElements = json_decode($arenaElements, true) ?: [];
+        }
+
+        $data = array_merge($validated, [ 
             'user_id' => Auth::id(),
             'status' => 'pending',
             'judges' => !empty($validated['judges'])
@@ -121,6 +142,10 @@ class MatchRequestController extends Controller
                 : json_encode([]),
             'home_players' => json_encode($validated['home_players']),
             'away_players' => json_encode($validated['away_players']),
+            'arena_layout' => json_encode($arenaLayout),
+            'arena_elements' => json_encode($arenaElements),
+            'arena_width' => $validated['arena_width'] ?? 800,
+            'arena_height' => $validated['arena_height'] ?? 600,
         ]);
 
         if ($request->hasFile('home_logo')) {
@@ -412,6 +437,22 @@ class MatchRequestController extends Controller
     {
         $req = MatchRequest::findOrFail($id);
         $req->update(['status' => 'accepted']);
+
+        // Score-update requests should finalize the match score, not open create page
+        if ($req->request_type === 'score_update' && $req->match_id) {
+            $match = VolleyballMatch::find($req->match_id);
+            if ($match) {
+                $match->update([
+                    'home_score'  => $req->score_home ?? 0,
+                    'away_score'  => $req->score_away ?? 0,
+                    'match_state' => 'completed',
+                    'status_type' => 'completed',
+                ]);
+            }
+            return redirect()
+                ->route('admin.match_requests.inbox')
+                ->with('success', 'Rezultāts apstiprināts un mačs atzīmēts kā pabeigts.');
+        }
 
         return redirect()
             ->route('admin.matches.create', ['request_id' => $req->id])

@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\Arena;
 use App\Models\User;
 use App\Models\VolleyballMatch;
 use App\Models\Ticket;
@@ -27,14 +28,47 @@ class LocalMatchSeeder extends Seeder
         $users = User::factory()->count(6)->create();
         $users->push($admin);
 
+        // Load default arena layouts seeded by ArenaSeeder
+        $arenas = [
+            2 => Arena::where('name', 'Pludmales volejbols (2v2)')->first(),
+            4 => Arena::where('name', 'Kompaktā halle (4v4)')->first(),
+            6 => Arena::where('name', 'Olimpijas halle (6v6)')->first(),
+        ];
+
+        $teamNames = [
+            2 => [
+                'adminMatch'     => ['home' => 'Jūrmalas Volejs',   'away' => 'Pludmales Vilki'],
+                'userMatch'      => ['home' => 'Krišjānis & Māris', 'away' => 'Toms & Jānis'],
+                'completedMatch' => ['home' => 'Lelde & Elīna',     'away' => 'Aija & Santa'],
+                'acceptedReq'    => ['home' => 'Piņķu Pāris',       'away' => 'Jūrmalas Duets'],
+                'pendingReq'     => ['home' => 'Siguldas Duo',       'away' => 'Ādažu Pāris'],
+            ],
+            4 => [
+                'adminMatch'     => ['home' => 'Valmieras Lauvas',  'away' => 'Liepājas Vēja'],
+                'userMatch'      => ['home' => 'Ogres Tigri',       'away' => 'Jēkabpils Pumas'],
+                'completedMatch' => ['home' => 'Rēzeknes Lāči',     'away' => 'Ventspils Stars'],
+                'acceptedReq'    => ['home' => 'Tukuma Viesuļi',    'away' => 'Dobeles Vilki'],
+                'pendingReq'     => ['home' => 'Kandavas Ērgļi',    'away' => 'Saldus Vētras'],
+            ],
+            6 => [
+                'adminMatch'     => ['home' => 'Rīgas Pērkons',     'away' => 'Cēsu Ērgļi'],
+                'userMatch'      => ['home' => 'Valmieras Vilki',   'away' => 'Jūrmalas Vilnis'],
+                'completedMatch' => ['home' => 'Daugavas Ērgļi',    'away' => 'Liepājas Vēja'],
+                'acceptedReq'    => ['home' => 'Rīgas Jūrnieki',    'away' => 'Jelgavas Lāči'],
+                'pendingReq'     => ['home' => 'Bauskas Viesuli',   'away' => 'Kuldīgas Vilki'],
+            ],
+        ];
 
         $formats = [2, 4, 6];
 
         foreach ($formats as $n) {
+            $names = $teamNames[$n];
+            $arena = $arenas[$n] ?? null;
             
             $adminMatch = VolleyballMatch::create([
-                'home_team_name'   => "LocalHome {$n}v{$n}",
-                'away_team_name'   => "LocalAway {$n}v{$n}",
+                'home_team_name'   => $names['adminMatch']['home'],
+                'away_team_name'   => $names['adminMatch']['away'],
+                'arena_id'         => $arena?->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->addDays($n)->setTime(18, 0),
                 'end_time'         => now()->addDays($n)->setTime(20, 0),
@@ -64,13 +98,18 @@ class LocalMatchSeeder extends Seeder
             ]);
 
             $this->attachLogos($adminMatch);
-            $this->generateSeats($adminMatch);
+            if ($arena) {
+                $arena->generateSeatsForMatch($adminMatch, $adminMatch->ticket_price);
+            } else {
+                $this->generateSeats($adminMatch);
+            }
             $this->assignRandomTickets($adminMatch, $users);
 
             
             $userMatch = VolleyballMatch::create([
-                'home_team_name'   => 'Team ' . Str::upper(Str::random(3)) . " {$n}v{$n}",
-                'away_team_name'   => 'Team ' . Str::upper(Str::random(3)) . " {$n}v{$n}",
+                'home_team_name'   => $names['userMatch']['home'],
+                'away_team_name'   => $names['userMatch']['away'],
+                'arena_id'         => $arena?->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->addDays($n + 1)->setTime(17, 0),
                 'end_time'         => now()->addDays($n + 1)->setTime(19, 0),
@@ -101,13 +140,18 @@ class LocalMatchSeeder extends Seeder
             ]);
 
             $this->attachLogos($userMatch);
-            $this->generateSeats($userMatch);
+            if ($arena) {
+                $arena->generateSeatsForMatch($userMatch, $userMatch->ticket_price);
+            } else {
+                $this->generateSeats($userMatch);
+            }
             $this->assignRandomTickets($userMatch, $users);
 
          
             $completedMatch = VolleyballMatch::create([
-                'home_team_name'   => "CompletedHome {$n}v{$n}",
-                'away_team_name'   => "CompletedAway {$n}v{$n}",
+                'home_team_name'   => $names['completedMatch']['home'],
+                'away_team_name'   => $names['completedMatch']['away'],
+                'arena_id'         => $arena?->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->subDays(2)->setTime(18, 0),
                 'end_time'         => now()->subDays(2)->setTime(20, 0),
@@ -129,13 +173,17 @@ class LocalMatchSeeder extends Seeder
                 ], range(0, $n - 1))),
                 'home_logo'        => null,
                 'away_logo'        => null,
-                'home_score'       => rand(0, 100),
-                'away_score'       => rand(0, 100),
+                'home_score'       => ($completedResult = [[3,0],[3,1],[3,2],[0,3],[1,3],[2,3]][rand(0,5)])[0],
+                'away_score'       => $completedResult[1],
                 'estimated_duration_minutes' => 90,
             ]);
 
             $this->attachLogos($completedMatch);
-            $this->generateSeats($completedMatch);
+            if ($arena) {
+                $arena->generateSeatsForMatch($completedMatch, $completedMatch->ticket_price);
+            } else {
+                $this->generateSeats($completedMatch);
+            }
             $this->assignRandomTickets($completedMatch, $users);
 
             MatchScoreVerification::create([
@@ -164,8 +212,8 @@ class LocalMatchSeeder extends Seeder
             MatchRequest::create([
                 'user_id'         => $users->random()->id,
                 'request_type'    => 'create_match',
-                'home_team'       => "AcceptedHome {$n}v{$n}",
-                'away_team'       => "AcceptedAway {$n}v{$n}",
+                'home_team'       => $names['acceptedReq']['home'],
+                'away_team'       => $names['acceptedReq']['away'],
                 'start_time'      => now()->addDays($n + 3)->setTime(18, 0),
                 'end_time'        => now()->addDays($n + 3)->setTime(20, 0),
                 'players_per_team'=> $n,
@@ -188,8 +236,8 @@ class LocalMatchSeeder extends Seeder
             MatchRequest::create([
                 'user_id'         => $users->random()->id,
                 'request_type'    => 'create_match',
-                'home_team'       => "PendingHome {$n}v{$n}",
-                'away_team'       => "PendingAway {$n}v{$n}",
+                'home_team'       => $names['pendingReq']['home'],
+                'away_team'       => $names['pendingReq']['away'],
                 'start_time'      => now()->addDays($n + 4)->setTime(18, 0),
                 'end_time'        => now()->addDays($n + 4)->setTime(20, 0),
                 'players_per_team'=> $n,

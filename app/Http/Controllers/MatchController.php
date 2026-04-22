@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Arena;
 use App\Models\VolleyballMatch;
 use App\Models\MatchRequest;
 use App\Models\MatchScoreVerification;
@@ -71,6 +72,19 @@ public function index(Request $request)
     public function create(Request $request)
     {
         $prefill = null;
+        $userId = auth()->id();
+
+        $myArenas = Arena::where('user_id', $userId)->orderBy('name')->get();
+
+        $favorites = Arena::whereHas('favoritedBy', fn($q) => $q->where('user_id', $userId))
+            ->where('user_id', '!=', $userId)
+            ->orderBy('name')
+            ->get();
+
+        $defaultLayouts = Arena::where('is_public', true)
+            ->whereHas('user', fn($q) => $q->where('role', 'admin'))
+            ->orderBy('name')
+            ->get();
 
         if ($request->filled('request_id')) {
             $mr = MatchRequest::find($request->request_id);
@@ -90,11 +104,19 @@ public function index(Request $request)
                     'home_logo'      => $mr->home_logo ?? null,
                     'away_logo'      => $mr->away_logo ?? null,
                     'match_request_id' => $mr->id,
+                    'arena_name'     => $mr->arena_name ?? ($mr->home_team . ' vs ' . $mr->away_team . ' Arena'),
+                    'arena_layout'   => json_decode($mr->arena_layout, true) ?? [],
+                    'arena_elements' => json_decode($mr->arena_elements, true) ?? [],
+                    'arena_width'    => $mr->arena_width ?? 800,
+                    'arena_height'   => $mr->arena_height ?? 600,
                 ];
             }
         }
 
-        return view('admin.matches.create', compact('prefill'));
+        // also provide a combined collection for legacy views that expect $arenas
+        $arenas = $myArenas->merge($favorites)->merge($defaultLayouts)->unique('id')->values();
+
+        return view('admin.matches.create', compact('prefill', 'myArenas', 'favorites', 'defaultLayouts', 'arenas'));
     }
 
     protected function hasTimeOverlap($startIso, $endIso, $excludeMatchId = null): bool
@@ -129,6 +151,12 @@ public function index(Request $request)
             'location' => 'nullable|string|max:255',
             'home_logo' => 'nullable|file|image|mimes:jpg,jpeg,png,svg|max:4096',
             'away_logo' => 'nullable|file|image|mimes:jpg,jpeg,png,svg|max:4096',
+            'arena_name' => 'required|string|max:255',
+            'arena_layout' => 'nullable',
+            'arena_elements' => 'nullable',
+            'arena_width' => 'nullable|integer|min:400|max:2000',
+            'arena_height' => 'nullable|integer|min:300|max:1500',
+            'match_request_id' => 'nullable|exists:match_requests,id',
         ]);
 
         $start = Carbon::parse($validated['start_time']);
@@ -149,6 +177,26 @@ public function index(Request $request)
             $judgesArr = array_values(array_filter($parts, fn($x) => $x !== ''));
         }
 
+        $arenaLayout = $validated['arena_layout'] ?? [];
+        if (is_string($arenaLayout)) {
+            $arenaLayout = json_decode($arenaLayout, true) ?: [];
+        }
+        $arenaElements = $validated['arena_elements'] ?? [];
+        if (is_string($arenaElements)) {
+            $arenaElements = json_decode($arenaElements, true) ?: [];
+        }
+
+        // Create arena for the match
+        $arena = \App\Models\Arena::create([
+            'name' => $validated['arena_name'],
+            'user_id' => auth()->id(),
+            'layout' => $arenaLayout,
+            'elements' => $arenaElements,
+            'width' => $validated['arena_width'] ?? 800,
+            'height' => $validated['arena_height'] ?? 600,
+            'is_public' => false,
+        ]);
+
         $match = VolleyballMatch::create([
             'home_team_name' => $validated['home_team_name'],
             'away_team_name' => $validated['away_team_name'],
@@ -163,6 +211,7 @@ public function index(Request $request)
             'away_coach' => $validated['away_coach'] ?? null,
             'judges' => $judgesArr,
             'location' => $validated['location'] ?? null,
+            'arena_id' => $arena->id,
         ]);
 
         if ($request->hasFile('home_logo')) {
@@ -281,14 +330,21 @@ public function index(Request $request)
 
     public function localShow($id)
     {
-        $match = VolleyballMatch::where('is_local', true)->findOrFail($id);
+        $match = VolleyballMatch::with('arena')->where('is_local', true)->findOrFail($id);
         $match->home_players = json_decode($match->home_players, true) ?? [];
         $match->away_players = json_decode($match->away_players, true) ?? [];
 
         $takenSeats = $match->seats()->whereNotNull('ticket_id')->pluck('seat_number')->toArray();
         $seatPrices = $match->seats()->pluck('price', 'seat_number')->toArray();
+        $takenSeatIds = $match->seats()->whereNotNull('ticket_id')->pluck('id', 'seat_number')->toArray();
+        $seatIdMap = $match->seats()->pluck('id', 'seat_number')->toArray();
 
-        return view('matches.local.local_matches', compact('match', 'takenSeats', 'seatPrices'));
+        $arena = $match->arena;
+        $customElements = $arena ? $arena->elements : null;
+
+        return view('matches.local.local_matches', compact(
+            'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements'
+        ));
     }
 
     public function submitScoreRequest(Request $request, $id)

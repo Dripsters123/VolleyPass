@@ -25,12 +25,18 @@
         @endisset
     </main>
 
-    <footer class="mt-auto bg-gray-900 text-gray-300 py-6">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
-            <div>&copy; {{ date('Y') }} VolleyPass</div>
-            <div class="flex gap-4">
-              <a href="{{ route('about') }}" class="hover:text-white">Par mums</a>
-              <a href="{{ route('contacts') }}" class="hover:text-white">Kontakti</a>
+    <footer class="mt-auto bg-gray-950 border-t border-white/10 text-gray-400 py-7">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
+            <div class="flex items-center gap-2">
+                <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-orange-400 to-blue-600">
+                    <img src="{{ asset('images/volleyball.png') }}" alt="" class="w-4 h-4">
+                </span>
+                <span class="font-semibold text-white">VolleyPass</span>
+                <span class="text-gray-600">&copy; {{ date('Y') }}</span>
+            </div>
+            <div class="flex gap-6">
+              <a href="{{ route('about') }}" class="hover:text-white transition-colors">Par mums</a>
+              <a href="{{ route('contacts') }}" class="hover:text-white transition-colors">Kontakti</a>
             </div>
         </div>
     </footer>

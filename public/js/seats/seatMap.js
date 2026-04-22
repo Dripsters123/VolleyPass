@@ -11,7 +11,7 @@
     }
   }
 
-  function renderSeatMap(container, options = {}) {
+    function renderSeatMap(container, options = {}) {
     if (!container) return;
 
     const rows = Number(options.rows) || 6;
@@ -27,6 +27,11 @@
     const onSeatSelect = typeof options.onSeatSelect === 'function' ? options.onSeatSelect : null;
     const defaultPrice = Number(options.defaultPrice ?? options.ticketPrice ?? 10);
     const gap = Number(options.gap ?? 6);
+
+    const customElements = Array.isArray(options.customElements) ? options.customElements : null;
+    const useCustomLayout = customElements !== null;
+    const arenaWidth  = Number(options.arenaWidth)  || 0;
+    const arenaHeight = Number(options.arenaHeight) || 0;
 
     function deriveMaxRowFromSeatIdMap(map) {
       let maxRow = 0;
@@ -277,10 +282,162 @@
       return grid;
     }
 
+    function applyCustomLayout() {
+      container.innerHTML = '';
+      container.appendChild(detailView);
+
+      // Create canvas container sized to match the arena-builder canvas
+      const canvasContainer = document.createElement('div');
+      canvasContainer.style.position = 'relative';
+      canvasContainer.style.overflow = 'auto';
+
+      if (arenaWidth && arenaHeight) {
+        canvasContainer.style.width  = arenaWidth  + 'px';
+        canvasContainer.style.height = arenaHeight + 'px';
+        canvasContainer.style.minWidth  = arenaWidth  + 'px';
+        canvasContainer.style.minHeight = arenaHeight + 'px';
+      } else {
+        // Derive bounds from element positions
+        let maxX = 600, maxY = 400;
+        customElements.forEach(el => {
+          const right  = (Number(el.x) || 0) + (Number(el.width)  || 44);
+          const bottom = (Number(el.y) || 0) + (Number(el.height) || 44);
+          if (right  > maxX) maxX = right  + 20;
+          if (bottom > maxY) maxY = bottom + 20;
+        });
+        canvasContainer.style.width     = maxX + 'px';
+        canvasContainer.style.height    = maxY + 'px';
+        canvasContainer.style.minWidth  = maxX + 'px';
+        canvasContainer.style.minHeight = maxY + 'px';
+      }
+
+      canvasContainer.style.background = '#f9fafb';
+      canvasContainer.style.border = '1.5px solid #e5e7eb';
+      canvasContainer.style.borderRadius = '12px';
+      canvasContainer.style.backgroundImage =
+        'linear-gradient(rgba(148,163,184,.12) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.12) 1px,transparent 1px)';
+      canvasContainer.style.backgroundSize = '50px 50px';
+      container.appendChild(canvasContainer);
+
+      // Render custom elements
+      customElements.forEach(element => {
+        if (element.type === 'seat') {
+          const seatElement = createCustomSeat(element);
+          canvasContainer.appendChild(seatElement);
+        } else if (element.type === 'court') {
+          const courtElement = createCustomCourt(element);
+          canvasContainer.appendChild(courtElement);
+        }
+      });
+    }
+
+    function createCustomSeat(seatData) {
+      const seat = document.createElement('div');
+      seat.className = 'custom-seat seat-item flex items-center justify-center font-semibold';
+      seat.style.position = 'absolute';
+      seat.style.left = seatData.x + 'px';
+      seat.style.top = seatData.y + 'px';
+      seat.style.width = (seatData.width || 32) + 'px';
+      seat.style.height = (seatData.height || 32) + 'px';
+      seat.style.lineHeight = (seatData.height || 32) + 'px';
+      seat.style.fontSize = Math.max(10, Math.floor((seatData.height || 32) / 2)) + 'px';
+      seat.style.boxSizing = 'border-box';
+      seat.style.userSelect = 'none';
+      seat.style.transition = 'all 0.15s ease';
+      seat.textContent = seatData.number || seatData.id || 'S';
+
+      const key = `custom-${seatData.id}`;
+      seat.dataset.id = key;
+      seat.dataset.customId = seatData.id;
+      seat.dataset.dbId = seatData.dbId || seatIdMap[seatData.id] || '';
+
+      const price = seatData.price || defaultPrice;
+      seat.dataset.price = String(price);
+      seat.title = `Seat ${seatData.number || seatData.id} - €${price}`;
+
+      const isTaken = takenSeats.includes(key) || takenSeats.includes(seatData.id) ||
+                     (seatData.dbId && takenSeatIds.includes(String(seatData.dbId)));
+      const isReserved = !isTaken && (reservedSeats.includes(key) || reservedSeats.includes(seatData.id) ||
+                      (seatData.dbId && reservedSeatIds.includes(String(seatData.dbId))));
+
+      if (isTaken) {
+        seat.classList.add('bg-red-600', 'text-white', 'cursor-not-allowed', 'line-through');
+        seat.dataset.taken = '1';
+      } else if (isReserved) {
+        seat.classList.add('bg-yellow-400', 'cursor-not-allowed');
+        seat.dataset.reserved = '1';
+      } else {
+        seat.classList.add('bg-green-600', 'text-white', 'hover:shadow-md', 'hover:scale-105');
+        seat.dataset.taken = '0';
+      }
+
+      if (state.selected.has(key) && !isTaken && !isReserved) {
+        seat.classList.add('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+      }
+
+      seat.addEventListener('mouseenter', () => {
+        if (seat.dataset.taken === '0' && !seat.classList.contains('selected')) {
+          seat.style.boxShadow = '0 0 6px rgba(0,0,0,0.3)';
+        }
+      });
+
+      seat.addEventListener('mouseleave', () => {
+        seat.style.boxShadow = '';
+      });
+
+      seat.addEventListener('click', () => {
+        if (seat.dataset.taken === '1' || seat.dataset.reserved === '1') return;
+        const selectedNow = seat.classList.contains('selected');
+        if (!selectedNow) {
+          seat.classList.add('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+          state.selected.add(key);
+        } else {
+          seat.classList.remove('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+          state.selected.delete(key);
+        }
+
+        const selectedSeats = Array.from(container.querySelectorAll('.seat-item.selected')).map(el => ({
+          id: el.dataset.id,
+          customId: el.dataset.customId,
+          price: Number(el.dataset.price),
+          dbId: el.dataset.dbId || null,
+          seatData: customElements.find(e => e.id == el.dataset.customId)
+        }));
+
+        if (onSeatSelect) onSeatSelect(selectedSeats);
+        document.dispatchEvent(new CustomEvent('seatSelected', { detail: selectedSeats }));
+      });
+
+      return seat;
+    }
+
+    function createCustomCourt(courtData) {
+      const court = document.createElement('div');
+      court.className = 'custom-court flex items-center justify-center font-bold';
+      court.style.position = 'absolute';
+      court.style.left = courtData.x + 'px';
+      court.style.top = courtData.y + 'px';
+      court.style.width = (courtData.width || 200) + 'px';
+      court.style.height = (courtData.height || 100) + 'px';
+      court.style.backgroundColor = '#fbbf24';
+      court.style.border = '2px solid #f59e0b';
+      court.style.borderRadius = '4px';
+      court.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
+      court.style.color = '#92400e';
+      court.textContent = courtData.label || 'Volleyball Court';
+
+      return court;
+    }
+
     function applyLayout() {
       const isMobile = window.innerWidth <= 768;
       container.innerHTML = '';
       container.appendChild(detailView);
+
+      // Handle custom arena layouts
+      if (useCustomLayout) {
+        return applyCustomLayout();
+      }
 
       if (isMobile) {
         overview.innerHTML = '';

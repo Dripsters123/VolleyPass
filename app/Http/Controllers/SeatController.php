@@ -59,7 +59,7 @@ class SeatController extends Controller
 
     public function show($matchId)
     {
-        $match = VolleyballMatch::findOrFail($matchId);
+        $match = VolleyballMatch::with('arena')->findOrFail($matchId);
         $seats = Seat::where('match_id', $matchId)->get();
 
         $sideLabel = function ($sideSlug) {
@@ -76,41 +76,66 @@ class SeatController extends Controller
         $takenSeatIds = [];
         $seatPrices = [];
         $seatIdMap = [];
+        $customElements = null;
 
-        foreach ($seats as $s) {
-            $side = $s->side ?? null;
-            $row = $s->row ?? null;
-            $number = $s->number ?? null;
+        // Check if match has a custom arena
+        if ($match->arena) {
+            $customElements = $match->arena->elements ?? [];
 
-            if (($row === null || $number === null) && !empty($s->seat_number)) {
-    $raw = trim($s->seat_number);
-    if (preg_match('/(?:^\d+-)?([^\-]+)-(\d+)-(\d+)$/u', $raw, $m)) {
-        $side = $side ?? $m[1];
-        $row = $row ?? intval($m[2]);
-        $number = $number ?? intval($m[3]);
-    }
-}
+            // For custom arenas, build seat data from arena elements
+            foreach ($customElements as $element) {
+                if ($element['type'] === 'seat') {
+                    $seat = $seats->firstWhere('seat_number', $element['id']);
+                    if ($seat) {
+                        $element['dbId'] = $seat->id;
+                        $element['price'] = $seat->price;
 
-            if ($row === null || $number === null) continue;
+                        if (!is_null($seat->ticket_id)) {
+                            $takenSeats[] = $element['id'];
+                            $takenSeatIds[] = $seat->id;
+                        }
 
-            $label = $sideLabel($side ?? null);
-            $humanKey = "{$label}-{$row}-{$number}";
-            $slugKey = Str::slug($label, '-') . "-{$row}-{$number}";
-
-            if (!is_null($s->ticket_id)) {
-                $takenSeats[] = $humanKey;
-                $takenSeatIds[] = $s->id;
+                        $seatIdMap[$element['id']] = $seat->id;
+                    }
+                }
             }
+        } else {
+            // Legacy grid-based layout
+            foreach ($seats as $s) {
+                $side = $s->side ?? null;
+                $row = $s->row ?? null;
+                $number = $s->number ?? null;
 
-            $seatPrices[$humanKey] = $s->price;
-            $seatIdMap[$humanKey] = $s->id;
-            $seatIdMap[$s->seat_number] = $s->id;        
-            if (!isset($seatIdMap[$slugKey])) {
-            $seatPrices[$slugKey] = $s->price;
-            $seatIdMap[$slugKey] = $s->id;
+                if (($row === null || $number === null) && !empty($s->seat_number)) {
+        $raw = trim($s->seat_number);
+        if (preg_match('/(?:^\d+-)?([^\-]+)-(\d+)-(\d+)$/u', $raw, $m)) {
+            $side = $side ?? $m[1];
+            $row = $row ?? intval($m[2]);
+            $number = $number ?? intval($m[3]);
+        }
+    }
+
+                if ($row === null || $number === null) continue;
+
+                $label = $sideLabel($side ?? null);
+                $humanKey = "{$label}-{$row}-{$number}";
+                $slugKey = Str::slug($label, '-') . "-{$row}-{$number}";
+
+                if (!is_null($s->ticket_id)) {
+                    $takenSeats[] = $humanKey;
+                    $takenSeatIds[] = $s->id;
+                }
+
+                $seatPrices[$humanKey] = $s->price;
+                $seatIdMap[$humanKey] = $s->id;
+                $seatIdMap[$s->seat_number] = $s->id;
+                if (!isset($seatIdMap[$slugKey])) {
+                $seatPrices[$slugKey] = $s->price;
+                $seatIdMap[$slugKey] = $s->id;
+                }
             }
         }
 
-        return view('matches.local_matches', compact('match', 'takenSeats', 'takenSeatIds', 'seatPrices', 'seatIdMap'));
+        return view('matches.local_matches', compact('match', 'takenSeats', 'takenSeatIds', 'seatPrices', 'seatIdMap', 'customElements'));
     }
 }

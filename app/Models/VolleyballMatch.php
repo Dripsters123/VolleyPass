@@ -36,6 +36,7 @@ class VolleyballMatch extends Model
         'estimated_duration_minutes',
         'actual_end_time',
         'match_state',
+        'arena_id',
     ];
 
     protected $casts = [
@@ -69,6 +70,11 @@ class VolleyballMatch extends Model
         return $this->hasMany(Ticket::class, 'event_id');
     }
 
+    public function arena()
+    {
+        return $this->belongsTo(Arena::class);
+    }
+
    public function generateSeats(array $sides = null, int $rows = null, int $cols = null, ?float $price = null): int
 {
     if (! $this->is_local) {
@@ -77,6 +83,12 @@ class VolleyballMatch extends Model
 
     $this->seats()->delete();
 
+    // If match has an associated arena, use it to generate seats
+    if ($this->arena) {
+        return $this->arena->generateSeatsForMatch($this, $price);
+    }
+
+    // Fallback to legacy grid-based generation
     $arenaCfg = is_array($this->arena) ? $this->arena : [];
     $sides = $sides ?? ($arenaCfg['sides'] ?? ['top', 'bottom', 'left', 'right']);
     $rows  = $rows  ?? ($arenaCfg['rows']  ?? 6);

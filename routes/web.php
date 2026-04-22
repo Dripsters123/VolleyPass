@@ -11,12 +11,11 @@ use App\Http\Controllers\{
     MatchController,
     CalendarController,
     TicketClaimController,
-    PredictionController,
     MatchRequestController,
     ProductController,
     WalletController,
     ProductRequestController,
-    
+    ArenaController,
 };
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -49,6 +48,11 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::resource('arenas', ArenaController::class);
+    Route::post('/arenas/{arena}/duplicate', [ArenaController::class, 'duplicate'])->name('arenas.duplicate');
+    Route::post('/arenas/{arena}/favorite', [ArenaController::class, 'toggleFavorite'])->name('arenas.favorite');
+    Route::post('/arenas/{arena}/toggle-public', [ArenaController::class, 'togglePublic'])->name('arenas.togglePublic');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -150,13 +154,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/product-requests/{productRequest}/edit', [ProductRequestController::class, 'edit'])->name('product_requests.edit');
     Route::put('/product-requests/{productRequest}', [ProductRequestController::class, 'update'])->name('product_requests.update');
     Route::get('/product-requests/{productRequest}', [ProductRequestController::class, 'show'])->name('product_requests.show_user');
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/predictions', [PredictionController::class, 'index'])->name('predictions.index');
-    Route::post('/predictions', [PredictionController::class, 'store'])->name('predictions.store');
-    Route::get('/predictions/my', [PredictionController::class, 'myPredictions'])->name('predictions.my');
-    Route::get('/predictions/{prediction}', [PredictionController::class, 'show'])->name('predictions.show');
 });
 
 Route::post('/stripe/webhook', [PaymentController::class, 'webhook'])->name('stripe.webhook');

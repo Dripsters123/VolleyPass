@@ -3,7 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Wallet;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,19 +13,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        User::factory()->create([
+        $admin = User::factory()->create([
             'name' => 'admin',
             'email' => 'admin@example.com',
             'role' => 'admin',
             'password' => 'password'
         ]);
-        
-         $this->call([
+
+        // Give admin a starting wallet balance
+        Wallet::firstOrCreate(
+            ['user_id' => $admin->id],
+            ['coins' => 500]
+        );
+
+        $this->call([
+            ArenaSeeder::class,
             LocalMatchSeeder::class,
             ProductsSeeder::class,
-            PredictionsSeeder::class,
         ]);
     }
 }

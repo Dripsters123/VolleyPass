@@ -1,88 +1,160 @@
-<x-app-layout title="VolleyPass – Mana Pārskata lapa">
-    <div class="max-w-7xl mx-auto px-6 py-12">
+<x-app-layout title="VolleyPass – Pārskats">
 
-        <div class="mb-10 rounded-xl bg-gradient-to-r from-orange-400 to-blue-600 text-white p-8 shadow-lg">
-            <div class="flex items-center justify-between">
-                <h1 class="text-3xl font-bold">Sveiks, {{ auth()->user()->name }}!</h1>
-                <img src="{{ asset('images/volleyball.png') }}" alt="volleyball" class="h-16 w-auto">
+    {{-- Welcome header --}}
+    <section class="bg-gray-950 relative overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-orange-500/15 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-blue-600/15 blur-3xl pointer-events-none"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex items-center justify-between gap-6">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-widest text-orange-400 mb-1">Mans pārskats</p>
+                <h1 class="text-3xl font-extrabold text-white tracking-tight">
+                    Sveiks, {{ auth()->user()->name }}!
+                </h1>
+                <p class="mt-1 text-gray-400">Tavs volejbola kopsavilkums un gaidāmās spēles.</p>
             </div>
-            <p class="mt-2 text-orange-100">Tavs personīgais volejbola pārskats un ieteikumi</p>
+            <img src="{{ asset('images/volleyball.png') }}" alt="" class="h-16 w-16 opacity-60 hidden sm:block">
         </div>
+    </section>
 
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="grid lg:grid-cols-3 gap-8 items-start">
 
-            <section class="lg:col-span-2">
-                <div class="bg-white rounded-2xl shadow-xl p-8">
-                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Ieteikumi tev</h2>
+            {{-- ── Left: Upcoming matches ── --}}
+            <section class="lg:col-span-2 space-y-6">
 
-                    <div class="grid md:grid-cols-2 gap-6">
-                        @forelse($recommendations as $rec)
-                            <div class="p-4 rounded-xl bg-gradient-to-r from-orange-50 to-blue-50 shadow">
-                                <h3 class="text-lg font-semibold text-blue-700">
-                                    {{ $rec['home_team_name'] }} vs {{ $rec['away_team_name'] }}
-                                </h3>
-                                <p class="text-sm text-gray-600 mt-1">
-                                    Datums: {{ \Carbon\Carbon::parse($rec['start_time'])->translatedFormat('d.m.Y H:i') }}
-                                </p>
-                                <a href="{{ route('volleyball.show', $rec['id']) }}"
-                                   class="mt-3 inline-block px-4 py-2 bg-orange-500 text-white rounded-lg shadow hover:bg-orange-600">
-                                   Skatīt spēli
-                                </a>
-                            </div>
-                        @empty
-                            <p class="text-gray-500">Nav ieteikumu – iegādājies biļetes, lai saņemtu personalizētus!</p>
-                        @endforelse
+                <div>
+                    <div class="flex items-end justify-between mb-5">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-widest text-orange-500 mb-1">Spēļu centrs</p>
+                            <h2 class="text-xl font-extrabold text-gray-900 tracking-tight">Gaidāmās spēles</h2>
+                        </div>
+                        <a href="{{ route('local.matches.index') }}"
+                           class="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700">
+                            Visas spēles
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </a>
                     </div>
+
+                    @if(count($upcomingMatches))
+                        <div class="space-y-3">
+                            @foreach($upcomingMatches as $m)
+                            <a href="{{ route('local.matches.show', $m['id']) }}"
+                               class="group flex items-center gap-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-md p-4 transition-all">
+                                <div class="w-1 self-stretch rounded-full bg-gradient-to-b from-orange-400 to-blue-500 shrink-0"></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-semibold text-gray-900 truncate group-hover:text-blue-700 transition-colors">
+                                        {{ $m['home_team_name'] }} <span class="text-gray-400 font-normal">vs</span> {{ $m['away_team_name'] }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-0.5">
+                                        {{ \Carbon\Carbon::parse($m['start_time'])->translatedFormat('d. M Y, H:i') }}
+                                    </p>
+                                </div>
+                                <div class="shrink-0 text-right">
+                                    <span class="text-sm font-bold text-emerald-600">€{{ number_format($m['ticket_price'], 2) }}</span>
+                                </div>
+                                <svg class="w-4 h-4 text-gray-300 group-hover:text-blue-500 shrink-0 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
+                            </a>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center py-12 bg-white rounded-2xl border border-gray-200 text-center">
+                            <svg class="w-10 h-10 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <p class="text-gray-500 font-medium">Nav gaidāmu spēļu</p>
+                        </div>
+                    @endif
                 </div>
+
+                {{-- Recent purchases --}}
+                <div>
+                    <h2 class="text-lg font-extrabold text-gray-900 tracking-tight mb-4">Pēdējie pirkumi</h2>
+                    @if($recentPurchases->count())
+                        <div class="bg-white rounded-2xl border border-gray-200 divide-y divide-gray-100">
+                            @foreach($recentPurchases as $ticket)
+                            <div class="flex items-center gap-3 px-5 py-3.5">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                                    <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                                    </svg>
+                                </div>
+                                <span class="flex-1 text-sm text-gray-700 truncate">{{ $ticket->event->name ?? 'Biļete' }}</span>
+                                <span class="text-sm font-semibold text-gray-900">€{{ $ticket->amount_paid }}</span>
+                            </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-sm text-gray-400 py-4">Nav pirkumu.</p>
+                    @endif
+                </div>
+
             </section>
 
-            <aside class="space-y-6">
-                
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-lg font-bold text-orange-600 mb-3">Nesenie pirkumi</h2>
-                    <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">
-                        @forelse($recentPurchases as $ticket)
-                            <li>
-                                🎟️ {{ $ticket->event->name ?? 'Notikums' }}
-                                – <span class="text-blue-600">{{ $ticket->amount_paid }}€</span>
-                            </li>
-                        @empty
-                            <li>Nav pirkumu</li>
-                        @endforelse
-                    </ul>
+            {{-- ── Right sidebar ── --}}
+            <aside class="space-y-5">
+
+                {{-- Quick actions --}}
+                <div class="bg-gray-950 rounded-2xl p-5 text-white">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Ātrās darbības</p>
+                    <div class="space-y-2">
+                        <a href="{{ route('local.matches.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/8 hover:bg-white/12 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                      d="M8 21h8M12 17v4M5 3h14l-1 8a6 6 0 01-12 0L5 3z"/>
+                            </svg>
+                            Skatīt visas spēles
+                        </a>
+                        <a href="{{ route('match_requests.create') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/8 hover:bg-white/12 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            Pieteikt maču
+                        </a>
+                        <a href="{{ route('tickets.index') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/8 hover:bg-white/12 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                      d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                            </svg>
+                            Manas biļetes
+                        </a>
+                        <a href="{{ route('wallet.show') }}"
+                           class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/8 hover:bg-white/12 transition-colors text-sm font-medium">
+                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm.75-11.25h-1.5v-1.5h1.5v1.5zm0 7.5h-1.5v-6h1.5v6z"/>
+                            </svg>
+                            Mans maks
+                        </a>
+                    </div>
                 </div>
 
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-lg font-bold text-orange-600 mb-3">Nesen apskatītās</h2>
-                    <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">
-                        @forelse($recentMatches as $matchId)
-                            <li>
-                                👀 <a href="{{ route('volleyball.show', $matchId) }}" class="text-blue-600 hover:underline">
-                                    Spēle #{{ $matchId }}
-                                </a>
-                            </li>
-                        @empty
-                            <li>Nesen nav skatīts</li>
-                        @endforelse
-                    </ul>
+                {{-- Recently viewed --}}
+                @if(count($recentMatches))
+                <div class="bg-white rounded-2xl border border-gray-200 p-5">
+                    <p class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">Nesen skatīts</p>
+                    <div class="space-y-2">
+                        @foreach($recentMatches as $matchId)
+                        <a href="{{ route('local.matches.show', $matchId) }}"
+                           class="flex items-center gap-2.5 text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                            <svg class="w-3.5 h-3.5 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                            </svg>
+                            Spēle #{{ $matchId }}
+                        </a>
+                        @endforeach
+                    </div>
                 </div>
+                @endif
 
-                <div class="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 class="text-lg font-bold text-orange-600 mb-3">Nākošās spēles</h2>
-                    <ul class="text-sm text-gray-700 space-y-1 max-h-32 overflow-y-auto">
-                        @forelse($upcomingMatches as $match)
-                            <li>
-                                🏐 <a href="{{ route('volleyball.show', $match['id']) }}" class="text-blue-600 hover:underline">
-                                    {{ $match['home_team_name'] }} vs {{ $match['away_team_name'] }}
-                                </a>
-                            </li>
-                        @empty
-                            <li>Nav gaidāmu spēļu</li>
-                        @endforelse
-                    </ul>
-                </div>
             </aside>
-
         </div>
     </div>
 </x-app-layout>

@@ -29,6 +29,11 @@ class MatchRequest extends Model
         'away_logo',
         'score_home',
         'score_away',
+        'arena_name',
+        'arena_layout',
+        'arena_elements',
+        'arena_width',
+        'arena_height',
     ];
 
     protected $casts = [
