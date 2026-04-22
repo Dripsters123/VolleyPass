@@ -11,14 +11,11 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Wallet;
 use App\Models\ProductRequest;
-use Faker\Factory as Faker;
 
 class ProductsSeeder extends Seeder
 {
     public function run(): void
     {
-        $faker = Faker::create();
-
         $users = User::where('role', '!=', 'admin')->get();
         if ($users->count() < 4) {
             User::factory()->count(6)->create();
@@ -28,13 +25,22 @@ class ProductsSeeder extends Seeder
   
         $this->ensurePlaceholderExists();
 
+        $titlePrefixes = ['Match', 'Volley', 'Arena', 'Fan', 'Team', 'Pro', 'Sport', 'Club'];
+        $titleItems = ['Scarf', 'Jersey', 'Bottle', 'Poster', 'Cap', 'Bag', 'Ball', 'Sticker Pack'];
+        $descriptions = [
+            'Official quality merchandise for match day and training sessions.',
+            'Durable and lightweight item designed for frequent use.',
+            'Great fan product with a clean look and comfortable fit.',
+            'Limited seeded catalog item with reliable quality and finish.',
+        ];
         $requestTypes = ['create_product', 'update_product', 'delete_request', 'price_change'];
+        $requestStatuses = ['pending', 'approved', 'rejected'];
 
         for ($i = 0; $i < 30; $i++) {
             $seller = $users->random();
-            $title = $faker->unique()->sentence(3);
-            $price = $faker->randomFloat(2, 3, 120);
-            $description = $faker->paragraphs(2, true);
+            $title = $titlePrefixes[array_rand($titlePrefixes)].' '.$titleItems[array_rand($titleItems)].' #'.str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT);
+            $price = round(random_int(300, 12000) / 100, 2);
+            $description = $descriptions[array_rand($descriptions)].' Ref: '.Str::upper(Str::random(6));
 
             try {
                 $svg = $this->generateProductSvg($title);
@@ -107,12 +113,12 @@ class ProductsSeeder extends Seeder
             ProductRequest::create([
                 'user_id'     => $users->random()->id,
                 'product_id'  => $product->id,
-                'request_type'=> $faker->randomElement($requestTypes),
+                'request_type'=> $requestTypes[array_rand($requestTypes)],
                 'title'       => $product->title,
                 'description' => $product->description,
                 'price'       => $product->price,
                 'currency'    => $product->currency,
-                'status'      => $faker->randomElement(['pending', 'approved', 'rejected']),
+                'status'      => $requestStatuses[array_rand($requestStatuses)],
                
                 'image_path'  => $product->image_path,
             ]);
