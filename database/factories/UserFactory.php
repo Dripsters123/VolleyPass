@@ -21,8 +21,6 @@ class UserFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    protected $faker;
-    
     public function definition(): array
 {
     return [
