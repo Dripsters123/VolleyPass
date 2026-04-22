@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use Faker\Factory as FakerFactory;
+use Faker\Generator;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
@@ -11,6 +13,8 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
+    protected static ?Generator $fakerGenerator = null;
+
     /**
      * The current password being used by the factory.
      */
@@ -22,15 +26,17 @@ class UserFactory extends Factory
      * @return array<string, mixed>
      */
     public function definition(): array
-{
-    return [
-        'name' => fake()->name(),
-        'email' => fake()->unique()->safeEmail(),
-        'email_verified_at' => now(),
-        'password' => static::$password ??= Hash::make('password'),
-        'remember_token' => Str::random(10),
-    ];
-}
+    {
+        $faker = static::$fakerGenerator ??= FakerFactory::create();
+
+        return [
+            'name' => $faker->name(),
+            'email' => $faker->unique()->safeEmail(),
+            'email_verified_at' => now(),
+            'password' => static::$password ??= Hash::make('password'),
+            'remember_token' => Str::random(10),
+        ];
+    }
 
 
     /**
