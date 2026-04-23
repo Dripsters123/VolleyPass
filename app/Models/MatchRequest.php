@@ -34,6 +34,7 @@ class MatchRequest extends Model
         'arena_elements',
         'arena_width',
         'arena_height',
+        'ticket_price',
     ];
 
     protected $casts = [

@@ -95,12 +95,63 @@
       {{-- Player name fields rendered by JS below; old() will repopulate on validation errors --}}
       <div id="playerFields"></div>
 
+      {{-- Arena Selection --}}
+      <div class="border-t pt-5 mt-2">
+        <h2 class="text-base font-semibold text-gray-800 mb-1">Arēna</h2>
+        <p class="text-sm text-gray-500 mb-4">Izvēlieties arēnu, lai mainītu pašreizējo izkārtojumu.</p>
+
+        @php
+          $currentArenaName = old('arena_name', $request->arena_name ?? '');
+        @endphp
+
+        <input type="hidden" id="arena-layout-input" name="arena_layout" value="{{ old('arena_layout', $request->arena_layout ?? '') }}">
+        <input type="hidden" id="arena-elements-input" name="arena_elements" value="{{ old('arena_elements', $request->arena_elements ?? '') }}">
+        <input type="hidden" id="arena_width_input" name="arena_width" value="{{ old('arena_width', $request->arena_width ?? 1000) }}">
+        <input type="hidden" id="arena_height_input" name="arena_height" value="{{ old('arena_height', $request->arena_height ?? 700) }}">
+        <input type="hidden" id="arena_id_input" name="arena_id">
+
+        <div class="mb-3">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Arēnas nosaukums</label>
+          <input id="arena_name" name="arena_name" value="{{ $currentArenaName }}" class="w-full border rounded px-3 py-2" required placeholder="Piem.: Rīgas Sporta Pils">
+        </div>
+
+        @if($arenas->isNotEmpty())
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-1">
+            @foreach($arenas as $arena)
+              <div class="arena-selection-card cursor-pointer rounded-xl border-2 p-3 transition-all
+                           {{ old('arena_id', $request->arena_name) == $arena->name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white hover:border-blue-300' }}"
+                   data-arena-id="{{ $arena->id }}">
+                <p class="text-sm font-semibold text-gray-800 truncate">{{ $arena->name }}</p>
+                @if($arena->description)
+                  <p class="text-xs text-gray-500 truncate mt-0.5">{{ $arena->description }}</p>
+                @endif
+                <p class="text-xs text-gray-400 mt-1">{{ $arena->elements ? count($arena->elements) : 0 }} elements</p>
+              </div>
+            @endforeach
+          </div>
+        @else
+          <p class="text-sm text-gray-500 italic">Nav saglabātu arēnu.
+            <a href="{{ route('arenas.create') }}" class="text-blue-600 underline">Izveidot arēnu</a>
+          </p>
+        @endif
+      </div>
+
       <div class="mt-6 flex justify-end gap-3">
         <a href="{{ route('match_requests.my') }}" class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Atpakaļ</a>
         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Saglabāt izmaiņas</button>
       </div>
     </form>
   </div>
+
+  @php
+    $arenaPayload = $arenas->map(function ($arena) {
+        return [
+            'id' => $arena->id, 'name' => $arena->name, 'description' => $arena->description,
+            'layout' => $arena->layout, 'elements' => $arena->elements,
+            'width' => $arena->width, 'height' => $arena->height,
+        ];
+    });
+  @endphp
 
   <script>
     (function() {
@@ -112,29 +163,17 @@
 
       function renderPlayers(n) {
         n = Number(n) || 2;
-        let html = '<div class="bg-gray-50 border rounded p-4"><h3 class="font-semibold mb-2">Mājas komanda</h3>';
+        let html = '<div class="bg-gray-50 border rounded p-4 mt-2"><h3 class="font-semibold mb-2">Mājas komanda</h3>';
         for (let i=0;i<n;i++){
           const hf = preHome[i]?.first_name ?? '';
           const hl = preHome[i]?.last_name ?? '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div><label class="text-sm">Vārds</label><input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required></div>
-              <div><label class="text-sm">Uzvārds</label><input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required></div>
-            </div>
-          `;
+          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required></div><div><label class="text-sm">Uzvārds</label><input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required></div></div>`;
         }
-        html += '</div>';
-
-        html += '<div class="bg-gray-50 border rounded p-4"><h3 class="font-semibold mb-2">Viesu komanda</h3>';
+        html += '</div><div class="bg-gray-50 border rounded p-4 mt-2"><h3 class="font-semibold mb-2">Viesu komanda</h3>';
         for (let i=0;i<n;i++){
           const af = preAway[i]?.first_name ?? '';
           const al = preAway[i]?.last_name ?? '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div><label class="text-sm">Vārds</label><input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required></div>
-              <div><label class="text-sm">Uzvārds</label><input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required></div>
-            </div>
-          `;
+          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required></div><div><label class="text-sm">Uzvārds</label><input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required></div></div>`;
         }
         html += '</div>';
         container.innerHTML = html;
@@ -142,6 +181,23 @@
 
       renderPlayers(select.value);
       select.addEventListener('change', e => renderPlayers(e.target.value));
+
+      // Arena selection
+      const arenas = @json($arenaPayload);
+      document.querySelectorAll('.arena-selection-card').forEach(card => {
+        card.addEventListener('click', function() {
+          const arena = arenas.find(a => a.id == this.dataset.arenaId);
+          if (!arena) return;
+          document.getElementById('arena-layout-input').value = JSON.stringify(arena.layout || []);
+          document.getElementById('arena-elements-input').value = JSON.stringify(arena.elements || []);
+          document.getElementById('arena_width_input').value = arena.width || 1000;
+          document.getElementById('arena_height_input').value = arena.height || 700;
+          document.getElementById('arena_id_input').value = arena.id;
+          document.getElementById('arena_name').value = arena.name;
+          document.querySelectorAll('.arena-selection-card').forEach(c => c.classList.remove('border-blue-500','bg-blue-50'));
+          this.classList.add('border-blue-500','bg-blue-50');
+        });
+      });
     })();
   </script>
 </x-app-layout>

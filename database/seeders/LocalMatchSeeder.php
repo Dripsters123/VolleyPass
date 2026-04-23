@@ -59,6 +59,57 @@ class LocalMatchSeeder extends Seeder
             ],
         ];
 
+        $playerData = [
+            2 => [
+                'home' => [
+                    ['first_name' => 'Māris',    'last_name' => 'Ozols'],
+                    ['first_name' => 'Rihards',  'last_name' => 'Lācis'],
+                ],
+                'away' => [
+                    ['first_name' => 'Kārlis',   'last_name' => 'Vītols'],
+                    ['first_name' => 'Andris',   'last_name' => 'Siliņš'],
+                ],
+            ],
+            4 => [
+                'home' => [
+                    ['first_name' => 'Jānis',    'last_name' => 'Bērziņš'],
+                    ['first_name' => 'Toms',     'last_name' => 'Krūmiņš'],
+                    ['first_name' => 'Edgars',   'last_name' => 'Kalniņš'],
+                    ['first_name' => 'Lauris',   'last_name' => 'Jansons'],
+                ],
+                'away' => [
+                    ['first_name' => 'Sandis',   'last_name' => 'Freibergs'],
+                    ['first_name' => 'Artūrs',   'last_name' => 'Ozoliņš'],
+                    ['first_name' => 'Gints',    'last_name' => 'Zariņš'],
+                    ['first_name' => 'Harijs',   'last_name' => 'Liepa'],
+                ],
+            ],
+            6 => [
+                'home' => [
+                    ['first_name' => 'Raimonds', 'last_name' => 'Vītols'],
+                    ['first_name' => 'Guntars',  'last_name' => 'Siliņš'],
+                    ['first_name' => 'Valdis',   'last_name' => 'Puķe'],
+                    ['first_name' => 'Atis',     'last_name' => 'Lācis'],
+                    ['first_name' => 'Normunds', 'last_name' => 'Ozoliņš'],
+                    ['first_name' => 'Imants',   'last_name' => 'Bērziņš'],
+                ],
+                'away' => [
+                    ['first_name' => 'Rolands',  'last_name' => 'Kalniņš'],
+                    ['first_name' => 'Mārtiņš',  'last_name' => 'Jansons'],
+                    ['first_name' => 'Juris',    'last_name' => 'Freibergs'],
+                    ['first_name' => 'Aivars',   'last_name' => 'Krūmiņš'],
+                    ['first_name' => 'Uldis',    'last_name' => 'Zariņš'],
+                    ['first_name' => 'Aigars',   'last_name' => 'Liepa'],
+                ],
+            ],
+        ];
+
+        $coachData = [
+            2 => ['home' => 'Aivars Kalniņš',  'away' => 'Juris Bērziņš'],
+            4 => ['home' => 'Uldis Freibergs',  'away' => 'Guntars Ozoliņš'],
+            6 => ['home' => 'Māris Vītols',     'away' => 'Edgars Zariņš'],
+        ];
+
         $formats = [2, 4, 6];
 
         foreach ($formats as $n) {
@@ -76,18 +127,12 @@ class LocalMatchSeeder extends Seeder
                 'status_type'      => 'scheduled',
                 'match_state'      => 'scheduled',
                 'ticket_price'     => 12.00 + $n,
-                'home_coach'       => "Coach H{$n}",
-                'away_coach'       => "Coach A{$n}",
-                'location'         => "Cēsis, Latvia",
-                'judges'           => json_encode(["Judge " . Str::upper(Str::random(3))]),
-                'home_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'H' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
-                'away_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'A' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
+                'home_coach'       => $coachData[$n]['home'],
+                'away_coach'       => $coachData[$n]['away'],
+                'location'         => "Sporta iela 1, Cēsis, LV-4101",
+                'judges'           => json_encode(["Jānis Ozoliņš"]),
+                'home_players'     => json_encode($playerData[$n]['home']),
+                'away_players'     => json_encode($playerData[$n]['away']),
                 'home_logo'        => null,
                 'away_logo'        => null,
                 'home_color'       => '#1f7af0',
@@ -117,19 +162,12 @@ class LocalMatchSeeder extends Seeder
                 'status_type'      => 'scheduled',
                 'match_state'      => 'scheduled',
                 'ticket_price'     => 10.00 + $n,
-                'home_coach'       => "UserCoach H{$n}",
-                'away_coach'       => "UserCoach A{$n}",
-                'location'         => "Rīga, Latvia",
-                'judges'           => json_encode(["Judge " . Str::upper(Str::random(3))]),
-               
-                'home_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'H' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
-                'away_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'A' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
+                'home_coach'       => $coachData[$n]['home'],
+                'away_coach'       => $coachData[$n]['away'],
+                'location'         => "Rīgas Sporta Pils, Brnībās iela 57, Rīga, LV-1013",
+                'judges'           => json_encode(["Klāvs Lielkalniņš"]),
+                'home_players'     => json_encode($playerData[$n]['home']),
+                'away_players'     => json_encode($playerData[$n]['away']),
                 'home_logo'        => null,
                 'away_logo'        => null,
                 'home_color'       => '#2b8bf7',
@@ -159,18 +197,12 @@ class LocalMatchSeeder extends Seeder
                 'status_type'      => 'completed',
                 'match_state'      => 'completed',
                 'ticket_price'     => 8.00 + $n,
-                'home_coach'       => "FinishCoach H{$n}",
-                'away_coach'       => "FinishCoach A{$n}",
-                'location'         => "Valmiera, Latvia",
-                'judges'           => json_encode(["Judge " . Str::upper(Str::random(3))]),
-                'home_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'H' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
-                'away_players'     => json_encode(array_map(fn($i) => [
-                    'first_name' => 'A' . ($i + 1),
-                    'last_name'  => 'Player' . ($i + 1),
-                ], range(0, $n - 1))),
+                'home_coach'       => $coachData[$n]['home'],
+                'away_coach'       => $coachData[$n]['away'],
+                'location'         => "Vidzemes Olimpiskais Centrs, Cimzes iela 2, Valmiera, LV-4201",
+                'judges'           => json_encode(["Andris Rozenbergs"]),
+                'home_players'     => json_encode($playerData[$n]['home']),
+                'away_players'     => json_encode($playerData[$n]['away']),
                 'home_logo'        => null,
                 'away_logo'        => null,
                 'home_score'       => ($completedResult = [[3,0],[3,1],[3,2],[0,3],[1,3],[2,3]][rand(0,5)])[0],
@@ -217,19 +249,19 @@ class LocalMatchSeeder extends Seeder
                 'start_time'      => now()->addDays($n + 3)->setTime(18, 0),
                 'end_time'        => now()->addDays($n + 3)->setTime(20, 0),
                 'players_per_team'=> $n,
-                'home_players'    => json_encode(array_map(fn($i) => [
-                    'first_name' => 'H' . ($i + 1),
-                    'last_name'  => 'Accepted' . ($i + 1),
-                ], range(0, $n - 1))),
-                'away_players'    => json_encode(array_map(fn($i) => [
-                    'first_name' => 'A' . ($i + 1),
-                    'last_name'  => 'Accepted' . ($i + 1),
-                ], range(0, $n - 1))),
+                'home_players'    => $playerData[$n]['home'],
+                'away_players'    => $playerData[$n]['away'],
                 'status'          => 'accepted',
-                'home_coach'      => "ReqCoach H{$n}",
-                'away_coach'      => "ReqCoach A{$n}",
-                'judges'          => json_encode(["Judge " . Str::upper(Str::random(3))]),
-                'location'        => "Cēsis, Latvia",
+                'home_coach'      => $coachData[$n]['home'],
+                'away_coach'      => $coachData[$n]['away'],
+                'judges'          => ["Klāvs Lielkalniņš"],
+                'location'        => "Sporta iela 1, Cēsis, LV-4101",
+                'arena_name'      => $arena?->name,
+                'arena_layout'    => json_encode($arena?->layout ?? []),
+                'arena_elements'  => json_encode($arena?->elements ?? []),
+                'arena_width'     => $arena?->width ?? 1000,
+                'arena_height'    => $arena?->height ?? 700,
+                'ticket_price'    => 10.00 + $n,
             ]);
 
           
@@ -241,13 +273,19 @@ class LocalMatchSeeder extends Seeder
                 'start_time'      => now()->addDays($n + 4)->setTime(18, 0),
                 'end_time'        => now()->addDays($n + 4)->setTime(20, 0),
                 'players_per_team'=> $n,
-                'home_players'    => json_encode([]),
-                'away_players'    => json_encode([]),
+                'home_players'    => $playerData[$n]['home'],
+                'away_players'    => $playerData[$n]['away'],
                 'status'          => 'pending',
-                'home_coach'      => 'TBD',
-                'away_coach'      => 'TBD',
-                'judges'          => json_encode([]),
-                'location'        => "Rēzekne, Latvia",
+                'home_coach'      => $coachData[$n]['home'],
+                'away_coach'      => $coachData[$n]['away'],
+                'judges'          => ["Anna Ozoliņa"],
+                'location'        => "Rēzeknes Sporta Centrs, Atbrīvošanas al. 83, Rēzekne, LV-4601",
+                'arena_name'      => $arena?->name,
+                'arena_layout'    => json_encode($arena?->layout ?? []),
+                'arena_elements'  => json_encode($arena?->elements ?? []),
+                'arena_width'     => $arena?->width ?? 1000,
+                'arena_height'    => $arena?->height ?? 700,
+                'ticket_price'    => 8.00 + $n,
             ]);
 
             MatchRequest::create([

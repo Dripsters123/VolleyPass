@@ -89,19 +89,39 @@
 
       {{-- Match grid --}}
       <main class="flex-1">
+
+        {{-- Tab navigation --}}
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-5 w-fit">
+          @foreach(['upcoming' => 'Gaidāmie', 'results_pending' => 'Rezultāti gaidāmi', 'completed' => 'Pabeigti'] as $key => $label)
+            <a href="{{ route('local.matches.index', array_merge(request()->except('tab', 'page'), ['tab' => $key])) }}"
+               class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all
+               {{ ($tab ?? 'upcoming') === $key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
+              {{ $label }}
+            </a>
+          @endforeach
+        </div>
+
         <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-5">
           @forelse($matches as $match)
-            @php $done = ($match->match_state ?? $match->status_type) === 'completed'; @endphp
+            @php
+              $effectiveState = $match->effective_state;
+              $done = $effectiveState === 'completed';
+              $resultsPending = $effectiveState === 'results_pending';
+            @endphp
             <a href="{{ route('local.matches.show', $match->id) }}"
-               class="group bg-white rounded-2xl border {{ $done ? 'border-gray-200 opacity-75' : 'border-gray-200 hover:border-blue-300 hover:shadow-lg' }} transition-all duration-200 overflow-hidden flex flex-col">
+               class="group bg-white rounded-2xl border {{ $done ? 'border-gray-200 opacity-75' : ($resultsPending ? 'border-amber-200' : 'border-gray-200 hover:border-blue-300 hover:shadow-lg') }} transition-all duration-200 overflow-hidden flex flex-col">
 
-              <div class="h-1 w-full {{ $done ? 'bg-gray-300' : 'bg-gradient-to-r from-orange-400 to-blue-500' }}"></div>
+              <div class="h-1 w-full {{ $done ? 'bg-gray-300' : ($resultsPending ? 'bg-amber-400' : 'bg-gradient-to-r from-orange-400 to-blue-500') }}"></div>
 
               <div class="p-5 flex-1 flex flex-col">
                 {{-- Status badge --}}
                 @if($done)
                   <span class="self-start mb-3 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-600 border border-red-100">
                     Pabeigts
+                  </span>
+                @elseif($resultsPending)
+                  <span class="self-start mb-3 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                    ⏳ Rezultāti gaidāmi
                   </span>
                 @elseif($match->tournament_name ?? false)
                   <span class="self-start mb-3 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-600 border border-blue-100">
@@ -126,6 +146,8 @@
                   <div class="shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400">
                     @if($done)
                       {{ $match->home_score }}–{{ $match->away_score }}
+                    @elseif($resultsPending)
+                      ?–?
                     @else
                       VS
                     @endif
@@ -153,7 +175,7 @@
                     </svg>
                     {{ \Carbon\Carbon::parse($match->start_time)->format('d.m.Y H:i') }}
                   </div>
-                  @if(!$done)
+                  @if(!$done && !$resultsPending)
                     <span class="font-semibold text-emerald-600">€{{ number_format($match->ticket_price ?? 0, 2) }}</span>
                   @endif
                 </div>
@@ -161,8 +183,8 @@
 
               <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                 <span class="text-xs text-gray-400 truncate">{{ $match->location ?? '' }}</span>
-                <span class="text-xs font-medium {{ $done ? 'text-gray-400' : 'text-blue-600 group-hover:underline' }}">
-                  {{ $done ? 'Pabeigts' : 'Apskatīt →' }}
+                <span class="text-xs font-medium {{ $done ? 'text-gray-400' : ($resultsPending ? 'text-amber-600' : 'text-blue-600 group-hover:underline') }}">
+                  @if($done) Pabeigts @elseif($resultsPending) Rezultāti gaidāmi @else Apskatīt → @endif
                 </span>
               </div>
             </a>

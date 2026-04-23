@@ -6,9 +6,6 @@ use Illuminate\Http\Request;
 use App\Models\Seat;
 use App\Models\Ticket;
 use App\Models\Event;
-use App\Models\Wallet;
-use App\Models\Order;
-use App\Models\Product;
 use App\Models\DiscountCard;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
@@ -18,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\TicketPurchased;
 
 class PaymentController extends Controller
 {
@@ -65,6 +64,7 @@ class PaymentController extends Controller
         }
 
         $appliedDiscount = null;
+        $newUserPromo = false;
         if (!empty($discountCode)) {
             $discountCode = trim($discountCode);
             $d = DiscountCard::where('code', $discountCode)->first();
@@ -75,6 +75,12 @@ class PaymentController extends Controller
                 return response()->json(['error' => 'Discount code belongs to another user'], 403);
             }
             $appliedDiscount = $d;
+        } else {
+            // New-user promo: 20% off the first 3 ticket purchases
+            $paidTicketCount = Ticket::where('user_id', $user->id)->where('status', 'paid')->count();
+            if ($paidTicketCount < 3) {
+                $newUserPromo = true;
+            }
         }
 
         DB::beginTransaction();
@@ -121,7 +127,7 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Failed to reserve seats'], 500);
         }
 
-        $discountPercent = $appliedDiscount ? (int)$appliedDiscount->discount_percent : 0;
+        $discountPercent = $appliedDiscount ? (int)$appliedDiscount->discount_percent : ($newUserPromo ? 20 : 0);
         $lineItems = [];
         $originalTotal = 0.0;
         foreach ($seats as $s) {
@@ -158,6 +164,10 @@ class PaymentController extends Controller
             if ($appliedDiscount) {
                 $sessionMetadata['discount_code'] = $appliedDiscount->code;
                 $sessionMetadata['discount_percent'] = (string) $appliedDiscount->discount_percent;
+            }
+            if ($newUserPromo) {
+                $sessionMetadata['new_user_promo'] = '1';
+                $sessionMetadata['discount_percent'] = '20';
             }
 
             $session = StripeSession::create([
@@ -287,6 +297,16 @@ class PaymentController extends Controller
             $this->stripeDebugLog('success.finalize_error', $e->getMessage());
             Log::error('Finalize purchase (success) failed: ' . $e->getMessage());
             return redirect()->route('home')->with('error', 'Could not finalize purchase.');
+        }
+
+        try {
+            $emailAddress = $ticket->stripe_email ?? (\App\Models\User::find($userId)?->email);
+            $matchModel = \App\Models\VolleyballMatch::find($matchId);
+            if ($emailAddress && $matchModel) {
+                Mail::to($emailAddress)->send(new TicketPurchased($ticket, $matchModel, $seatsArray));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to send TicketPurchased email: ' . $e->getMessage());
         }
 
         return redirect()->route('tickets.index')->with('success', 'Ticket purchased successfully!');

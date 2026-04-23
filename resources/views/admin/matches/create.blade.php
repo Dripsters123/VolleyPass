@@ -133,13 +133,13 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium">Mājas komanda</label>
-          <input name="home_team_name" value="{{ val('home_team_name', $p) }}" class="w-full p-2 border rounded" required>
+          <input name="home_team_name" value="{{ val('home_team_name', $p) }}" class="w-full p-2 border rounded" placeholder="Piem.: Rīgas Pērkons" required>
           @error('home_team_name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
 
         <div>
           <label class="block text-sm font-medium">Viesu komanda</label>
-          <input name="away_team_name" value="{{ val('away_team_name', $p) }}" class="w-full p-2 border rounded" required>
+          <input name="away_team_name" value="{{ val('away_team_name', $p) }}" class="w-full p-2 border rounded" placeholder="Piem.: Cēsu Ērgļi" required>
           @error('away_team_name') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
       </div>
@@ -147,25 +147,25 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium">Mājas treneris</label>
-          <input name="home_coach" value="{{ old('home_coach', $p['home_coach'] ?? '') }}" class="w-full p-2 border rounded">
+          <input name="home_coach" value="{{ old('home_coach', $p['home_coach'] ?? '') }}" class="w-full p-2 border rounded" placeholder="Piem.: Jānis Bērziņš">
           @error('home_coach') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
         <div>
           <label class="block text-sm font-medium">Viesu treneris</label>
-          <input name="away_coach" value="{{ old('away_coach', $p['away_coach'] ?? '') }}" class="w-full p-2 border rounded">
+          <input name="away_coach" value="{{ old('away_coach', $p['away_coach'] ?? '') }}" class="w-full p-2 border rounded" placeholder="Piem.: Kārlis Liepa">
           @error('away_coach') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium">Tiesneši (komatu atdalīti)</label>
-        <input name="judges" value="{{ old('judges', is_array($p['judges'] ?? null) ? implode(', ', $p['judges']) : ($p['judges'] ?? '')) }}" class="w-full p-2 border rounded">
+        <input name="judges" value="{{ old('judges', is_array($p['judges'] ?? null) ? implode(', ', $p['judges']) : ($p['judges'] ?? '')) }}" class="w-full p-2 border rounded" placeholder="Piem.: Anna Ozola, Māris Kalniņš">
         @error('judges') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Vieta (piem., Cēsis, Latvia)</label>
-        <input name="location" value="{{ old('location', $p['location'] ?? '') }}" class="w-full p-2 border rounded">
+        <label class="block text-sm font-medium">Vieta — pilna adrese</label>
+        <input name="location" value="{{ old('location', $p['location'] ?? '') }}" class="w-full p-2 border rounded" placeholder="Piem.: Sporta iela 2, Rīga, LV-1001">
         @error('location') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
       </div>
 
@@ -196,7 +196,7 @@
 
       <div>
         <label class="block text-sm font-medium">Biļešu cena (EUR)</label>
-        <input name="ticket_price" type="number" step="0.01" min="0" value="{{ old('ticket_price') }}" class="w-40 p-2 border rounded" required>
+        <input name="ticket_price" type="number" step="0.01" min="0" value="{{ val('ticket_price', $p) }}" class="w-40 p-2 border rounded" placeholder="Piem.: 8.50" required>
         @error('ticket_price') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         <p class="text-xs text-gray-500 mt-1">Admin var iestatīt cenu. Ja tukšs — tiks izmantota 10.00 EUR noklusējuma cena.</p>
       </div>

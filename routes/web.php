@@ -10,12 +10,14 @@ use App\Http\Controllers\{
     HomeController,
     MatchController,
     CalendarController,
+    NotificationController,
     TicketClaimController,
     MatchRequestController,
     ProductController,
     WalletController,
     ProductRequestController,
     ArenaController,
+    TeamController,
 };
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -53,9 +55,18 @@ Route::middleware('auth')->group(function () {
     Route::post('/arenas/{arena}/favorite', [ArenaController::class, 'toggleFavorite'])->name('arenas.favorite');
     Route::post('/arenas/{arena}/toggle-public', [ArenaController::class, 'togglePublic'])->name('arenas.togglePublic');
 
+    Route::resource('teams', TeamController::class)->except(['show']);
+    Route::get('/teams/api', [TeamController::class, 'api'])->name('teams.api');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.readAll');
 
     Route::get('/wallet', [WalletController::class, 'show'])->name('wallet.show');
     Route::post('/wallet/buy-discount', [WalletController::class, 'buyDiscountCard'])->name('wallet.buy.post');
@@ -86,7 +97,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/match-requests/{matchRequest}/edit', [MatchRequestController::class, 'edit'])->name('match_requests.edit');
     Route::put('/match-requests/{matchRequest}', [MatchRequestController::class, 'update'])->name('match_requests.update');
     Route::delete('/match-requests/{matchRequest}/cancel', [MatchRequestController::class, 'cancel'])->name('match_requests.cancel');
+    Route::delete('/match-requests/{id}/delete', [MatchRequestController::class, 'destroy'])->name('match_requests.destroy');
     Route::get('/my-requests/{id}', [MatchRequestController::class, 'view'])->name('match_requests.view');
+    Route::post('/match-requests/{id}/appeal', [MatchRequestController::class, 'submitAppeal'])->name('match_requests.appeal');
 });
 
 
@@ -119,6 +132,8 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/inbox/{id}', [MatchRequestController::class, 'show'])->name('match_requests.show');
         Route::post('/inbox/{id}/accept', [MatchRequestController::class, 'accept'])->name('match_requests.accept');
         Route::post('/inbox/{id}/reject', [MatchRequestController::class, 'reject'])->name('match_requests.reject');
+        Route::post('/inbox/{id}/review', [MatchRequestController::class, 'markReviewing'])->name('match_requests.review');
+        Route::delete('/inbox/{id}', [MatchRequestController::class, 'adminDestroy'])->name('match_requests.admin_destroy');
 
       
         Route::get('/product-requests', [ProductRequestController::class, 'adminIndex'])->name('product_requests.index');
@@ -126,6 +141,7 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/product-requests/{productRequest}/edit', [ProductRequestController::class, 'editForAdmin'])->name('product_requests.edit');
         Route::post('/product-requests/{productRequest}/approve', [ProductRequestController::class, 'approve'])->name('product_requests.approve');
         Route::post('/product-requests/{productRequest}/reject', [ProductRequestController::class, 'reject'])->name('product_requests.reject');
+        Route::post('/product-requests/{productRequest}/review', [ProductRequestController::class, 'review'])->name('product_requests.review');
     });
 
 

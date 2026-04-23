@@ -23,6 +23,7 @@ class MatchController extends Controller
 public function index(Request $request)
 {
     $perPage = 12;
+    $tab = $request->input('tab', 'upcoming'); // upcoming | results_pending | completed
 
     $query = VolleyballMatch::query()->where('is_local', true);
 
@@ -54,19 +55,34 @@ public function index(Request $request)
         $query->where('ticket_price', '<=', (float)$request->max_price);
     }
 
-    $query->orderBy('start_time', 'asc');
+    // Apply tab filter at DB level for efficiency
+    if ($tab === 'completed') {
+        $query->where(function ($q) {
+            $q->where('match_state', 'completed')->orWhere('status_type', 'completed');
+        });
+        $query->orderBy('start_time', 'desc');
+    } elseif ($tab === 'results_pending') {
+        $query->where(function ($q) {
+            $q->where('match_state', '!=', 'completed')->orWhereNull('match_state');
+        })->where(function ($q) {
+            $q->where('status_type', '!=', 'completed')->orWhereNull('status_type');
+        })->where('end_time', '<', now());
+        $query->orderBy('end_time', 'desc');
+    } else {
+        // upcoming: end_time in future or not yet ended
+        $query->where(function ($q) {
+            $q->where('match_state', '!=', 'completed')->orWhereNull('match_state');
+        })->where(function ($q) {
+            $q->where('status_type', '!=', 'completed')->orWhereNull('status_type');
+        })->where(function ($q) {
+            $q->whereNull('end_time')->orWhere('end_time', '>=', now());
+        });
+        $query->orderBy('start_time', 'asc');
+    }
 
     $matches = $query->paginate($perPage)->withQueryString();
 
-    $allMatches = $matches->getCollection();
-
-    $upcoming = $allMatches->filter(fn($m) => ($m->match_state ?? $m->status_type ?? '') !== 'completed');
-    $completed = $allMatches->filter(fn($m) => ($m->match_state ?? $m->status_type ?? '') === 'completed');
-    $renderList = $upcoming->concat($completed);
-
-    $matches->setCollection($renderList);
-
-    return view('matches.local.index', compact('matches'));
+    return view('matches.local.index', compact('matches', 'tab'));
 }
 
     public function create(Request $request)
@@ -95,8 +111,8 @@ public function index(Request $request)
                     'start_time'     => $mr->start_time?->format('Y-m-d\TH:i') ?? null,
                     'end_time'       => $mr->end_time?->format('Y-m-d\TH:i') ?? null,
                     'players_per_team' => $mr->players_per_team,
-                    'home_players'   => json_decode($mr->home_players, true) ?? [],
-                    'away_players'   => json_decode($mr->away_players, true) ?? [],
+                    'home_players'   => is_array($mr->home_players) ? $mr->home_players : (json_decode($mr->home_players ?? '[]', true) ?: []),
+                    'away_players'   => is_array($mr->away_players) ? $mr->away_players : (json_decode($mr->away_players ?? '[]', true) ?: []),
                     'home_coach'     => $mr->home_coach ?? null,
                     'away_coach'     => $mr->away_coach ?? null,
                     'judges'         => is_string($mr->judges) ? json_decode($mr->judges, true) : ($mr->judges ?? []),
@@ -109,6 +125,7 @@ public function index(Request $request)
                     'arena_elements' => json_decode($mr->arena_elements, true) ?? [],
                     'arena_width'    => $mr->arena_width ?? 800,
                     'arena_height'   => $mr->arena_height ?? 600,
+                    'ticket_price'   => $mr->ticket_price ?? null,
                 ];
             }
         }
@@ -157,6 +174,12 @@ public function index(Request $request)
             'arena_width' => 'nullable|integer|min:400|max:2000',
             'arena_height' => 'nullable|integer|min:300|max:1500',
             'match_request_id' => 'nullable|exists:match_requests,id',
+            'home_players' => 'required|array|min:1',
+            'home_players.*.first_name' => 'required|string|max:100',
+            'home_players.*.last_name' => 'required|string|max:100',
+            'away_players' => 'required|array|min:1',
+            'away_players.*.first_name' => 'required|string|max:100',
+            'away_players.*.last_name' => 'required|string|max:100',
         ]);
 
         $start = Carbon::parse($validated['start_time']);
@@ -212,6 +235,8 @@ public function index(Request $request)
             'judges' => $judgesArr,
             'location' => $validated['location'] ?? null,
             'arena_id' => $arena->id,
+            'home_players' => $validated['home_players'],
+            'away_players' => $validated['away_players'],
         ]);
 
         if ($request->hasFile('home_logo')) {
@@ -331,8 +356,8 @@ public function index(Request $request)
     public function localShow($id)
     {
         $match = VolleyballMatch::with('arena')->where('is_local', true)->findOrFail($id);
-        $match->home_players = json_decode($match->home_players, true) ?? [];
-        $match->away_players = json_decode($match->away_players, true) ?? [];
+        $match->home_players = is_array($match->home_players) ? $match->home_players : (json_decode($match->home_players ?? '[]', true) ?: []);
+        $match->away_players = is_array($match->away_players) ? $match->away_players : (json_decode($match->away_players ?? '[]', true) ?: []);
 
         $takenSeats = $match->seats()->whereNotNull('ticket_id')->pluck('seat_number')->toArray();
         $seatPrices = $match->seats()->pluck('price', 'seat_number')->toArray();

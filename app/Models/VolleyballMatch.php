@@ -47,6 +47,22 @@ class VolleyballMatch extends Model
         'end_time' => 'datetime',
         'actual_end_time' => 'datetime',
     ];
+
+    /**
+     * Returns the effective display state of the match.
+     * 'results_pending' = time has passed but no finalized score exists yet.
+     */
+    public function getEffectiveStateAttribute(): string
+    {
+        if (($this->match_state ?? $this->status_type ?? '') === 'completed') {
+            return 'completed';
+        }
+        if ($this->end_time && $this->end_time->isPast()) {
+            return 'results_pending';
+        }
+        return 'upcoming';
+    }
+
     public function sets()
 {
     return $this->hasMany(VolleyballMatchSet::class, 'match_id');

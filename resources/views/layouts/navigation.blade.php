@@ -1,5 +1,6 @@
 @php
     use App\Models\Wallet;
+    use Illuminate\Support\Facades\Storage;
     $wallet = auth()->check() ? Wallet::firstWhere('user_id', auth()->id()) : null;
     $navCoins = $wallet ? (int) $wallet->coins : 0;
 @endphp
@@ -67,6 +68,21 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
                                     </svg>
                                     Mani pieprasījumi
+                                </a>
+                                <div class="border-t border-white/10 my-1"></div>
+                                <a href="{{ route('teams.index') }}"
+                                   class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Manas komandas
+                                </a>
+                                <a href="{{ route('teams.create') }}"
+                                   class="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
+                                    </svg>
+                                    Jauna komanda
                                 </a>
                             @endif
                         @endauth
@@ -143,6 +159,8 @@
             {{-- Right actions – desktop --}}
             <div class="hidden md:flex items-center gap-2">
                 @auth
+                    @php $navUnread = auth()->user()->unreadNotifications->count(); @endphp
+
                     {{-- Coin balance --}}
                     <a href="{{ route('wallet.show') }}"
                        title="Monētu atlikums"
@@ -153,29 +171,100 @@
                         <span class="text-xs font-bold">{{ number_format($navCoins) }}</span>
                     </a>
 
+                    {{-- Notifications bell --}}
+                    <div class="relative" x-data="{ notifMenu: false }">
+                        <button @click="notifMenu = !notifMenu" @click.outside="notifMenu = false"
+                                class="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                            </svg>
+                            @if($navUnread > 0)
+                                <span class="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                                    {{ $navUnread > 9 ? '9+' : $navUnread }}
+                                </span>
+                            @endif
+                        </button>
+                        <div x-show="notifMenu" x-transition
+                             class="absolute right-0 mt-2 w-80 bg-gray-900 border border-white/10 rounded-xl shadow-2xl text-sm z-50">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+                                <span class="font-semibold text-white">Paziņojumi</span>
+                                @if($navUnread > 0)
+                                    <form action="{{ route('notifications.readAll') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="text-xs text-blue-400 hover:text-blue-300">Atzīmēt visus</button>
+                                    </form>
+                                @endif
+                            </div>
+                            @php $recentNotifs = auth()->user()->notifications()->latest()->take(5)->get(); @endphp
+                            @if($recentNotifs->isEmpty())
+                                <div class="px-4 py-6 text-center text-gray-500 text-xs">Nav paziņojumu</div>
+                            @else
+                                @foreach($recentNotifs as $notif)
+                                    @php $nd = $notif->data; $nRead = !is_null($notif->read_at); @endphp
+                                    <div class="flex items-start gap-3 px-4 py-3 {{ $nRead ? '' : 'bg-white/5' }} hover:bg-white/8 transition-colors border-b border-white/5 last:border-0">
+                                        <span class="flex-shrink-0 text-base mt-0.5">
+                                            @if(($nd['new_status'] ?? '') === 'accepted') ✅
+                                            @elseif(($nd['new_status'] ?? '') === 'rejected') ❌
+                                            @elseif(($nd['new_status'] ?? '') === 'reviewing') 👁
+                                            @else 📨
+                                            @endif
+                                        </span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-gray-200 text-xs leading-snug truncate">{{ $nd['message'] ?? '—' }}</p>
+                                            <p class="text-gray-500 text-[10px] mt-0.5">{{ $notif->created_at->diffForHumans() }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
+                            <div class="px-4 py-2.5 border-t border-white/10">
+                                <a href="{{ route('notifications.index') }}" class="text-xs text-blue-400 hover:text-blue-300">Visi paziņojumi →</a>
+                            </div>
+                        </div>
+                    </div>
+
                     {{-- Admin inbox (admin only) --}}
                     @if(auth()->user()->role === 'admin')
+                    @php $pendingCount = \App\Models\MatchRequest::where('status', 'pending')->count() + \App\Models\ProductRequest::where('status', 'pending')->count(); @endphp
                     <a href="{{ route('admin.match_requests.inbox') }}"
                        title="Admin Inbox"
-                       class="flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
+                       class="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
                                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m4 0l2 2 4-4"/>
                         </svg>
+                        @if($pendingCount > 0)
+                            <span class="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+                                {{ $pendingCount > 9 ? '9+' : $pendingCount }}
+                            </span>
+                        @endif
                     </a>
                     @endif
 
                     {{-- User avatar / dropdown --}}
                     <div class="relative" x-data="{ userMenu: false }">
                         <button @click="userMenu = !userMenu" @click.outside="userMenu = false"
-                                class="flex items-center justify-center w-9 h-9 rounded-lg bg-gradient-to-br from-orange-400 to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition">
-                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                class="flex items-center justify-center w-9 h-9 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-blue-600 text-white font-semibold text-sm hover:opacity-90 transition">
+                            @if(auth()->user()->avatar)
+                                <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="" class="w-full h-full object-cover">
+                            @else
+                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                            @endif
                         </button>
                         <div x-show="userMenu" x-transition
                              class="absolute right-0 mt-2 w-52 bg-gray-900 border border-white/10 rounded-xl shadow-2xl py-1 text-sm">
-                            <div class="px-4 py-2.5 border-b border-white/10">
-                                <p class="font-semibold text-white truncate">{{ auth()->user()->name }}</p>
-                                <p class="text-gray-400 text-xs truncate">{{ auth()->user()->email }}</p>
+                            <div class="px-4 py-2.5 border-b border-white/10 flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-lg overflow-hidden bg-gradient-to-br from-orange-400 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                    @if(auth()->user()->avatar)
+                                        <img src="{{ Storage::url(auth()->user()->avatar) }}" alt="" class="w-full h-full object-cover">
+                                    @else
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    @endif
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="font-semibold text-white truncate">{{ auth()->user()->name }}</p>
+                                    <p class="text-gray-400 text-xs truncate">{{ auth()->user()->email }}</p>
+                                </div>
                             </div>
                             <a href="{{ route('profile.edit') }}"
                                class="flex items-center gap-2.5 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
@@ -184,6 +273,17 @@
                                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                                 </svg>
                                 Profils
+                            </a>
+                            <a href="{{ route('notifications.index') }}"
+                               class="flex items-center gap-2.5 px-4 py-2 text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                                </svg>
+                                Paziņojumi
+                                @if($navUnread > 0)
+                                    <span class="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{{ $navUnread }}</span>
+                                @endif
                             </a>
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
@@ -297,6 +397,27 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
                     </svg>
                     Pieteikt pieprasījumu
+                </a>
+                <a href="{{ route('match_requests.my') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Mani pieprasījumi
+                </a>
+                <a href="{{ route('teams.index') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Manas komandas
+                </a>
+                <a href="{{ route('teams.create') }}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Jauna komanda
                 </a>
                 <a href="{{ route('product_requests.create') }}"
                    class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">

@@ -198,4 +198,12 @@ public function cancel(ProductRequest $productRequest)
         ->with('success', 'Jūsu pieprasījums tika atcelts.');
 }
 
+public function review(ProductRequest $productRequest)
+{
+    $productRequest->update(['status' => 'reviewing']);
+
+    return back()->with('success', 'Pieprasījums atzīmēts kā "Tiek izskatīts".');
+}
+
+
 }

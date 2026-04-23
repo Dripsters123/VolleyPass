@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             ArenaSeeder::class,
             LocalMatchSeeder::class,
             ProductsSeeder::class,
+            TeamSeeder::class,
         ]);
     }
 }

@@ -33,8 +33,8 @@ class TicketClaimController extends Controller
                 return back()->with('error', 'Monētas jau pieprasītas.');
             }
 
-            $seatCount = $ticket->seats()->count() ?: $ticket->quantity;
-            $reward = $seatCount * 50;
+            // Dynamic reward: 5 coins per €1 paid (rounded to nearest whole coin)
+            $reward = max(1, (int) round($ticket->amount_paid * 5));
 
             $wallet = Wallet::firstOrCreate(
                 ['user_id' => $user->id],

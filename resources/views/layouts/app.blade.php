@@ -16,7 +16,7 @@
 
     @include('layouts.navigation')
 
-    <main class="flex-grow pt-20">
+    <main class="flex-grow pt-16">
         {{-- Support both component ($slot) and classic @section/@yield --}}
         @isset($slot)
             {{ $slot }}

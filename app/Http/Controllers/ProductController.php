@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrderConfirmed;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
 
@@ -18,12 +20,32 @@ class ProductController extends Controller
 
     public function index(Request $request)
     {
-        $query = Product::query()->where('status', 'active')->orderBy('created_at', 'desc');
+        $query = Product::query()->where('status', 'active');
 
         if ($request->filled('mine') && auth()->check()) {
             $query->where('user_id', auth()->id());
         }
-        $products = $query->paginate(12);
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        if ($request->filled('min_price')) {
+            $query->where('price', '>=', (float) $request->min_price);
+        }
+
+        if ($request->filled('max_price')) {
+            $query->where('price', '<=', (float) $request->max_price);
+        }
+
+        match($request->input('sort')) {
+            'price_asc'  => $query->orderBy('price', 'asc'),
+            'price_desc' => $query->orderBy('price', 'desc'),
+            default      => $query->orderBy('created_at', 'desc'),
+        };
+
+        $products = $query->paginate(12)->withQueryString();
         return view('products.index', compact('products'));
     }
 
@@ -131,6 +153,15 @@ public function purchaseSuccess(Request $request)
     if ($order && $order->status === 'pending') {
         $order->status = 'paid';
         $order->save();
+
+        try {
+            $order->load('product', 'buyer');
+            if ($order->buyer?->email) {
+                Mail::to($order->buyer->email)->send(new OrderConfirmed($order));
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed to send OrderConfirmed email: ' . $e->getMessage());
+        }
     }
 
     // Pāradresē lietotāju ar veiksmīga maksājuma ziņu

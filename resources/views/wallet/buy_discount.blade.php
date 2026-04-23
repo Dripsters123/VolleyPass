@@ -1,92 +1,104 @@
-<x-app-layout>
-<div class="container mx-auto p-4">
-    <h1 class="text-2xl font-bold mb-4">Nopirkt atlaižu karti</h1>
+﻿<x-app-layout>
+<div class="max-w-3xl mx-auto px-4 py-8">
 
-    <div id="wallet-panel" class="mb-6 p-4 rounded shadow-sm bg-white">
-        <div class="flex items-center justify-between">
+    {{-- Coin balance card --}}
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 to-blue-900 text-white p-6 mb-8 shadow-lg">
+        <div class="absolute -top-8 -right-8 w-40 h-40 rounded-full bg-white/5"></div>
+        <div class="relative z-10 flex items-center gap-5">
+            <div class="flex-shrink-0 w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-400 to-yellow-300 flex items-center justify-center shadow-lg">
+                <svg viewBox="0 0 32 32" class="w-9 h-9" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="14" fill="#f59e0b" stroke="#d97706" stroke-width="1.5"/>
+                    <circle cx="16" cy="16" r="11" fill="none" stroke="#fde68a" stroke-width="1"/>
+                    <text x="16" y="21" text-anchor="middle" font-size="13" font-weight="bold" fill="#7c3aed" font-family="serif">V</text>
+                </svg>
+            </div>
             <div>
-                <div class="text-sm text-gray-500">Your coins</div>
-                <div id="coins" class="text-3xl font-semibold">{{ intval($wallet->coins) }}</div>
+                <p class="text-xs font-semibold uppercase tracking-widest text-blue-200 mb-1">Tavs atlikums</p>
+                <div class="text-4xl font-bold tracking-tight" id="coins">{{ intval($wallet->coins ?? $wallet->balance) }}</div>
+                <div class="text-sm text-blue-200">VolleyCoins</div>
             </div>
         </div>
     </div>
 
-    <div class="mb-6">
-        <h2 class="text-xl font-semibold mb-2">Pieejamās atlaižu kartes</h2>
-        <p class="text-sm text-gray-600 mb-4">
-            Izmanto atlaižu kodu, kad veic norēķinus par biļetēm (checkout). Katrs kods ir vienreizējs.
-        </p>
+    {{-- Available discount cards --}}
+    <div class="mb-8">
+        <h2 class="text-lg font-semibold text-gray-900 mb-1">Pieejamās atlaižu kartes</h2>
+        <p class="text-sm text-gray-500 mb-4">Izmanto kodu biļešu iegādē. Katrs kods ir vienreizējs.</p>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             @foreach($costMap as $percent => $cost)
-            <div class="p-4 border rounded bg-white">
-                <div class="flex items-center justify-between mb-2">
-                    <div>
-                        <div class="text-lg font-semibold">{{ $percent }}% off</div>
-                        <div class="text-sm text-gray-600">Cost: <strong>{{ $cost }}</strong> coins</div>
+                <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        {{-- Discount badge --}}
+                        <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-gradient-to-br from-orange-400 to-yellow-300 flex flex-col items-center justify-center shadow">
+                            <span class="text-lg font-extrabold text-white leading-none">{{ $percent }}%</span>
+                            <span class="text-[9px] font-semibold text-orange-100 uppercase tracking-wide">OFF</span>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-gray-900">{{ $percent }}% atlaide</div>
+                            <div class="flex items-center gap-1 text-sm text-gray-500 mt-0.5">
+                                <svg viewBox="0 0 20 20" class="w-3.5 h-3.5 text-yellow-500" fill="currentColor"><circle cx="10" cy="10" r="9"/><text x="10" y="14" text-anchor="middle" font-size="9" fill="white" font-weight="bold">V</text></svg>
+                                <span><strong class="text-gray-800">{{ $cost }}</strong> monētas</span>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <button
-                            class="buy-discount-btn px-4 py-2 rounded shadow-sm bg-blue-600 text-white hover:bg-blue-700"
-                            data-percent="{{ $percent }}"
-                        >
-                            Buy
-                        </button>
-                    </div>
+                    <button
+                        class="buy-discount-btn flex-shrink-0 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-xl shadow-sm transition"
+                        data-percent="{{ $percent }}">
+                        Pirkt
+                    </button>
                 </div>
-
-                <div class="text-sm text-gray-700">
-                    Šī atlaide attiecas uz Maču biļešu cenām, veicot pasūtījumu (checkout).
-                </div>
-            </div>
             @endforeach
         </div>
     </div>
 
-    <div class="mb-6">
-        <h3 class="text-lg font-semibold mb-2">Manas atlaižu kartes</h3>
+    {{-- My discount cards --}}
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-6">
+        <h3 class="font-semibold text-gray-900 mb-4">Manas atlaižu kartes</h3>
         <div id="my-cards-list" class="space-y-2">
             @forelse($cards as $card)
-                <div class="p-3 border rounded bg-gray-50 flex items-center justify-between">
-                    <div>
-                        <div class="text-sm font-medium">{{ $card->discount_percent }}% — <span class="text-xs text-gray-500">{{ $card->active ? 'Active' : 'Used' }}</span></div>
-                        <div class="text-xs text-gray-600">Code: <span class="font-mono">{{ $card->code }}</span></div>
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br {{ $card->active ? 'from-orange-400 to-yellow-300' : 'from-gray-300 to-gray-400' }} flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <span class="text-xs font-extrabold text-white">{{ $card->discount_percent }}%</span>
+                        </div>
+                        <div>
+                            <div class="text-sm font-medium text-gray-800">
+                                {{ $card->discount_percent }}% atlaide
+                                <span class="ml-2 text-xs {{ $card->active ? 'text-green-600' : 'text-gray-400' }}">
+                                    {{ $card->active ? '● Aktīva' : '✓ Izmantota' }}
+                                </span>
+                            </div>
+                            <div class="text-xs text-gray-400 font-mono">{{ $card->code }}</div>
+                        </div>
                     </div>
-                    <div>
-                        @if($card->active)
-                            <button class="copy-code-btn px-3 py-1 text-sm rounded border" data-code="{{ $card->code }}">Copy</button>
-                        @else
-                            <span class="text-xs text-gray-500">Used</span>
-                        @endif
-                    </div>
+                    @if($card->active)
+                        <button class="copy-code-btn px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg transition"
+                                data-code="{{ $card->code }}">
+                            Kopēt
+                        </button>
+                    @endif
                 </div>
             @empty
-                <div class="p-3 text-sm text-gray-600">You don't have any discount cards yet.</div>
+                <div class="text-sm text-gray-400 text-center py-6">Tev vēl nav nevienas atlaižu kartes.</div>
             @endforelse
         </div>
     </div>
 
-    <div class="mb-6">
-        <div class="p-4 bg-yellow-50 border rounded">
-            <strong class="block mb-1">Svarīgi</strong>
-            <div class="text-sm text-gray-700">
-                
-Atlaižu kodus šeit nevar ievadīt. Kad turpināt biļešu iegādi, ievadiet savu atlaižu kodu norēķinu ekrānā.
-Vienā pirkumā var izmantot tikai vienu atlaižu kodu (kodu atkārtošana nav atļauta).
-            </div>
-        </div>
+    {{-- Info note --}}
+    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+        <strong class="block mb-1">Kā izmantot?</strong>
+        Atlaižu kodu ievadi biļešu norēķinu ekrānā. Vienā pirkumā var izmantot tikai vienu kodu.
     </div>
 
-    <div id="purchase-result" class="hidden p-4 border-l-4 border-green-500 bg-green-50 rounded mb-4">
-        <div class="mb-2">
-            <strong>Purchased!</strong>
-        </div>
-        <div>
-            Your discount code: <span id="purchased-code" class="font-mono text-lg"></span>
-            <button id="copy-purchased-code" class="ml-2 px-2 py-1 border rounded text-sm">Copy</button>
+    {{-- Purchase result --}}
+    <div id="purchase-result" class="hidden mt-5 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800">
+        <strong class="block mb-2">Veiksmīgi iegādāts!</strong>
+        <div class="text-sm">Tavs kods: <span id="purchased-code" class="font-mono text-base font-bold"></span>
+            <button id="copy-purchased-code" class="ml-3 px-3 py-1 border border-green-300 rounded-lg text-xs hover:bg-green-100 transition">Kopēt</button>
         </div>
     </div>
-    <div id="error-box" class="hidden mt-4 p-3 border-l-4 border-red-500 bg-red-50 text-red-700 rounded"></div>
+    <div id="error-box" class="hidden mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm"></div>
 </div>
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -134,34 +146,44 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const card = data.discount_card;
-
-            const cost = @json($costMap)[card.discount_percent] || 0;
+            const costMap = @json($costMap);
+            const cost = costMap[card.discount_percent] || 0;
             let cur = parseInt(walletBalanceEl.textContent || '0', 10);
             walletBalanceEl.textContent = Math.max(0, cur - cost);
 
             const node = document.createElement('div');
-            node.className = 'p-3 border rounded bg-gray-50 flex items-center justify-between';
-            node.innerHTML = `<div>
-                    <div class="text-sm font-medium">${card.discount_percent}% — <span class="text-xs text-gray-500">Active</span></div>
-                    <div class="text-xs text-gray-600">Code: <span class="font-mono">${card.code}</span></div>
+            node.className = 'flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100';
+            node.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-yellow-300 flex items-center justify-center shadow-sm">
+                        <span class="text-xs font-extrabold text-white">${card.discount_percent}%</span>
+                    </div>
+                    <div>
+                        <div class="text-sm font-medium text-gray-800">${card.discount_percent}% atlaide <span class="ml-2 text-xs text-green-600">● Aktīva</span></div>
+                        <div class="text-xs text-gray-400 font-mono">${card.code}</div>
+                    </div>
                 </div>
-                <div><button class="copy-code-btn px-3 py-1 text-sm rounded border" data-code="${card.code}">Copy</button></div>`;
-            if (myCardsList) myCardsList.prepend(node);
+                <button class="copy-code-btn px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-medium rounded-lg transition" data-code="${card.code}">Kopēt</button>`;
+
+            // Remove empty state if present
+            const empty = myCardsList.querySelector('.text-center');
+            if (empty) empty.remove();
+            myCardsList.prepend(node);
 
             purchasedCodeEl.textContent = card.code;
             resultBox.classList.remove('hidden');
+            resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
         } catch (err) {
             showError(err.message || 'Network error');
-            console.error(err);
         }
     }
 
     buyButtons.forEach(btn => {
         btn.addEventListener('click', function () {
-            const percent = this.dataset.percent;
-            if (!confirm(`Buy ${percent}% discount card? This will cost coins.`)) return;
-            buy(parseInt(percent, 10));
+            const percent = parseInt(this.dataset.percent, 10);
+            if (!confirm(`Iegādāties ${percent}% atlaižu karti?`)) return;
+            buy(percent);
         });
     });
 
@@ -170,9 +192,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const code = e.target.dataset.code || purchasedCodeEl.textContent;
             if (!code) return;
             navigator.clipboard?.writeText(code).then(() => {
-                alert('Code copied to clipboard');
+                e.target.textContent = 'Kopēts!';
+                setTimeout(() => { e.target.textContent = 'Kopēt'; }, 2000);
             }).catch(() => {
-                prompt('Copy this code:', code);
+                prompt('Kopē šo kodu:', code);
             });
         }
     });

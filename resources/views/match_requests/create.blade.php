@@ -134,13 +134,13 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium">Mājas komanda</label>
-          <input name="home_team" value="{{ old('home_team') }}" class="w-full p-2 border rounded" required>
+          <input name="home_team" value="{{ old('home_team') }}" class="w-full p-2 border rounded" required placeholder="Piem.: Rīgas Vilki">
           @error('home_team') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
 
         <div>
           <label class="block text-sm font-medium">Viesu komanda</label>
-          <input name="away_team" value="{{ old('away_team') }}" class="w-full p-2 border rounded" required>
+          <input name="away_team" value="{{ old('away_team') }}" class="w-full p-2 border rounded" required placeholder="Piem.: Jūrmalas Viļņi">
           @error('away_team') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
       </div>
@@ -148,22 +148,29 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium">Mājas treneris</label>
-          <input name="home_coach" value="{{ old('home_coach') }}" class="w-full p-2 border rounded">
+          <input name="home_coach" value="{{ old('home_coach') }}" class="w-full p-2 border rounded" placeholder="Piem.: Jānis Bērziņš">
         </div>
         <div>
           <label class="block text-sm font-medium">Viesu treneris</label>
-          <input name="away_coach" value="{{ old('away_coach') }}" class="w-full p-2 border rounded">
+          <input name="away_coach" value="{{ old('away_coach') }}" class="w-full p-2 border rounded" placeholder="Piem.: Pēteris Kalniņš">
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium">Tiesneši (komatu atdalīti)</label>
-        <input name="judges" value="{{ old('judges') }}" class="w-full p-2 border rounded">
+        <input name="judges" value="{{ old('judges') }}" class="w-full p-2 border rounded" placeholder="Piem.: Anna Ozola, Kārlis Liepa">
       </div>
 
       <div>
-        <label class="block text-sm font-medium">Vieta (piem., Cēsis, Latvia)</label>
-        <input name="location" value="{{ old('location') }}" class="w-full p-2 border rounded">
+        <label class="block text-sm font-medium">Vieta — pilna adrese</label>
+        <input name="location" value="{{ old('location') }}" class="w-full p-2 border rounded" placeholder="Piem.: Sporta iela 2, Rīga, LV-1001">
+      </div>
+
+      <div class="max-w-xs">
+        <label class="block text-sm font-medium">Ieteicamā biļetes cena (EUR)</label>
+        <input type="number" step="0.01" min="0" name="ticket_price" value="{{ old('ticket_price') }}"
+               class="w-full p-2 border rounded" placeholder="Piem.: 5.00">
+        <p class="text-xs text-gray-500 mt-1">Administrators var mainīt šo cenu pirms apstiprināšanas.</p>
       </div>
 
       <div class="max-w-xs">
@@ -175,6 +182,29 @@
         </select>
         @error('players_per_team') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
       </div>
+
+      @if($teams->isNotEmpty())
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 border border-blue-100 bg-blue-50 rounded-xl p-4">
+          <div>
+              <label class="block text-sm font-medium text-blue-800 mb-1">Ielādēt mājas komandu</label>
+              <select id="loadHomeTeam" class="w-full p-2 border border-blue-200 rounded-lg text-sm bg-white">
+                  <option value="">— izvēlēties saglabātu komandu —</option>
+                  @foreach($teams as $t)
+                      <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->players_per_team }}v{{ $t->players_per_team }})</option>
+                  @endforeach
+              </select>
+          </div>
+          <div>
+              <label class="block text-sm font-medium text-blue-800 mb-1">Ielādēt viesu komandu</label>
+              <select id="loadAwayTeam" class="w-full p-2 border border-blue-200 rounded-lg text-sm bg-white">
+                  <option value="">— izvēlēties saglabātu komandu —</option>
+                  @foreach($teams as $t)
+                      <option value="{{ $t->id }}">{{ $t->name }} ({{ $t->players_per_team }}v{{ $t->players_per_team }})</option>
+                  @endforeach
+              </select>
+          </div>
+      </div>
+      @endif
 
       <div id="playerFields" class="space-y-4"></div>
 
@@ -194,12 +224,12 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="block text-sm font-medium">Mājas komandas logo</label>
-          <input type="file" name="home_logo" accept="image/*">
+          <input type="file" name="home_logo" accept="image/jpeg,image/png,image/svg+xml,image/webp">
           @error('home_logo') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
         <div>
           <label class="block text-sm font-medium">Viesu komandas logo</label>
-          <input type="file" name="away_logo" accept="image/*">
+          <input type="file" name="away_logo" accept="image/jpeg,image/png,image/svg+xml,image/webp">
           @error('away_logo') <div class="text-red-600 text-sm">{{ $message }}</div> @enderror
         </div>
       </div>
@@ -228,11 +258,21 @@
             <div class="mt-5 space-y-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Arēnas nosaukums</label>
-                <input id="arena_name" name="arena_name" value="{{ old('arena_name') }}" required class="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-blue-200 focus:ring-2" placeholder="Ierakstiet nosaukumu">
+                <input id="arena_name" name="arena_name" value="{{ old('arena_name') }}" required class="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-blue-200 focus:ring-2" placeholder="Piem.: Rīgas Sporta Halles Sektors A">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Apraksts</label>
                 <input id="arena_description" name="arena_description" value="{{ old('arena_description') }}" class="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-blue-200 focus:ring-2" placeholder="Pievienot aprakstu (pēc izvēles)">
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Platums (metri)</label>
+                  <input type="number" step="0.1" min="1" name="arena_width_m" value="{{ old('arena_width_m') }}" class="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-blue-200 focus:ring-2" placeholder="Piem.: 30">
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Garums (metri)</label>
+                  <input type="number" step="0.1" min="1" name="arena_height_m" value="{{ old('arena_height_m') }}" class="w-full rounded-2xl border border-gray-300 px-4 py-3 focus:border-blue-500 focus:ring-blue-200 focus:ring-2" placeholder="Piem.: 18">
+                </div>
               </div>
               <div class="rounded-3xl bg-blue-50 border border-blue-100 p-4 text-sm text-blue-700">
                 Lai pārliecinātos, ka pieprasījums satur arēnu, vispirms izvēlieties saglabātu plānojumu vai izveidojiet jaunu arēnu sadaļā <strong>Manas Arēnas</strong>.
@@ -341,6 +381,40 @@
 
       renderPlayers(select.value);
       select.addEventListener('change', e => renderPlayers(e.target.value));
+
+      // Saved team data
+      @php
+        $teamsById = $teams->keyBy('id')->map(function ($t) {
+            return ['name' => $t->name, 'coach' => $t->coach, 'players_per_team' => $t->players_per_team, 'players' => $t->players];
+        });
+      @endphp
+      const savedTeams = @json($teamsById);
+
+      function applyTeam(teamId, side) {
+        const team = savedTeams[teamId];
+        if (!team) return;
+        // Set format to match team
+        select.value = team.players_per_team;
+        renderPlayers(team.players_per_team);
+        // Fill team name
+        const nameInput = document.querySelector(`input[name="${side}_team"]`);
+        if (nameInput && !nameInput.value) nameInput.value = team.name;
+        // Fill coach
+        const coachInput = document.querySelector(`input[name="${side}_coach"]`);
+        if (coachInput && !coachInput.value) coachInput.value = team.coach || '';
+        // Fill players
+        (team.players || []).forEach((p, i) => {
+          const fn = document.querySelector(`input[name="${side}_players[${i}][first_name]"]`);
+          const ln = document.querySelector(`input[name="${side}_players[${i}][last_name]"]`);
+          if (fn) fn.value = p.first_name || '';
+          if (ln) ln.value = p.last_name || '';
+        });
+      }
+
+      const homeTeamSel = document.getElementById('loadHomeTeam');
+      const awayTeamSel = document.getElementById('loadAwayTeam');
+      if (homeTeamSel) homeTeamSel.addEventListener('change', e => { if (e.target.value) applyTeam(e.target.value, 'home'); });
+      if (awayTeamSel) awayTeamSel.addEventListener('change', e => { if (e.target.value) applyTeam(e.target.value, 'away'); });
     })();
 
     // Arena Selection JavaScript

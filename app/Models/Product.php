@@ -17,6 +17,7 @@ class Product extends Model
         'currency',
         'status',
         'image_path',
+        'category',
     ];
     public function requests()
 {

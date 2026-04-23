@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Arena;
 use App\Models\MatchRequest;
 use App\Models\ProductRequest;
+use App\Models\Team;
+use App\Models\User;
 use App\Models\VolleyballMatch;
+use App\Notifications\RequestStatusChanged;
+use App\Notifications\RequestSubmitted;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -14,18 +18,6 @@ use Carbon\Carbon;
 
 class MatchRequestController extends Controller
 {
-    protected function hasTimeOverlapWithMatches($startIso, $endIso): bool
-    {
-        $start = Carbon::parse($startIso);
-        $end = Carbon::parse($endIso);
-
-        return \App\Models\VolleyballMatch::where('is_local', true)
-            ->where('start_time', '<', $end)
-            ->where('end_time', '>', $start)
-            ->exists();
-    }
-
-
     public function create()
     {
         $arenas = Arena::where('user_id', Auth::id())
@@ -33,26 +25,28 @@ class MatchRequestController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('match_requests.create', compact('arenas'));
+        $teams = Team::where('user_id', Auth::id())->latest()->get();
+
+        return view('match_requests.create', compact('arenas', 'teams'));
     }
 
     public function store(Request $request)
     {
         $rules = [
             'request_type' => 'nullable|in:create_match,score_update',
-            'home_team' => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
-            'away_team' => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
+            'home_team' => ['required','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_team' => ['required','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'players_per_team' => 'required|integer|in:2,4,6',
             'home_players' => 'required|array',
             'away_players' => 'required|array',
-            'home_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'home_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'away_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'away_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'home_coach' => ['nullable','string','max:255','regex:/^[A-Za-z\s]+$/'],
-            'away_coach' => ['nullable','string','max:255','regex:/^[A-Za-z\s]+$/'],
+            'home_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'home_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'home_coach' => ['nullable','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_coach' => ['nullable','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
             'judges' => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
             'home_logo' => 'nullable|file|image|mimes:jpg,png,svg|max:2048',
@@ -62,6 +56,7 @@ class MatchRequestController extends Controller
             'arena_elements' => 'nullable',
             'arena_width' => 'nullable|integer|min:400|max:2000',
             'arena_height' => 'nullable|integer|min:300|max:1500',
+            'ticket_price' => 'nullable|numeric|min:0',
         ];
 
         $messages = [
@@ -119,11 +114,6 @@ class MatchRequestController extends Controller
             ]);
         }
 
-        if ($this->hasTimeOverlapWithMatches($start, $end)) {
-            return back()->withInput()->withErrors([
-                'start_time' => 'Šajā laikā stadionā jau ir plānots mačs. Lūdzu izvēlieties citu laiku.'
-            ]);
-        }
 
 $arenaLayout = $validated['arena_layout'] ?? [];
         if (is_string($arenaLayout)) {
@@ -138,10 +128,10 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             'user_id' => Auth::id(),
             'status' => 'pending',
             'judges' => !empty($validated['judges'])
-                ? json_encode(array_values(array_filter(array_map('trim', explode(',', $validated['judges'])))))
-                : json_encode([]),
-            'home_players' => json_encode($validated['home_players']),
-            'away_players' => json_encode($validated['away_players']),
+                ? array_values(array_filter(array_map('trim', explode(',', $validated['judges']))))
+                : [],
+            'home_players' => $validated['home_players'],
+            'away_players' => $validated['away_players'],
             'arena_layout' => json_encode($arenaLayout),
             'arena_elements' => json_encode($arenaElements),
             'arena_width' => $validated['arena_width'] ?? 800,
@@ -155,7 +145,19 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             $data['away_logo'] = $request->file('away_logo')->store('match_logos', 'public');
         }
 
-        MatchRequest::create($data);
+        $matchReq = MatchRequest::create($data);
+
+        // Notify all admins about the new request
+        $summary = ($data['home_team'] ?? '') . ' vs ' . ($data['away_team'] ?? '');
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new RequestSubmitted(
+                $data['request_type'] ?? 'create_match',
+                $matchReq->id,
+                Auth::user()->name,
+                $summary
+            ));
+        }
 
         return redirect()->route('match_requests.my')
             ->with('success', 'Jūsu mača pieprasījums nosūtīts administratoram.');
@@ -220,7 +222,12 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->where('status', 'pending')
             ->firstOrFail();
 
-        return view('match_requests.edit', ['request' => $requestData]);
+        $arenas = Arena::where('user_id', Auth::id())
+            ->orWhere('is_public', true)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('match_requests.edit', ['request' => $requestData, 'arenas' => $arenas]);
     }
 
     public function update(Request $request, MatchRequest $matchRequest)
@@ -230,17 +237,17 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         }
 
         $rules = [
-            'home_team' => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
-            'away_team' => ['required','string','max:255','regex:/^[A-Za-z\s]+$/'],
+            'home_team' => ['required','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_team' => ['required','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
             'players_per_team' => 'required|integer|in:2,4,6',
-            'home_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'home_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'away_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'away_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-z\s]+$/'],
-            'home_coach' => ['nullable','string','max:255','regex:/^[A-Za-z\s]+$/'],
-            'away_coach' => ['nullable','string','max:255','regex:/^[A-Za-z\s]+$/'],
+            'home_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'home_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_players.*.first_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_players.*.last_name' => ['required','string','max:100','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'home_coach' => ['nullable','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
+            'away_coach' => ['nullable','string','max:255','regex:/^[A-Za-zĀāČčĒēĢģĪīĶķĻļŅņŠšŪūŽž\s\-]+$/u'],
             'judges' => 'nullable|string|max:1000',
             'location' => 'nullable|string|max:255',
             'home_logo' => 'nullable|file|image|mimes:jpg,png,svg|max:2048',
@@ -281,11 +288,6 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ]);
         }
 
-        if ($this->hasTimeOverlapWithMatches($start, $end)) {
-            return back()->withInput()->withErrors([
-                'start_time' => 'Šajā laikā stadionā jau ir plānots mačs. Lūdzu izvēlieties citu laiku.'
-            ]);
-        }
 
         $update = [
             'home_team' => $validated['home_team'],
@@ -339,10 +341,49 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return back()->with('success', 'Jūsu mača pieprasījums ir atcelts.');
     }
 
+    public function destroy($id)
+    {
+        $req = MatchRequest::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        if (!in_array($req->status, ['rejected', 'accepted', 'cancelled'])) {
+            return back()->with('error', 'Šo pieprasījumu nevar dzēst.');
+        }
+
+        if ($req->home_logo) Storage::disk('public')->delete($req->home_logo);
+        if ($req->away_logo) Storage::disk('public')->delete($req->away_logo);
+
+        $req->delete();
+        return redirect()->route('match_requests.my')->with('success', 'Pieprasījums dzēsts.');
+    }
+
+    public function adminDestroy($id)
+    {
+        $req = MatchRequest::findOrFail($id);
+
+        if ($req->home_logo) Storage::disk('public')->delete($req->home_logo);
+        if ($req->away_logo) Storage::disk('public')->delete($req->away_logo);
+
+        $req->delete();
+        return redirect()->route('admin.match_requests.inbox')->with('success', 'Pieprasījums dzēsts.');
+    }
+
     public function inbox(Request $request)
     {
-        $matchReqQ = \App\Models\MatchRequest::with('user')->where('status', 'pending')->select('*');
-        $prodReqQ  = \App\Models\ProductRequest::with('user')->where('status', 'pending')->select('*');
+        $statusFilter = $request->filled('status') ? $request->status : null;
+
+        $matchReqQ = \App\Models\MatchRequest::with('user')->select('*');
+        $prodReqQ  = \App\Models\ProductRequest::with('user')->select('*');
+
+        // Default: only pending unless a status filter is explicitly set
+        if ($statusFilter && in_array($statusFilter, ['pending', 'accepted', 'rejected'])) {
+            $matchReqQ->where('status', $statusFilter);
+            $prodReqQ->where('status', $statusFilter);
+        } else {
+            $matchReqQ->where('status', 'pending');
+            $prodReqQ->where('status', 'pending');
+        }
 
         $type = $request->filled('type') ? $request->type : null;
 
@@ -363,8 +404,8 @@ $arenaLayout = $validated['arena_layout'] ?? [];
 
         if ($request->filled('user')) {
             $search = $request->user;
-            $matchReqQ->whereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
-            $prodReqQ->whereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%"));
+            $matchReqQ->whereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
+            $prodReqQ->whereHas('user', fn($q) => $q->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"));
         }
 
         if ($request->filled('start_date')) {
@@ -438,6 +479,12 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         $req = MatchRequest::findOrFail($id);
         $req->update(['status' => 'accepted']);
 
+        // Notify the user
+        if ($req->user) {
+            $summary = ($req->home_team ?? '') . ' vs ' . ($req->away_team ?? '');
+            $req->user->notify(new RequestStatusChanged($req->id, 'accepted', $summary));
+        }
+
         // Score-update requests should finalize the match score, not open create page
         if ($req->request_type === 'score_update' && $req->match_id) {
             $match = VolleyballMatch::find($req->match_id);
@@ -469,9 +516,58 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return redirect()->route('admin.match_requests.inbox')->with('error', "Pieprasījums #{$id} nav atrasts.");
     }
 
-    $req->update(['status' => 'rejected']);
+    $reason = $request->input('rejection_reason');
+    $req->update([
+        'status'           => 'rejected',
+        'rejection_reason' => $reason,
+    ]);
+
+    if ($req->user) {
+        $summary = ($req->home_team ?? '') . ' vs ' . ($req->away_team ?? '');
+        $req->user->notify(new RequestStatusChanged($req->id, 'rejected', $summary, $reason));
+    }
+
     return redirect()->route('admin.match_requests.inbox')->with('success', 'Pieprasījums noraidīts.');
 }
 
+    public function markReviewing($id)
+    {
+        $req = MatchRequest::findOrFail($id);
+        $req->update(['status' => 'reviewing']);
+
+        if ($req->user) {
+            $summary = ($req->home_team ?? '') . ' vs ' . ($req->away_team ?? '');
+            $req->user->notify(new RequestStatusChanged($req->id, 'reviewing', $summary));
+        }
+
+        return redirect()->route('admin.match_requests.show', $id)
+            ->with('success', 'Pieprasījums atzīmēts kā "tiek izskatīts".');
+    }
+
+    public function submitAppeal(Request $request, $id)
+    {
+        $req = MatchRequest::where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('status', 'rejected')
+            ->firstOrFail();
+
+        $request->validate([
+            'appeal_message' => 'required|string|max:2000',
+        ], ['appeal_message.required' => 'Lūdzu ievadiet apelācijas ziņojumu.']);
+
+        $req->update([
+            'status'         => 'appealed',
+            'appeal_message' => $request->input('appeal_message'),
+        ]);
+
+        $summary = ($req->home_team ?? '') . ' vs ' . ($req->away_team ?? '');
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new RequestSubmitted('appeal', $req->id, Auth::user()->name, "Apelācija: {$summary}"));
+        }
+
+        return redirect()->route('match_requests.view', $id)
+            ->with('success', 'Jūsu apelācija iesniegta.');
+    }
 
 }

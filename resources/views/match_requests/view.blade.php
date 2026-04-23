@@ -168,7 +168,8 @@
                     <div>
                         <div class="text-sm text-gray-500">Mājas komanda</div>
                         <div class="text-sm">
-                            @forelse(json_decode($mr->home_players ?? '[]', true) as $p)
+                            @php $homePlayers = is_array($mr->home_players) ? $mr->home_players : (json_decode($mr->home_players ?? '[]', true) ?: []); @endphp
+                            @forelse($homePlayers as $p)
                                 <div>{{ ($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '') }}</div>
                             @empty
                                 <div class="text-sm text-gray-500">Nav datu</div>
@@ -179,7 +180,8 @@
                     <div>
                         <div class="text-sm text-gray-500">Viesu komanda</div>
                         <div class="text-sm">
-                            @forelse(json_decode($mr->away_players ?? '[]', true) as $p)
+                            @php $awayPlayers = is_array($mr->away_players) ? $mr->away_players : (json_decode($mr->away_players ?? '[]', true) ?: []); @endphp
+                            @forelse($awayPlayers as $p)
                                 <div>{{ ($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '') }}</div>
                             @empty
                                 <div class="text-sm text-gray-500">Nav datu</div>
