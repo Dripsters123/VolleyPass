@@ -365,6 +365,10 @@ public function index(Request $request)
         $takenSeatIds = $match->seats()->whereNotNull('ticket_id')->pluck('id', 'seat_number')->toArray();
         $seatIdMap = $match->seats()->pluck('id', 'seat_number')->toArray();
 
+        $seatPriceValues = array_values(array_filter($seatPrices, fn($p) => $p > 0));
+        $minSeatPrice = !empty($seatPriceValues) ? min($seatPriceValues) : ($match->ticket_price ?? 0);
+        $maxSeatPrice = !empty($seatPriceValues) ? max($seatPriceValues) : ($match->ticket_price ?? 0);
+
         $arena = $match->arena;
         $customElements = $arena ? $arena->elements : null;
 
@@ -377,7 +381,8 @@ public function index(Request $request)
         }
 
         return view('matches.local.local_matches', compact(
-            'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements', 'newUserPromoPercent'
+            'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements', 'newUserPromoPercent',
+            'minSeatPrice', 'maxSeatPrice'
         ));
     }
 

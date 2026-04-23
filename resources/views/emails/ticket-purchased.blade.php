@@ -34,7 +34,7 @@
       <p>Paldies par pirkumu! Šeit ir informācija par jūsu biļeti.</p>
 
       <div class="match-box">
-        <div class="match-teams">{{ $match->home_team }} vs {{ $match->away_team }}</div>
+        <div class="match-teams">{{ $match->home_team_name }} vs {{ $match->away_team_name }}</div>
         <div class="match-meta">
           {{ \Carbon\Carbon::parse($match->start_time)->format('d.m.Y H:i') }}
           @if($match->location) · {{ $match->location }} @endif
@@ -42,6 +42,11 @@
       </div>
 
       @if(count($seats))
+      @php
+        $originalTotal = collect($seats)->sum(fn($s) => (float)($s['price'] ?? 0));
+        $amountPaid = (float) $ticket->amount_paid;
+        $discountAmount = round(max(0, $originalTotal - $amountPaid), 2);
+      @endphp
       <table class="seats-table">
         <thead>
           <tr>
@@ -58,9 +63,15 @@
               <td>€{{ number_format(($s['price'] ?? 0), 2) }}</td>
             </tr>
           @endforeach
+          @if($discountAmount > 0)
+          <tr>
+            <td colspan="2" style="color:#16a34a;">Atlaide</td>
+            <td style="color:#16a34a;">−€{{ number_format($discountAmount, 2) }}</td>
+          </tr>
+          @endif
           <tr class="total-row">
             <td colspan="2">Kopā samaksāts</td>
-            <td>€{{ number_format($ticket->amount_paid, 2) }}</td>
+            <td>€{{ number_format($amountPaid, 2) }}</td>
           </tr>
         </tbody>
       </table>

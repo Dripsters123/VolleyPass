@@ -41,10 +41,14 @@
               <p class="text-3xl font-extrabold text-white">{{ $match->away_score ?? '–' }}</p>
             </div>
           </div>
-        @elseif($match->ticket_price)
+        @elseif($minSeatPrice || $match->ticket_price)
           <div class="text-center sm:text-right">
             <p class="text-xs text-gray-400 mb-0.5">Biļetes cena</p>
-            <p class="text-3xl font-extrabold text-emerald-400">€{{ number_format($match->ticket_price, 2) }}</p>
+            @if($minSeatPrice == $maxSeatPrice)
+              <p class="text-3xl font-extrabold text-emerald-400">€{{ number_format($minSeatPrice ?: $match->ticket_price, 2) }}</p>
+            @else
+              <p class="text-2xl font-extrabold text-emerald-400">€{{ number_format($minSeatPrice, 2) }}–€{{ number_format($maxSeatPrice, 2) }}</p>
+            @endif
           </div>
         @endif
       </div>
@@ -101,7 +105,14 @@
             @auth
               @if($match->match_state !== 'completed' && $match->is_local)
                 <div class="px-5 py-4 bg-white border-t border-gray-100 flex items-center justify-between">
-                  <p class="text-sm text-gray-600">Cena: <span class="font-bold text-gray-900">€{{ number_format($match->ticket_price ?? 0, 2) }}</span> / biļete</p>
+                  <p class="text-sm text-gray-600">Cena:
+                    @if($minSeatPrice == $maxSeatPrice)
+                      <span class="font-bold text-gray-900">€{{ number_format($minSeatPrice ?: ($match->ticket_price ?? 0), 2) }}</span>
+                    @else
+                      <span class="font-bold text-gray-900">€{{ number_format($minSeatPrice, 2) }}–€{{ number_format($maxSeatPrice, 2) }}</span>
+                    @endif
+                    / biļete
+                  </p>
                   <button id="buyTicketBtn"
                           data-match-id="{{ $match->id }}"
                           data-ticket-price="{{ $match->ticket_price ?? 10 }}"
@@ -127,7 +138,13 @@
           {{-- No arena configured – show simple buy button --}}
           @auth
             <div class="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
-              <p class="text-sm text-gray-600">Biļetes cena: <span class="font-bold text-gray-900">€{{ number_format($match->ticket_price ?? 0, 2) }}</span></p>
+              <p class="text-sm text-gray-600">Biļetes cena:
+                @if($minSeatPrice == $maxSeatPrice)
+                  <span class="font-bold text-gray-900">€{{ number_format($minSeatPrice ?: ($match->ticket_price ?? 0), 2) }}</span>
+                @else
+                  <span class="font-bold text-gray-900">€{{ number_format($minSeatPrice, 2) }}–€{{ number_format($maxSeatPrice, 2) }}</span>
+                @endif
+              </p>
               <button id="buyTicketBtn"
                       data-match-id="{{ $match->id }}"
                       data-ticket-price="{{ $match->ticket_price ?? 10 }}"

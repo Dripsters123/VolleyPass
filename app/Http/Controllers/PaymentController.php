@@ -444,6 +444,17 @@ class PaymentController extends Controller
                 }
 
                 DB::commit();
+
+                // Queue confirmation email (webhook runs server-side so safe to queue here)
+                try {
+                    $webhookEmail = isset($ticket) ? ($ticket->stripe_email ?? (\App\Models\User::find($userId)?->email)) : null;
+                    $webhookMatch = \App\Models\VolleyballMatch::find($matchId);
+                    if ($webhookEmail && $webhookMatch && isset($ticket)) {
+                        Mail::to($webhookEmail)->queue(new TicketPurchased($ticket, $webhookMatch, $seatsArray));
+                    }
+                } catch (\Throwable $emailErr) {
+                    Log::warning('Webhook: Failed to queue TicketPurchased email: ' . $emailErr->getMessage());
+                }
             } catch (\Throwable $e) {
                 DB::rollBack();
                 $this->stripeDebugLog('webhook.finalize_error', $e->getMessage());
