@@ -56,6 +56,6 @@
 
 8.  **Start the local development server**
     ```bash
-    composer run dev
+    php artisan serve
     ```
-    *(Note: If this command doesn't work, the standard Laravel command is `php artisan serve`)*
+   
