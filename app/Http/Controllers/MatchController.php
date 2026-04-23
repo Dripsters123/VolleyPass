@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Arena;
+use App\Models\Ticket;
 use App\Models\VolleyballMatch;
 use App\Models\MatchRequest;
 use App\Models\MatchScoreVerification;
@@ -367,8 +368,16 @@ public function index(Request $request)
         $arena = $match->arena;
         $customElements = $arena ? $arena->elements : null;
 
+        $newUserPromoPercent = 0;
+        if (auth()->check()) {
+            $paidTicketCount = Ticket::where('user_id', auth()->id())->where('status', 'paid')->count();
+            if ($paidTicketCount < 3) {
+                $newUserPromoPercent = 20;
+            }
+        }
+
         return view('matches.local.local_matches', compact(
-            'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements'
+            'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements', 'newUserPromoPercent'
         ));
     }
 

@@ -44,13 +44,21 @@
     let selectedSeat = [];
     let appliedDiscountCode = null;
     let appliedDiscountPercent = 0;
+    const newUserPromo = parseInt(buyBtn.dataset.newUserPromo || '0');
 
     document.addEventListener('seatSelected', e => {
       selectedSeat = e.detail || [];
       finalizeBtn.disabled = !(selectedSeat && selectedSeat.length > 0);
   
       if (appliedDiscountCode) {
+        discountInfo.style.color = '';
         discountInfo.textContent = `Kods "${appliedDiscountCode}" pielietots — pārbaudiet summu pirms maksājuma. Ja mainīji vietas, klikšķini "Pielietot" vēlreiz.`;
+      } else if (newUserPromo > 0 && selectedSeat.length > 0) {
+        discountInfo.style.color = '#16a34a';
+        discountInfo.textContent = `🎉 Jaunā lietotāja atlaide: ${newUserPromo}% — automātiski pielietota jūsu pirmajiem 3 pirkumiem!`;
+      } else if (newUserPromo === 0 && !appliedDiscountCode) {
+        discountInfo.style.color = '';
+        discountInfo.textContent = '';
       }
     });
 
@@ -78,12 +86,14 @@
 
           if (!res.ok) {
             const err = (data && (data.error || data.message)) ? (data.error || data.message) : ('Server error ' + res.status);
+            discountInfo.style.color = '#dc2626';
             discountInfo.textContent = `Kļūda: ${err}`;
             appliedDiscountCode = null;
             appliedDiscountPercent = 0;
           } else {
             appliedDiscountCode = code;
             appliedDiscountPercent = data.discount_percent || 0;
+            discountInfo.style.color = '';
             if (data.discounted_total !== undefined) {
               discountInfo.textContent = `Atlaide: ${appliedDiscountPercent}% — Oriģināls: €${(data.original_total).toFixed(2)} → Pēc atlaides: €${(data.discounted_total).toFixed(2)} (Ietaupījums: €${(data.saving).toFixed(2)})`;
             } else {
@@ -105,7 +115,13 @@
         appliedDiscountCode = null;
         appliedDiscountPercent = 0;
         discountInput.value = '';
-        discountInfo.textContent = '';
+        discountInfo.style.color = '';
+        if (newUserPromo > 0 && selectedSeat.length > 0) {
+          discountInfo.style.color = '#16a34a';
+          discountInfo.textContent = `🎉 Jaunā lietotāja atlaide: ${newUserPromo}% — automātiski pielietota jūsu pirmajiem 3 pirkumiem!`;
+        } else {
+          discountInfo.textContent = '';
+        }
       });
     }
 

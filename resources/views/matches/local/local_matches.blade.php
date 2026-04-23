@@ -109,6 +109,7 @@
                           data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
                           data-seat-prices="{{ json_encode($seatPrices) }}"
                           data-seat-ids="{{ json_encode($seatIdMap) }}"
+                          data-new-user-promo="{{ $newUserPromoPercent }}"
                           @if($arena) data-arena-width="{{ $arena->width ?? 600 }}" data-arena-height="{{ $arena->height ?? 420 }}" @endif
                           @if($customElements) data-custom-elements="{{ json_encode($customElements) }}" @endif
                           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/20">
@@ -134,6 +135,7 @@
                       data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
                       data-seat-prices="{{ json_encode($seatPrices) }}"
                       data-seat-ids="{{ json_encode($seatIdMap) }}"
+                      data-new-user-promo="{{ $newUserPromoPercent }}"
                       @if($arena) data-arena-width="{{ $arena->width ?? 600 }}" data-arena-height="{{ $arena->height ?? 420 }}" @endif
                       @if($customElements) data-custom-elements="{{ json_encode($customElements) }}" @endif
                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-gradient-to-r from-orange-500 to-blue-600 text-white hover:opacity-90 transition-opacity">

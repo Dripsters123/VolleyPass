@@ -250,7 +250,8 @@ class PaymentController extends Controller
                 $totalAmount += $price;
             }
 
-            if ($totalAmount <= 0 && property_exists($session, 'amount_total')) {
+            // Always use Stripe's actual charged amount so discounts are reflected
+            if (property_exists($session, 'amount_total') && $session->amount_total !== null) {
                 $totalAmount = $session->amount_total / 100;
             }
 
@@ -303,10 +304,10 @@ class PaymentController extends Controller
             $emailAddress = $ticket->stripe_email ?? (\App\Models\User::find($userId)?->email);
             $matchModel = \App\Models\VolleyballMatch::find($matchId);
             if ($emailAddress && $matchModel) {
-                Mail::to($emailAddress)->send(new TicketPurchased($ticket, $matchModel, $seatsArray));
+                Mail::to($emailAddress)->queue(new TicketPurchased($ticket, $matchModel, $seatsArray));
             }
         } catch (\Throwable $e) {
-            Log::warning('Failed to send TicketPurchased email: ' . $e->getMessage());
+            Log::warning('Failed to queue TicketPurchased email: ' . $e->getMessage());
         }
 
         return redirect()->route('tickets.index')->with('success', 'Ticket purchased successfully!');
@@ -416,7 +417,7 @@ class PaymentController extends Controller
                     $ticket->event_id = $matchId ?: null;
                     $ticket->ticket_type = 'seat';
                     $ticket->quantity = count($seatIds);
-                    $ticket->amount_paid = $totalAmount ?: ($amountPaid ?? 0.0);
+                    $ticket->amount_paid = $amountPaid ?? ($totalAmount ?: 0.0);
                     $ticket->currency = $session->currency ?? 'eur';
                     $ticket->status = 'paid';
                     $ticket->stripe_email = $session->customer_details->email ?? $session->customer_email ?? null;

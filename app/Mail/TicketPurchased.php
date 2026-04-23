@@ -23,7 +23,7 @@ class TicketPurchased extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Jūsu VolleyPass biļete — ' . $this->match->home_team . ' vs ' . $this->match->away_team,
+            subject: 'Jūsu VolleyPass biļete — ' . $this->match->home_team_name . ' vs ' . $this->match->away_team_name,
         );
     }
 
