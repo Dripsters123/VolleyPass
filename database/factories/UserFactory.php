@@ -24,8 +24,8 @@ class UserFactory extends Factory
     public function definition(): array
     {
         $token = Str::lower(Str::random(12));
-        $firstName = $this->faker->firstName();
-        $lastName  = $this->faker->lastName();
+        $firstName = fake('en_US')->firstName();
+        $lastName  = fake('en_US')->lastName();
 
         return [
             'first_name'        => $firstName,
