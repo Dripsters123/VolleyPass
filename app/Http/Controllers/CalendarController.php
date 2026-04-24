@@ -7,11 +7,13 @@ use App\Models\VolleyballMatch;
 
 class CalendarController extends Controller
 {
+    // Rāda kalendāra lapu
     public function index()
     {
         return view('calendar.index');
     }
 
+    // Atgriež maču datus JSON formātā FullCalendar skatam
     public function events()
     {
         $matches = VolleyballMatch::where('is_local', true)

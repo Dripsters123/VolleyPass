@@ -11,11 +11,13 @@ use Illuminate\Support\Str;
 
 class SeatController extends Controller
 {
+    // Atgriež sēdvietas pēc mača ID (JSON)
     public function index($matchId)
     {
         return Seat::where('match_id', $matchId)->get();
     }
 
+    // Rezervē sēdvietu 15 minūtes maksājuma veikšanai
      public function reserve(Request $request, $seatId)
     {
         if (! $request->user()) {
@@ -57,6 +59,7 @@ class SeatController extends Controller
     }
 
 
+    // Rāda sēdvietu izkārtojumu konkrētam mačam ar statusa informāciju
     public function show($matchId)
     {
         $match = VolleyballMatch::with('arena')->findOrFail($matchId);

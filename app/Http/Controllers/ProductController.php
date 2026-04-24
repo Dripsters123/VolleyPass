@@ -19,6 +19,7 @@ class ProductController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
+    // Produktu saraksts ar meklēšanu, kategorijām un cenu filtriem
     public function index(Request $request)
     {
         $query = Product::query()->where('status', 'active');
@@ -51,6 +52,7 @@ class ProductController extends Controller
         return view('products.index', compact('products', 'categories'));
     }
 
+    // Rāda produkta detaļlapu ar atsauksmēm un vērtējumiem
     public function show(Product $product)
     {
         if ($product->status !== 'active') abort(404);
@@ -66,16 +68,14 @@ class ProductController extends Controller
         return view('products.show', compact('product', 'reviews', 'likes', 'dislikes', 'userReview'));
     }
 
+    // Jauna produkta izveides forma
     public function create()
     {
-        $categories = config('products.categories');
-        return view('products.create', compact('categories'));
     }
 
+    // Saglabā jauno produktu ar attēlu
     public function store(Request $request)
     {
-        $request->validate([
-            'title'           => 'required|string|max:255',
             'description'     => 'nullable|string',
             'price'           => 'required|numeric|min:0.01',
             'category'        => 'nullable|string|max:100',
@@ -123,9 +123,9 @@ class ProductController extends Controller
             ->with('success', 'Produkts veiksmīgi pievienots!');
     }
 
+    // Uzsāk Stripe maksājumu sesiju produkta iegādei
     public function buy(Request $request, Product $product)
     {
-        $user = $request->user();
 
         if ($product->user_id == $user->id) {
             return redirect()->route('products.show', $product)
@@ -176,6 +176,7 @@ class ProductController extends Controller
         return redirect()->away($session->url);
     }
 
+    // Apstrādā veiksmīgu produkta pirkumu un nosūta apstiprinājuma e-pastu
     public function purchaseSuccess(Request $request)
     {
         $order = Order::find($request->order);
@@ -210,6 +211,7 @@ class ProductController extends Controller
             ->with('success', 'Pirkums veiksmīgs! Pasūtījuma apstiprinājums nosūtīts uz jūsu e-pastu.');
     }
 
+    // Atceļ gaidošo pasūtījumu
     public function purchaseCancel(Request $request)
     {
         $order = Order::find($request->order);
@@ -223,6 +225,7 @@ class ProductController extends Controller
             ->with('error', 'Pasūtījums tika atcelts.');
     }
 
+    // Rāda lietotāja pasūtījumu vēsturi
     public function myOrders(Request $request)
     {
         $orders = Order::where('buyer_id', auth()->id())
@@ -233,6 +236,7 @@ class ProductController extends Controller
         return view('orders.index', compact('orders'));
     }
 
+    // Rāda lietotāja pašu produktu sarakstu
     public function myProducts(Request $request)
     {
         $products = Product::where('user_id', auth()->id())
@@ -242,6 +246,7 @@ class ProductController extends Controller
         return view('products.my-products', compact('products'));
     }
 
+    // Papildina produkta krājumu
     public function restock(Request $request, Product $product)
     {
         if ($product->user_id !== auth()->id()) {

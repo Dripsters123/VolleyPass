@@ -10,24 +10,25 @@ use Illuminate\Support\Facades\Auth;
 class DashboardController extends Controller
 {
 
+    // Galvenā informācijas paneļa lapa — pēdējie pirkumi, neseni mači, nākošie mači un ieteikumi
     public function index(Request $request)
     {
         $user = Auth::user();
 
-        
+        // Pēdējie 5 pirkumi
         $recentPurchases = Ticket::with('event')
             ->where('user_id', $user?->id)
             ->latest()
             ->take(5)
             ->get();
 
-       
+        // Nesen skatīti mači (sesijas vēsture)
         $recentMatches = collect(session('recent_matches', []))
             ->unique()
             ->values()
             ->take(5);
 
-        
+        // Nākošie 5 lokālie mači
         $upcomingMatchesQuery = VolleyballMatch::query()
             ->where('is_local', true)
             ->where('start_time', '>=', now())

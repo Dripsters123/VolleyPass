@@ -5,13 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Arena;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 
 class ArenaController extends Controller
 {
-    /**
-     * Display a listing of the user's arenas.
-     */
+    // Rāda lietotāja arēnas, izlasītās un noklusuma izkārtojumus
     public function index()
     {
         $userId = Auth::id();
@@ -35,17 +32,13 @@ class ArenaController extends Controller
         return view('arenas.index', compact('myArenas', 'favorites', 'defaultLayouts'));
     }
 
-    /**
-     * Show the form for creating a new arena.
-     */
+    // Jaunas arēnas izveides forma
     public function create()
     {
         return view('arenas.create');
     }
 
-    /**
-     * Store a newly created arena in storage.
-     */
+    // Saglabā jauno arēnu datu bāzē
     public function store(Request $request)
     {
         $request->validate([
@@ -90,9 +83,7 @@ class ArenaController extends Controller
         return redirect()->route('arenas.edit', $arena)->with('success', 'Arena created successfully!');
     }
 
-    /**
-     * Display the specified arena.
-     */
+    // Rāda konkrētu arēnu
     public function show(Arena $arena)
     {
         $this->authorize('view', $arena);
@@ -100,9 +91,7 @@ class ArenaController extends Controller
         return view('arenas.show', compact('arena'));
     }
 
-    /**
-     * Show the form for editing the specified arena.
-     */
+    // Arēnas rediģēšanas forma
     public function edit(Arena $arena)
     {
         $this->authorize('update', $arena);
@@ -110,9 +99,7 @@ class ArenaController extends Controller
         return view('arenas.edit', compact('arena'));
     }
 
-    /**
-     * Update the specified arena in storage.
-     */
+    // Atjaunina arēnas datus (izkārtojumu, izmērus, nosaukumu)
     public function update(Request $request, Arena $arena)
     {
         $this->authorize('update', $arena);
@@ -156,9 +143,7 @@ class ArenaController extends Controller
         return response()->json(['success' => true, 'message' => 'Arena updated successfully!']);
     }
 
-    /**
-     * Remove the specified arena from storage.
-     */
+    // Dzēš arēnu
     public function destroy(Arena $arena)
     {
         $this->authorize('delete', $arena);
@@ -168,9 +153,7 @@ class ArenaController extends Controller
         return redirect()->route('arenas.index')->with('success', 'Arena deleted successfully!');
     }
 
-    /**
-     * Duplicate an arena.
-     */
+    // Izveido arēnas kopiju
     public function duplicate(Arena $arena)
     {
         $this->authorize('view', $arena);
@@ -189,9 +172,7 @@ class ArenaController extends Controller
         return redirect()->route('arenas.edit', $duplicate)->with('success', 'Arena duplicated successfully!');
     }
 
-    /**
-     * Toggle favorite status for an arena.
-     */
+    // Pievieno vai noņem arēnu no izlasēm
     public function toggleFavorite(Arena $arena)
     {
         $user = Auth::user();
@@ -205,9 +186,7 @@ class ArenaController extends Controller
         return back()->with('success', $isFavorited ? 'Pievienots izlasē.' : 'Noņemts no izlases.');
     }
 
-    /**
-     * Toggle public/private status (owner only).
-     */
+    // Maina arēnas publisku/privātu statusu
     public function togglePublic(Arena $arena)
     {
         $this->authorize('update', $arena);

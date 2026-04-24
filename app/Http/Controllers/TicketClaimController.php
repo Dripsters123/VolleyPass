@@ -10,7 +10,7 @@ use App\Models\WalletTransaction;
 
 class TicketClaimController extends Controller
 {
-    
+    // Piešķir monētas par biļeti — 5 monētas par katru EUR (atomiska transakcija)
     public function claim(Request $request, Ticket $ticket)
     {
         $user = $request->user();

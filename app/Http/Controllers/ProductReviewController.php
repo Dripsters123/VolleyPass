@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 class ProductReviewController extends Controller
 {
+    // Pievieno vai atjaunina lietotāja vērtējumu produktam (patika / nepatika)
     public function store(Request $request, Product $product)
     {
         $request->validate([
@@ -29,6 +30,7 @@ class ProductReviewController extends Controller
         return back();
     }
 
+    // Dzēš lietotāja vērtējumu par produktu
     public function destroy(Product $product)
     {
         $review = ProductReview::where('product_id', $product->id)

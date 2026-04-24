@@ -15,7 +15,7 @@ use App\Models\Ticket;
 
 class ProfileController extends Controller
 {
-    
+    // Rāda profila rediģēšanas lapu ar statistiku (izveidoti mači, pārdotas biļetes u.c.)
     public function edit(Request $request): View
     {
         $user = $request->user();
@@ -48,7 +48,7 @@ class ProfileController extends Controller
         ));
     }
 
-   
+    // Atjaunina profila datus (validē caur ProfileUpdateRequest)
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $request->user()->fill($request->validated());
@@ -62,6 +62,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
+    // Dzēš lietotāja kontu pēc paroles apstiprinājuma
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [

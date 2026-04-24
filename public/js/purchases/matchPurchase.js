@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  // Iegūst CSRF tokenu no meta taga
   function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     const token = meta ? meta.getAttribute('content') : null;
@@ -8,6 +9,7 @@
     return token;
   }
 
+  // Veic fetch pieprasījumu ar automātisku CSRF galveni
   async function safeFetch(url, options = {}) {
     const csrf = getCsrfToken();
     const headers = {
@@ -30,7 +32,7 @@
     const finalizeBtn = document.getElementById('finalizePurchaseBtn');
     const buyBtn = document.getElementById('buyTicketBtn');
 
-  
+    // Atlaides koda poga un informatīvais teksts
     const discountInput = document.getElementById('discountCodeInput');
     const applyBtn = document.getElementById('applyDiscountBtn');
     const clearBtn = document.getElementById('clearDiscountBtn');
@@ -62,7 +64,7 @@
       }
     });
 
-   
+    // Atlaides koda validācija pret serveri
     if (applyBtn && discountInput) {
       applyBtn.addEventListener('click', async () => {
         const code = (discountInput.value || '').trim();

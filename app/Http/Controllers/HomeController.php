@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
+    // Rāda galveno lapu ar nākamajiem mačiem un populārāko maèu
     public function index()
     {
-
         $matchesCollection = VolleyballMatch::where('is_local', true)
             ->where('start_time', '>=', now())
             ->orderBy('start_time')
@@ -54,7 +54,7 @@ class HomeController extends Controller
                 $popularSold = (int) $popularData->sold;
             }
         } else {
-            
+        // Ja nav pārdotu biļešu — ņem pirmo maèu kā populāro
             $first = $matchesCollection->first();
             if ($first) {
                 $popular = [

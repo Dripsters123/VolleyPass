@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  // Drošs JSON lasītājs no datu atribūta
   function parseJsonAttr(el, name, fallback) {
     try {
       const raw = el.getAttribute(name) || el.dataset[name.replace('data-', '')] || null;
@@ -11,6 +12,7 @@
     }
   }
 
+  // Normalizē sēdvietas nosaukumu uz slugu salīdzināšanai
   function normalizeToSlug(s) {
     try {
       const base = (s || '').toString();
@@ -21,6 +23,7 @@
     }
   }
 
+  // Atrod DB sēdvietas ID pēc rindu/kolonnu koordinātām vai etiķetes
   function findDbIdForSeat(seatIdMap, seatId, row, number, label) {
     if (!seatIdMap || typeof seatIdMap !== 'object') return null;
 
@@ -42,6 +45,7 @@
     return null;
   }
 
+  // Gaida līdz renderSeatMap ielādējas (async, ar taimauta pārbaudi)
   function waitForRenderSeatMap(timeoutMs = 3000) {
     return new Promise((resolve, reject) => {
       if (typeof window.renderSeatMap === 'function') return resolve(window.renderSeatMap);

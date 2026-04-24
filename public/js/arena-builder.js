@@ -2,10 +2,10 @@
 (function () {
     'use strict';
 
-    /* ── constants ─────────────────────────────────────────────── */
+    /* ── Konstantes ─────────────────────────────────────────────── */
     let GRID_SIZE, SEAT_SIZE, SEAT_PAD, CANVAS_W, CANVAS_H;
 
-    /* ── state ─────────────────────────────────────────────────── */
+    /* ── Stāvoklis ──────────────────────────────────────────────── */
     let elements       = [];
     let selectedEl     = null;
     let dragEl         = null;
@@ -14,12 +14,12 @@
     let notifyTimer    = null;
     let onSaveCb       = null;
 
-    /* ── DOM refs ──────────────────────────────────────────────── */
+    /* ── DOM elementi ───────────────────────────────────────────── */
     let canvas, wrapper, propPanel, notifEl;
     let totalInput, colsInput, rowsInput;
 
     /* ══════════════════════════════════════════════════════════════
-       PUBLIC  init
+       Inicializācija — iestata kanvas, ielādē elementus, piesiena notikumus
        ══════════════════════════════════════════════════════════════ */
     function init(opts) {
         GRID_SIZE = opts.gridSize  || 50;
@@ -59,7 +59,7 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       EVENT  binding
+       Notikumu piesaiste — poga pievienot, saglabāt, notīrīt, mainīt režģa izmēru
        ══════════════════════════════════════════════════════════════ */
     function bindEvents() {
         /* palette buttons */
@@ -136,7 +136,7 @@
         document.addEventListener('touchend',  onTouchEnd,  { passive: true });
     }
 
-    /* ── canvas interaction ─────────────────────────────────────── */
+    /* ── Kanvas klikšķi un velšana (peles un skāriena atbalsts) ─── */
     function onCanvasClick(e) {
         if (e.target === canvas) { select(null); return; }
         var el = e.target.closest('.arena-element');
@@ -164,6 +164,7 @@
     }
     function onTouchEnd() { endDrag(); }
 
+    /* ── Sāk velšanu — saglabā sākotnējo pozīciju un nobīdi ─────── */
     function startDrag(el, cx, cy) {
         dragEl = el;
         var d = dataFor(el);
@@ -174,6 +175,7 @@
         el.style.cursor = 'grabbing';
     }
 
+    /* ── Pārvietojas velšanas laikā — atjaunina DOM pozīciju ─────── */
     function moveDrag(cx, cy) {
         if (!dragEl) return;
         var cr = canvas.getBoundingClientRect();
@@ -192,6 +194,7 @@
         dragStart = null;
     }
 
+    /* ── Beidz velšanu — pielieto uz režģa, pārbauda pārklājumus ── */
     function commitDrag(el) {
         var d = dataFor(el);
         if (!d) return;
@@ -225,8 +228,9 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       ELEMENT  management
+       Elementu pārvaldība — pievienot, dzēst, ģenerēt sēdvietu režģi
        ══════════════════════════════════════════════════════════════ */
+    // Pievieno jaunu sēdvietu vai laukumu kanvasam
     function addElement(type, x, y) {
         if (type === 'court' && elements.some(function (e) { return e.type === 'court'; })) {
             notify('Only one court allowed', 'error');
@@ -266,6 +270,7 @@
         notify((type === 'seat' ? 'Seat' : 'Court') + ' added', 'success');
     }
 
+    // Dzēš elementu pēc ID
     function deleteElement(id) {
         elements = elements.filter(function (e) { return e.id != id; });
         render();
@@ -273,6 +278,7 @@
         notify('Element deleted', 'success');
     }
 
+    // Automātiski ģenerē sēdvietu režģi, izvairoties no laukuma
     function generateGrid() {
         var total = Math.max(1, parseInt(totalInput.value, 10) || 48);
         var cols  = Math.max(1, parseInt(colsInput.value, 10)  || 8);
@@ -306,7 +312,7 @@
         notify(placed + ' seats generated', 'success');
     }
 
-    /* ── rendering ──────────────────────────────────────────────── */
+    /* ── Zīmē visus elementus kanvasā no nulles ─────────────────── */
     function render() {
         canvas.innerHTML = '';
         elements.forEach(function (el) {
@@ -329,7 +335,8 @@
         });
     }
 
-    /* ── selection / properties ──────────────────────────────────── */
+    /* ── Atlases un īpašību panelis ──────────────────────────────── */
+    // Iestata izvēlēto elementu un rāda tā īpašības
     function select(domEl) {
         document.querySelectorAll('.arena-element.selected')
             .forEach(function (e) { e.classList.remove('selected'); });
@@ -340,6 +347,7 @@
         showProps(domEl);
     }
 
+    // Ģenerē HTML īpašību paneli izvēlētajam elementam
     function showProps(domEl) {
         var d = dataFor(domEl);
         if (!d) return;
@@ -372,7 +380,8 @@
         propPanel.innerHTML = h;
     }
 
-    /* ── public property setters (called from inline handlers) ──── */
+    /* ── Publiskās īpašību izmainīšanas funkcijas (izsauktas no inline handleriem) ── */
+    // Maina elementa īpašību (etiķeti, orientāciju u.c.)
     function setProp(id, prop, val) {
         var el = elements.find(function (e) { return e.id == id; });
         if (!el) return;
@@ -390,6 +399,7 @@
         if (dom) select(dom);
     }
 
+    // Maina laukuma izmēru par delta px un atjaunina režģa vienības koeficientus
     function courtSize(id, prop, delta) {
         var el = elements.find(function (e) { return e.id == id && e.type === 'court'; });
         if (!el) return;
@@ -405,14 +415,16 @@
     }
 
     /* ══════════════════════════════════════════════════════════════
-       HELPERS
+       Palīgfunkcijas
        ══════════════════════════════════════════════════════════════ */
+    // Noklusuma izmēri un etiķetes dažādiem elementu tipiem
     function defaults(type) {
         if (type === 'seat')  return { width: SEAT_SIZE, height: SEAT_SIZE, number: '', label: '' };
         if (type === 'court') return { width: Math.round(GRID_SIZE * 5.2), height: Math.round(GRID_SIZE * 3.0), label: 'Volleyball Court', orientation: 'horizontal' };
         return { width: GRID_SIZE, height: GRID_SIZE };
     }
 
+    // Pārrēķina rindu skaitu balstoties uz kopējo sēdvietu un kolonnu skaitu
     function recalcRows() {
         if (!totalInput || !colsInput || !rowsInput) return;
         var t = Math.max(1, parseInt(totalInput.value, 10) || 1);
@@ -420,14 +432,17 @@
         rowsInput.value = Math.ceil(t / c);
     }
 
+    // Piesaista koordinātu pie tuvākā režģa punkta
     function snap(v, size)  { var o = (GRID_SIZE - size) / 2; return Math.round((v - o) / GRID_SIZE) * GRID_SIZE + o; }
     function snapY(v, size) { var o = (GRID_SIZE - size) / 2; return Math.round((v - o) / GRID_SIZE) * GRID_SIZE + o; }
 
+    // Pārbauda vai divi taisnstūri pārklājas
     function rectsOverlap(a, b) {
         return a.x < b.x + b.width  && a.x + a.width  > b.x &&
                a.y < b.y + b.height && a.y + a.height > b.y;
     }
 
+    // Meklē brīvu vietu elementam, sākot no vēlamās pozīcijas
     function findFreeSpot(x, y, w, h) {
         var r = { x: x, y: y, width: w, height: h };
         if (!isBlocked(r)) return { x: x, y: y };
@@ -449,15 +464,18 @@
         return elements.some(function (e) { return rectsOverlap(r, e); });
     }
 
+    // Atrod elementa datus pēc DOM elementa
     function dataFor(dom) {
         var id = dom.dataset.id;
         return elements.find(function (e) { return e.id == id; });
     }
 
+    // Unikāls ID, ierobežo vērtību diapazonā, ekranizē HTML atribūtus
     function uid() { return '' + Date.now() + '-' + Math.random().toString(36).substr(2, 9); }
     function clamp(v, lo, hi) { return Math.max(lo, Math.min(v, hi)); }
     function esc(s) { return String(s).replace(/"/g, '&quot;'); }
 
+    // Rāda paziņojumu kanvasa augšdaļā uz 3 sekundēm
     function notify(msg, type) {
         if (!notifEl) return;
         notifEl.textContent = msg;
@@ -470,7 +488,7 @@
 
     function getElements() { return elements; }
 
-    /* ── expose ─────────────────────────────────────────────────── */
+    /* ── Publiskais API — pieejams kā window.ArenaBuilder ────────── */
     window.ArenaBuilder = {
         init:       init,
         setProp:    setProp,

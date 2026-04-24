@@ -8,17 +8,20 @@ use Illuminate\Support\Facades\Storage;
 
 class TeamController extends Controller
 {
+    // Rāda lietotāja komandu sarakstu
     public function index()
     {
         $teams = auth()->user()->teams()->latest()->get();
         return view('teams.index', compact('teams'));
     }
 
+    // Jaunas komandas izveides forma
     public function create()
     {
         return view('teams.create');
     }
 
+    // Saglabā jauno komandu
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -48,12 +51,14 @@ class TeamController extends Controller
         return redirect()->route('teams.index')->with('success', 'Komanda izveidota!');
     }
 
+    // Komandas rediģēšanas forma
     public function edit(Team $team)
     {
         abort_unless($team->user_id === auth()->id(), 403);
         return view('teams.edit', compact('team'));
     }
 
+    // Atjaunina komandas datus
     public function update(Request $request, Team $team)
     {
         abort_unless($team->user_id === auth()->id(), 403);
@@ -85,6 +90,7 @@ class TeamController extends Controller
         return redirect()->route('teams.index')->with('success', 'Komanda atjaunināta!');
     }
 
+    // Dzēš komandu un tās logo
     public function destroy(Team $team)
     {
         abort_unless($team->user_id === auth()->id(), 403);
@@ -93,9 +99,7 @@ class TeamController extends Controller
         return back()->with('success', 'Komanda dzēsta.');
     }
 
-    /**
-     * API endpoint: return user's teams as JSON (for match request form).
-     */
+    // API — atgriež lietotāja komandas JSON formātā (maèa pieteikuma veidlapai)
     public function api()
     {
         $teams = auth()->user()->teams()->latest()->get(['id', 'name', 'players_per_team', 'players', 'coach', 'logo']);

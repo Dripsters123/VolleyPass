@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 
 class TicketsController extends Controller
 {
-
+    // Rāda lietotāja bіļeċu sarakstu ar filtrēšanas iespējām
     public function index(Request $request)
     {
         $query = Ticket::with(['event', 'seats'])

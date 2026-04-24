@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Seat;
 use App\Models\Ticket;
-use App\Models\Event;
 use App\Models\DiscountCard;
 use Stripe\Stripe;
 use Stripe\Checkout\Session as StripeSession;
@@ -25,6 +24,7 @@ class PaymentController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
+    // Raksta atkļūdošanas žurnālu Stripe notikumiem
     protected function stripeDebugLog($label, $data)
     {
         try {
@@ -37,6 +37,7 @@ class PaymentController extends Controller
     }
 
 
+    // Izveido Stripe Checkout sesiju biļešu iegādei ar atlaižu kodu atbalstu
     public function checkout(Request $request)
     {
         $request->validate([
@@ -189,6 +190,7 @@ class PaymentController extends Controller
         }
     }
 
+    // Apstrādā veiksmīgu Stripe maksājumu — izveido biļeti un pievieno sēdvietas
     public function success(Request $request)
     {
         $sessionId = $request->query('session_id');
@@ -313,12 +315,14 @@ class PaymentController extends Controller
         return redirect()->route('tickets.index')->with('success', 'Ticket purchased successfully!');
     }
 
+    // Rāda atcelšanas lapu pēc Stripe maksājuma atcelšanas
     public function cancel()
     {
         return view('payment.cancel');
     }
 
 
+    // Apstrādā Stripe webhook notikumus (rezerves ceļš ja success neizdodas)
     public function webhook(Request $request)
     {
         $payload = $request->getContent();

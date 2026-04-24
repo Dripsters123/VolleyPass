@@ -18,6 +18,7 @@ use Carbon\Carbon;
 
 class MatchRequestController extends Controller
 {
+    // Jauna mača pieteikuma izveides forma ar arēnām un komandām
     public function create()
     {
         $arenas = Arena::where('user_id', Auth::id())
@@ -30,6 +31,7 @@ class MatchRequestController extends Controller
         return view('match_requests.create', compact('arenas', 'teams'));
     }
 
+    // Validē un saglabā mača pieteikumu, nosūta paziņojumu administratoram
     public function store(Request $request)
     {
         $rules = [
@@ -163,6 +165,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->with('success', 'Jūsu mača pieprasījums nosūtīts administratoram.');
     }
 
+    // Rāda lietotāja mača un produktu pieteikumu sarakstu
     public function myRequests(Request $request)
 {
     $matchRequests = MatchRequest::where('user_id', Auth::id())
@@ -186,10 +189,9 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         $requests->push($p);
     }
 
-    
+    // Kārto un lapo apvienotos pieteikumus
     $requests = $requests->sortByDesc(fn($r) => $r->created_at)->values();
 
-    
     $perPage = 10;
     $page = \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPage();
     $itemsForPage = $requests->slice(($page - 1) * $perPage, $perPage)->values();
@@ -206,6 +208,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
 }
 
 
+    // Rāda konkrētu lietotāja pieteikumu
     public function view($id)
     {
         $requestData = MatchRequest::where('id', $id)
@@ -215,6 +218,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return view('match_requests.view', ['request' => $requestData]);
     }
 
+    // Rediģēšanas forma gaidošam mača pieteikumam
     public function edit($id)
     {
         $requestData = MatchRequest::where('id', $id)
@@ -230,6 +234,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return view('match_requests.edit', ['request' => $requestData, 'arenas' => $arenas]);
     }
 
+    // Atjaunina gaidošo mača pieteikumu
     public function update(Request $request, MatchRequest $matchRequest)
     {
         if ($matchRequest->user_id !== auth()->id()) {
@@ -321,6 +326,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->with('success', 'Mača pieprasījums atjaunināts.');
     }
 
+    // Atceļ gaidošo mača pieteikumu un dzēš logotipus
     public function cancel($id)
     {
         $req = MatchRequest::where('id', $id)
@@ -342,6 +348,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return back()->with('success', 'Jūsu mača pieprasījums ir atcelts.');
     }
 
+    // Dzēš noraidītu vai pieņemtu pieteikumu no vēstures
     public function destroy($id)
     {
         $req = MatchRequest::where('id', $id)
@@ -359,6 +366,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return redirect()->route('match_requests.my')->with('success', 'Pieprasījums dzēsts.');
     }
 
+    // Dzēš pieteikumu kā administrators
     public function adminDestroy($id)
     {
         $req = MatchRequest::findOrFail($id);
@@ -370,6 +378,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return redirect()->route('admin.match_requests.inbox')->with('success', 'Pieprasījums dzēsts.');
     }
 
+    // Admin iesūtne — rāda visus gaidošos mača un produktu pieteikumus ar filtriem
     public function inbox(Request $request)
     {
         $statusFilter = $request->filled('status') ? $request->status : null;
@@ -450,23 +459,19 @@ $arenaLayout = $validated['arena_layout'] ?? [];
         return view('admin.match_requests.inbox', ['requests' => $paginated]);
     }
 
+    // Rāda konkrētu pieteikumu (novirza uz produkta pieteikumu ja nepieciešams)
    public function show($id)
 {
-  
     $req = MatchRequest::with('user')->find($id);
     if ($req) {
-        
         if ($req->request_type === 'score_update') {
             return view('admin.match_requests.show_score_update', compact('req'));
         }
-        
         return view('admin.match_requests.show', compact('req'));
     }
 
-
     $prod = ProductRequest::with('user')->find($id);
     if ($prod) {
-       
         return redirect()->route('admin.product_requests.show', $prod->id);
     }
 
@@ -475,6 +480,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
 
 
 
+    // Apstiprina mača pieteikumu un paziņo iesniedzēju
     public function accept($id)
     {
         $req = MatchRequest::findOrFail($id);
@@ -507,6 +513,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->with('success', 'Pieprasījums apstiprināts — rediģējiet maču un pievienojiet cenu.');
     }
 
+    // Noraida mača pieteikumu ar iemeslu un paziņo iesniedzēju
    public function reject($id, Request $request)
 {
     \Log::info("Reject endpoint hit", ['id' => $id, 'user_id' => auth()->id()]);
@@ -531,6 +538,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
     return redirect()->route('admin.match_requests.inbox')->with('success', 'Pieprasījums noraidīts.');
 }
 
+    // Atzīmē pieteikumu kā "tiek izskatīts" un paziņo iesniedzēju
     public function markReviewing($id)
     {
         $req = MatchRequest::findOrFail($id);
@@ -545,6 +553,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->with('success', 'Pieprasījums atzīmēts kā "tiek izskatīts".');
     }
 
+    // Iesniedz apelāciju par noraidītu pieteikumu
     public function submitAppeal(Request $request, $id)
     {
         $req = MatchRequest::where('id', $id)

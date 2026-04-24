@@ -10,7 +10,7 @@ use App\Models\DiscountCard;
 
 class WalletController extends Controller
 {
-  
+    // Rāda maka lapu ar monētu atlikumu un atlaižu kartēm
     public function show(Request $request)
     {
         $user = $request->user();
@@ -37,9 +37,7 @@ class WalletController extends Controller
         return view('wallet.buy_discount', compact('wallet', 'cards', 'costMap'));
     }
 
-    /**
-     * POST: Buy a discount card using coins
-     */
+    // Iegādājas atlaižu karti par monētām (atomiska DB transakcija)
     public function buyDiscountCard(Request $request)
     {
         $request->validate([

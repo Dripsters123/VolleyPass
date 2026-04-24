@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 
 class ProductRequestController extends Controller
 {
-  
+    // Rāda lietotāja produktu pieteikumu sarakstu
     public function index()
     {
         $requests = ProductRequest::where('user_id', Auth::id())
@@ -20,13 +20,12 @@ class ProductRequestController extends Controller
         return view('match_requests.index', compact('requests'));
     }
 
+    // Jauna produkta pieteikuma izveides forma
     public function create()
     {
-        $categories = config('products.categories');
-        return view('product_requests.create', compact('categories'));
     }
 
-  
+    // Validē un saglabā produkta pieteikumu ar attēlu
     public function store(Request $request)
     {
         $allowedCategories = array_keys(config('products.categories', []));
@@ -85,6 +84,7 @@ class ProductRequestController extends Controller
     }
 
 
+    // Gaidošā produkta pieteikuma rediģēšanas forma
     public function edit(ProductRequest $productRequest)
     {
         if ($productRequest->user_id !== Auth::id() || $productRequest->status !== 'pending') {
@@ -95,6 +95,7 @@ class ProductRequestController extends Controller
     }
 
 
+    // Atjaunina produkta pieteikumu
     public function update(Request $request, ProductRequest $productRequest)
     {
         if ($productRequest->user_id !== Auth::id() || $productRequest->status !== 'pending') {
@@ -123,11 +124,13 @@ class ProductRequestController extends Controller
             ->with('success', 'Pieprasījums atjaunināts.');
     }
 
+    // Rāda produkta pieteikumu administratoram
     public function show(ProductRequest $productRequest)
     {
         return view('admin.product_requests.show', compact('productRequest'));
     }
 
+    // Admin rediģēšanas forma produkta pieteikumam
     public function editForAdmin(ProductRequest $productRequest)
     {
         if ($productRequest->status !== 'pending') {
@@ -138,6 +141,7 @@ class ProductRequestController extends Controller
         return view('admin.product_requests.edit', compact('productRequest'));
     }
 
+    // Apstiprina produkta pieteikumu un izveido jaunu produktu
     public function approve(Request $request, ProductRequest $productRequest)
     {
         if ($productRequest->status !== 'pending') {
@@ -190,6 +194,7 @@ class ProductRequestController extends Controller
             ->with('success', 'Produkts veiksmīgi izveidots un pieprasījums apstiprināts.');
     }
 
+    // Noraida produkta pieteikumu ar iemeslu
   public function reject($id)
 {
     \Log::info('Reject request received', [

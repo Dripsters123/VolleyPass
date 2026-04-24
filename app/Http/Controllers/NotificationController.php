@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
+    // Rāda visus pazīņojumus un atzīmē nelasitos kā lasitus
     public function index(Request $request)
     {
         $notifications = $request->user()->notifications()->latest()->paginate(20);
@@ -14,6 +15,7 @@ class NotificationController extends Controller
         return view('notifications.index', compact('notifications'));
     }
 
+    // Atzīmē konkrētu pazīņojumu kā lasitu un novirza uz saiti
     public function markRead(Request $request, string $id)
     {
         $notification = $request->user()->notifications()->findOrFail($id);
@@ -31,6 +33,7 @@ class NotificationController extends Controller
         return back();
     }
 
+    // Atzīmē visus pazīņojumus kā lasitus
     public function markAllRead(Request $request)
     {
         $request->user()->unreadNotifications->markAsRead();

@@ -20,9 +20,9 @@ use Carbon\Carbon;
 
 class MatchController extends Controller
 {
-  
-public function index(Request $request)
-{
+    // Maču saraksts ar filtrēšanu pēc cilnes (nākamie, gaida rezultātu, pabeigti)
+    public function index(Request $request)
+    {
     $perPage = 12;
     $tab = $request->input('tab', 'upcoming'); // upcoming | results_pending | completed
 
@@ -102,9 +102,10 @@ public function index(Request $request)
             ->get();
     }
 
-    return view('matches.local.index', compact('matches', 'tab', 'myMatchesOnly', 'scorePendingMatches'));
-}
+        return view('matches.local.index', compact('matches', 'tab', 'myMatchesOnly', 'scorePendingMatches'));
+    }
 
+    // Jauna mača izveides forma — aizpilda no pieteikuma ja norādīts request_id
     public function create(Request $request)
     {
         $prefill = null;
@@ -156,6 +157,7 @@ public function index(Request $request)
         return view('admin.matches.create', compact('prefill', 'myArenas', 'favorites', 'defaultLayouts', 'arenas'));
     }
 
+    // Pārbauda vai laiks pārklājas ar citu maču (palīgfunkcija)
     protected function hasTimeOverlap($startIso, $endIso, $excludeMatchId = null): bool
     {
         $start = Carbon::parse($startIso);
@@ -173,10 +175,9 @@ public function index(Request $request)
         })->exists();
     }
 
+    // Saglabā jauno maču, izveido arēnu un ģenerē sēdvietas
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'home_team_name' => 'required|string|max:255',
             'away_team_name' => 'required|string|max:255',
             'start_time' => 'required|date',
             'end_time' => 'nullable|date|after:start_time',
@@ -279,9 +280,9 @@ public function index(Request $request)
         return redirect()->route('local.matches.index')->with('success', 'Mačs izveidots.');
     }
 
+    // Mača rediģēšanas forma administratoram
     public function adminEdit($id)
     {
-        $match = VolleyballMatch::findOrFail($id);
 
         $prefill = [
             'home_team_name'   => $match->home_team_name,
@@ -304,9 +305,9 @@ public function index(Request $request)
         return view('admin.matches.edit', compact('match', 'prefill'));
     }
 
+    // Atjaunina maèa datus (admin)
     public function adminUpdate(Request $request, $id)
     {
-        $match = VolleyballMatch::findOrFail($id);
 
         $validated = $request->validate([
             'home_team_name' => 'required|string|max:255',
@@ -361,9 +362,9 @@ public function index(Request $request)
         return redirect()->route('local.matches.index')->with('success', 'Mačs atjaunināts.');
     }
 
+    // Dzēš maèu, ja nav pārdotu biļešu
     public function adminDestroy($id)
     {
-        $match = VolleyballMatch::findOrFail($id);
         if ($match->tickets()->where('status', 'paid')->exists()) {
             return back()->with('error', 'Nevar dzēst maču ar pārdotām biļetēm.');
         }
@@ -376,9 +377,10 @@ public function index(Request $request)
         return back()->with('success', 'Mačs dzēsts.');
     }
 
+    // Rāda lokālā mača detaļlапу ar sēdvietām un arēnas izkārtojumu
+    // Rāda lokālā mača detaļlapu ar sēdvietu karti un jauno lietotāju promo
     public function localShow($id)
     {
-        $match = VolleyballMatch::with('arena')->where('is_local', true)->findOrFail($id);
         $match->home_players = is_array($match->home_players) ? $match->home_players : (json_decode($match->home_players ?? '[]', true) ?: []);
         $match->away_players = is_array($match->away_players) ? $match->away_players : (json_decode($match->away_players ?? '[]', true) ?: []);
 
@@ -408,9 +410,9 @@ public function index(Request $request)
         ));
     }
 
+    // Iesniedz rezultāta pieprasījumu apskatīšanai administratoram
     public function submitScoreRequest(Request $request, $id)
     {
-        $match = VolleyballMatch::findOrFail($id);
 
         $validated = $request->validate([
             'sets' => 'required|array|min:3|max:5',
@@ -447,10 +449,9 @@ public function index(Request $request)
         return back()->with('success', 'Rezultāta pieprasījums nosūtīts.');
     }
 
+    // Apstiprina mača rezultātu, saglabā setēs un nosūta paziņojumu (admin)
     public function finalizeScore(Request $request, $id)
     {
-        $match = VolleyballMatch::findOrFail($id);
-        if (auth()->user()->role !== 'admin') abort(403);
 
         $validated = $request->validate([
             'sets' => 'required|array|min:3|max:5',
@@ -498,6 +499,7 @@ public function index(Request $request)
 
         return back()->with('success', 'Rezultāts apstiprināts.');
     }
+    // Apstrādā pareģojumus — atzīmē uzvarētājus un piešķir monētas
     protected function resolvePredictions(\App\Models\VolleyballMatch $match)
 {
     $predictions = Prediction::where('match_id', $match->id)->where('status','pending')->get();
@@ -521,6 +523,7 @@ public function index(Request $request)
 }
 
 
+    // Augšupielādē bildes mačam (max 8 uz maèu)
     public function uploadMedia(Request $request, $id)
     {
         $match = VolleyballMatch::findOrFail($id);

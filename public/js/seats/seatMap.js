@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  // Pārvērš tekstu vienotā formātā salīdzināšanai (bez diakritikām, mazie burti)
   function slugify(s) {
     try {
       const base = (s || '').toString();
@@ -11,6 +12,7 @@
     }
   }
 
+  // Uzzīmē sēdvietu karti konteinerā ar pielāgotu vai noklusuma izkārtojumu
     function renderSeatMap(container, options = {}) {
     if (!container) return;
 
