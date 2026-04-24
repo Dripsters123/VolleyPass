@@ -178,6 +178,8 @@ class MatchController extends Controller
     // Saglabā jauno maču, izveido arēnu un ģenerē sēdvietas
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'home_team_name' => 'required|string|max:255',
             'away_team_name' => 'required|string|max:255',
             'start_time' => 'required|date',
             'end_time' => 'nullable|date|after:start_time',

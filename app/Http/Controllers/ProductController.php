@@ -76,6 +76,8 @@ class ProductController extends Controller
     // Saglabā jauno produktu ar attēlu
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'title'           => 'required|string|max:255',
             'description'     => 'nullable|string',
             'price'           => 'required|numeric|min:0.01',
             'category'        => 'nullable|string|max:100',
@@ -126,6 +128,7 @@ class ProductController extends Controller
     // Uzsāk Stripe maksājumu sesiju produkta iegādei
     public function buy(Request $request, Product $product)
     {
+        $user = auth()->user();
 
         if ($product->user_id == $user->id) {
             return redirect()->route('products.show', $product)
