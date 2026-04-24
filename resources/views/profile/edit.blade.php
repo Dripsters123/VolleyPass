@@ -9,6 +9,42 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
+            {{-- Statistics section --}}
+            <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
+                <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-5">Statistika</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-blue-600 dark:text-blue-400">{{ $matchesCreated }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Izveidotie mači</div>
+                    </div>
+                    <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{{ $ticketsSold }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Pārdotās biļetes</div>
+                    </div>
+                    <div class="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">€{{ number_format($totalRevenue, 2) }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Kopējie ieņēmumi</div>
+                    </div>
+                    <div class="bg-violet-50 dark:bg-violet-900/20 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-violet-600 dark:text-violet-400">{{ $matchRequestsSubmitted }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Pieteikumi</div>
+                    </div>
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 text-center">
+                        <div class="text-3xl font-bold text-amber-600 dark:text-amber-400">{{ $ticketsBought }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Nopirktās biļetes</div>
+                    </div>
+                </div>
+                @if($pendingScoreMatches > 0)
+                    <div class="mt-4 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm">
+                        <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                        </svg>
+                        <span class="text-amber-800">Jums ir <strong>{{ $pendingScoreMatches }}</strong> mač{{ $pendingScoreMatches === 1 ? 'is' : 'i' }} bez rezultāta atjaunojuma.</span>
+                        <a href="{{ route('local.matches.index', ['tab' => 'results_pending']) }}" class="ml-auto shrink-0 text-xs font-semibold text-amber-700 underline hover:no-underline">Skatīt</a>
+                    </div>
+                @endif
+            </div>
+
             {{-- Avatar section --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-6">Profila attēls</h3>

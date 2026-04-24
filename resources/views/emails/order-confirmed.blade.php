@@ -34,6 +34,9 @@
         @if($order->product->description ?? false)
           <div class="product-meta">{{ Str::limit($order->product->description, 120) }}</div>
         @endif
+        @if($order->product->category ?? false)
+          <div class="product-meta" style="margin-top:4px;">Kategorija: {{ $order->product->category }}</div>
+        @endif
       </div>
 
       <table class="details-table">
@@ -43,11 +46,11 @@
         </tr>
         <tr>
           <td>Statuss</td>
-          <td>Apmaksāts</td>
+          <td>Apmaksāts ✓</td>
         </tr>
         <tr>
-          <td>Summa</td>
-          <td>€{{ number_format($order->amount / 100, 2) }}</td>
+          <td>Samaksātā summa</td>
+          <td>€{{ number_format($order->amount, 2) }}</td>
         </tr>
         <tr>
           <td>Datums</td>

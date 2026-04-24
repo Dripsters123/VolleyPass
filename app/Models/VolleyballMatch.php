@@ -37,6 +37,7 @@ class VolleyballMatch extends Model
         'actual_end_time',
         'match_state',
         'arena_id',
+        'created_by',
     ];
 
     protected $casts = [

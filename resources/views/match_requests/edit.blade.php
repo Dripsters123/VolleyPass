@@ -18,13 +18,15 @@
         <div>
           <label class="block text-gray-700 font-medium">Mājas komanda</label>
           <input type="text" name="home_team" value="{{ old('home_team', $request->home_team) }}"
-                 class="w-full border rounded px-3 py-2" required>
+                 class="w-full border rounded px-3 py-2" required placeholder="Piem.: Rīgas Vilki">
+          @error('home_team') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
         </div>
 
         <div>
           <label class="block text-gray-700 font-medium">Viesu komanda</label>
           <input type="text" name="away_team" value="{{ old('away_team', $request->away_team) }}"
-                 class="w-full border rounded px-3 py-2" required>
+                 class="w-full border rounded px-3 py-2" required placeholder="Piem.: Jūrmalas Viļņi">
+          @error('away_team') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
         </div>
       </div>
 
@@ -33,12 +35,14 @@
           <label class="block text-gray-700 font-medium">Sākuma laiks</label>
           <input type="datetime-local" name="start_time" value="{{ old('start_time', $request->start_time->format('Y-m-d\TH:i')) }}"
                  class="w-full border rounded px-3 py-2" required>
+          @error('start_time') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
         </div>
 
         <div>
           <label class="block text-gray-700 font-medium">Beigu laiks</label>
           <input type="datetime-local" name="end_time" value="{{ old('end_time', $request->end_time->format('Y-m-d\TH:i')) }}"
                  class="w-full border rounded px-3 py-2" required>
+          @error('end_time') <div class="text-red-600 text-sm mt-1">{{ $message }}</div> @enderror
         </div>
       </div>
 
@@ -56,23 +60,29 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
         <div>
           <label class="block text-gray-700 font-medium">Mājas treneris</label>
-          <input type="text" name="home_coach" value="{{ old('home_coach', $request->home_coach) }}" class="w-full border rounded px-3 py-2">
+          <input type="text" name="home_coach" value="{{ old('home_coach', $request->home_coach) }}" class="w-full border rounded px-3 py-2" placeholder="Piem.: Jānis Bērziņš">
         </div>
         <div>
           <label class="block text-gray-700 font-medium">Viesu treneris</label>
-          <input type="text" name="away_coach" value="{{ old('away_coach', $request->away_coach) }}" class="w-full border rounded px-3 py-2">
+          <input type="text" name="away_coach" value="{{ old('away_coach', $request->away_coach) }}" class="w-full border rounded px-3 py-2" placeholder="Piem.: Pēteris Kalniņš">
         </div>
       </div>
 
       <div class="mt-3">
         <label class="block text-gray-700 font-medium">Tiesneši (komatu atdalīti)</label>
         <input type="text" name="judges" value="{{ old('judges', is_array($request->judges) ? implode(', ', $request->judges) : ($request->judges ?? '')) }}"
-               class="w-full border rounded px-3 py-2">
+               class="w-full border rounded px-3 py-2" placeholder="Piem.: Anna Ozola, Kārlis Liepa">
       </div>
 
       <div class="mt-3">
         <label class="block text-gray-700 font-medium">Vieta</label>
-        <input type="text" name="location" value="{{ old('location', $request->location) }}" class="w-full border rounded px-3 py-2">
+        <input type="text" name="location" value="{{ old('location', $request->location) }}" class="w-full border rounded px-3 py-2" placeholder="Piem.: Sporta iela 2, Rīga, LV-1001">
+      </div>
+
+      <div class="mt-3 max-w-xs">
+        <label class="block text-gray-700 font-medium">Ieteicamā biļetes cena (EUR)</label>
+        <input type="number" step="0.01" min="0" name="ticket_price" value="{{ old('ticket_price', $request->ticket_price) }}" class="w-full border rounded px-3 py-2" placeholder="Piem.: 5.00">
+        <p class="text-xs text-gray-500 mt-1">Administrators var mainīt šo cenu pirms apstiprināšanas.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
@@ -167,13 +177,13 @@
         for (let i=0;i<n;i++){
           const hf = preHome[i]?.first_name ?? '';
           const hl = preHome[i]?.last_name ?? '';
-          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required></div><div><label class="text-sm">Uzvārds</label><input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required></div></div>`;
+          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis"></div><div><label class="text-sm">Uzvārds</label><input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš"></div></div>`;
         }
         html += '</div><div class="bg-gray-50 border rounded p-4 mt-2"><h3 class="font-semibold mb-2">Viesu komanda</h3>';
         for (let i=0;i<n;i++){
           const af = preAway[i]?.first_name ?? '';
           const al = preAway[i]?.last_name ?? '';
-          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required></div><div><label class="text-sm">Uzvārds</label><input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required></div></div>`;
+          html += `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2"><div><label class="text-sm">Vārds</label><input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis"></div><div><label class="text-sm">Uzvārds</label><input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš"></div></div>`;
         }
         html += '</div>';
         container.innerHTML = html;

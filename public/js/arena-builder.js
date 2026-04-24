@@ -23,12 +23,20 @@
        ══════════════════════════════════════════════════════════════ */
     function init(opts) {
         GRID_SIZE = opts.gridSize  || 50;
-        SEAT_SIZE = 44;
+        SEAT_SIZE = Math.max(10, GRID_SIZE - 6);
         SEAT_PAD  = (GRID_SIZE - SEAT_SIZE) / 2;
         CANVAS_W  = opts.canvasWidth  || 1200;
         CANVAS_H  = opts.canvasHeight || 840;
         elements  = Array.isArray(opts.elements) ? JSON.parse(JSON.stringify(opts.elements)) : [];
         onSaveCb  = opts.onSave || function () {};
+
+        // Ensure courts loaded from DB have grid-unit ratios for drift-free resize
+        elements.forEach(function (el) {
+            if (el.type === 'court' && !el._gw) {
+                el._gw = el.width  / GRID_SIZE;
+                el._gh = el.height / GRID_SIZE;
+            }
+        });
 
         canvas     = document.getElementById('arena-canvas');
         wrapper    = document.querySelector('.canvas-wrapper');
@@ -89,17 +97,29 @@
         var gridSlider = document.getElementById('grid-size-slider');
         if (gridSlider) {
             gridSlider.addEventListener('input', function () {
-                var val = parseInt(this.value, 10);
-                GRID_SIZE = val;
+                GRID_SIZE = parseInt(this.value, 10);
+                SEAT_SIZE = Math.max(10, GRID_SIZE - 6);
                 SEAT_PAD  = (GRID_SIZE - SEAT_SIZE) / 2;
                 canvas.style.backgroundSize = GRID_SIZE + 'px ' + GRID_SIZE + 'px';
-                document.getElementById('grid-size-label').textContent = val + 'px';
-                // Re-snap all existing elements to the new grid
+                document.getElementById('grid-size-label').textContent = GRID_SIZE + 'px';
                 elements.forEach(function (el) {
+                    if (el.type === 'seat') {
+                        el.width  = SEAT_SIZE;
+                        el.height = SEAT_SIZE;
+                    } else if (el.type === 'court') {
+                        // Recalculate from stored grid-unit ratios — always exact, zero drift
+                        el.width  = Math.round(el._gw * GRID_SIZE);
+                        el.height = Math.round(el._gh * GRID_SIZE);
+                    }
                     el.x = clamp(snap(el.x, el.width),  0, CANVAS_W - el.width);
                     el.y = clamp(snapY(el.y, el.height), 0, CANVAS_H - el.height);
                 });
                 render();
+                if (selectedEl) {
+                    var sid = selectedEl.dataset && selectedEl.dataset.id;
+                    var dom = sid && document.querySelector('[data-id="' + sid + '"]');
+                    if (dom) select(dom);
+                }
             });
         }
 
@@ -235,6 +255,10 @@
             number: defs.number || '',
             orientation: defs.orientation || null
         };
+        if (type === 'court') {
+            el._gw = el.width  / GRID_SIZE;
+            el._gh = el.height / GRID_SIZE;
+        }
 
         elements.push(el);
         render();
@@ -269,7 +293,7 @@
                 elements.push({
                     id: uid(), type: 'seat',
                     x: x, y: y, width: SEAT_SIZE, height: SEAT_SIZE,
-                    price: 10, number: lbl, label: lbl
+                    number: lbl, label: lbl
                 });
                 placed++;
             }
@@ -294,6 +318,12 @@
             div.style.top    = el.y + 'px';
             div.style.width  = el.width  + 'px';
             div.style.height = el.height + 'px';
+            if (el.type === 'seat') {
+                div.style.fontSize   = Math.max(8, Math.round(el.width * 0.27)) + 'px';
+                div.style.borderRadius = Math.max(4, Math.round(el.width * 0.22)) + 'px';
+            } else if (el.type === 'court') {
+                div.style.fontSize   = Math.max(10, Math.round(el.width * 0.055)) + 'px';
+            }
             div.textContent  = el.number || el.label || el.type;
             canvas.appendChild(div);
         });
@@ -319,9 +349,6 @@
             h += 'Label: <input type="text" value="' + esc(d.number || '') + '" '
                + 'onchange="ArenaBuilder.setProp(\'' + d.id + '\',\'number\',this.value)" '
                + 'class="w-full p-1 border rounded mb-1"><br>';
-            h += 'Price: €<input type="number" value="' + (d.price || 10) + '" step="0.01" '
-               + 'onchange="ArenaBuilder.setProp(\'' + d.id + '\',\'price\',this.value)" '
-               + 'class="w-full p-1 border rounded mb-1">';
         } else if (d.type === 'court') {
             h += 'Label: <input type="text" value="' + esc(d.label || '') + '" '
                + 'onchange="ArenaBuilder.setProp(\'' + d.id + '\',\'label\',this.value)" '
@@ -367,6 +394,9 @@
         var el = elements.find(function (e) { return e.id == id && e.type === 'court'; });
         if (!el) return;
         el[prop] = Math.max(80, el[prop] + delta);
+        // Keep grid-unit ratios in sync so future slider moves stay correct
+        el._gw = el.width  / GRID_SIZE;
+        el._gh = el.height / GRID_SIZE;
         el.x = clamp(snap(el.x, el.width),  0, CANVAS_W - el.width);
         el.y = clamp(snapY(el.y, el.height), 0, CANVAS_H - el.height);
         render();
@@ -378,9 +408,9 @@
        HELPERS
        ══════════════════════════════════════════════════════════════ */
     function defaults(type) {
-        if (type === 'seat')  return { width: SEAT_SIZE, height: SEAT_SIZE, price: 10, number: '', label: '' };
-        if (type === 'court') return { width: 260, height: 150, label: 'Volleyball Court', orientation: 'horizontal' };
-        return { width: 50, height: 50 };
+        if (type === 'seat')  return { width: SEAT_SIZE, height: SEAT_SIZE, number: '', label: '' };
+        if (type === 'court') return { width: Math.round(GRID_SIZE * 5.2), height: Math.round(GRID_SIZE * 3.0), label: 'Volleyball Court', orientation: 'horizontal' };
+        return { width: GRID_SIZE, height: GRID_SIZE };
     }
 
     function recalcRows() {

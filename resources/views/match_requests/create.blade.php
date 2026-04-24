@@ -346,11 +346,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
               <div>
                 <label class="text-sm">Vārds</label>
-                <input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required>
+                <input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis">
               </div>
               <div>
                 <label class="text-sm">Uzvārds</label>
-                <input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required>
+                <input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš">
               </div>
             </div>
           `;
@@ -366,11 +366,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
               <div>
                 <label class="text-sm">Vārds</label>
-                <input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required>
+                <input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis">
               </div>
               <div>
                 <label class="text-sm">Uzvārds</label>
-                <input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required>
+                <input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš">
               </div>
             </div>
           `;

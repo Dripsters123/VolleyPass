@@ -251,7 +251,7 @@ class PaymentController extends Controller
             }
 
             // Always use Stripe's actual charged amount so discounts are reflected
-            if (property_exists($session, 'amount_total') && $session->amount_total !== null) {
+            if (isset($session->amount_total) && $session->amount_total !== null) {
                 $totalAmount = $session->amount_total / 100;
             }
 
@@ -359,7 +359,7 @@ class PaymentController extends Controller
             $matchId = $metadata->match_id ?? null;
             $userId = $metadata->user_id ?? null;
             $paymentIntent = is_object($session->payment_intent) ? $session->payment_intent->id : $session->payment_intent;
-            $amountPaid = property_exists($session, 'amount_total') ? ($session->amount_total / 100) : null;
+            $amountPaid = isset($session->amount_total) ? ($session->amount_total / 100) : null;
 
             if (!empty($metadata->discount_code)) {
                 try {

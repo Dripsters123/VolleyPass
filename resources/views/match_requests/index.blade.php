@@ -84,6 +84,12 @@
                                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition">Skatīt</a>
                                 <a href="{{ route('match_requests.edit', $r->id) }}"
                                    class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition">Rediģēt</a>
+                                <form action="{{ route('match_requests.cancel', $r->id) }}" method="POST"
+                                      onsubmit="return confirm('Atcelt šo pieprasījumu?');" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition">Atcelt</button>
+                                </form>
                             @elseif($r->type === 'product')
                                 <a href="{{ route('product_requests.edit', $r->id) }}"
                                    class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition">Rediģēt</a>

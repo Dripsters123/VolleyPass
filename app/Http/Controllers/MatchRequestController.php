@@ -303,6 +303,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
                 ? json_encode(array_values(array_filter(array_map('trim', explode(',', $validated['judges'])))))
                 : json_encode([]),
             'location' => $validated['location'] ?? null,
+            'ticket_price' => $validated['ticket_price'] ?? null,
         ];
 
         foreach (['home_logo', 'away_logo'] as $field) {

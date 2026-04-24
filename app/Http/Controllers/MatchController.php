@@ -26,7 +26,7 @@ public function index(Request $request)
     $perPage = 12;
     $tab = $request->input('tab', 'upcoming'); // upcoming | results_pending | completed
 
-    $query = VolleyballMatch::query()->where('is_local', true);
+    $query = VolleyballMatch::query()->where('is_local', true)->withCount('tickets');
 
     if ($request->filled('players_per_team')) {
         $query->where('players_per_team', $request->players_per_team);
@@ -56,6 +56,12 @@ public function index(Request $request)
         $query->where('ticket_price', '<=', (float)$request->max_price);
     }
 
+    // My Matches filter: only show matches this user created
+    $myMatchesOnly = $request->boolean('my_matches') && auth()->check();
+    if ($myMatchesOnly) {
+        $query->where('created_by', auth()->id());
+    }
+
     // Apply tab filter at DB level for efficiency
     if ($tab === 'completed') {
         $query->where(function ($q) {
@@ -83,7 +89,20 @@ public function index(Request $request)
 
     $matches = $query->paginate($perPage)->withQueryString();
 
-    return view('matches.local.index', compact('matches', 'tab'));
+    // Score-pending matches for the current user (banner prompt)
+    $scorePendingMatches = collect();
+    if (auth()->check()) {
+        $scorePendingMatches = VolleyballMatch::where('is_local', true)
+            ->where('created_by', auth()->id())
+            ->where('end_time', '<', now())
+            ->whereNotIn('match_state', ['completed'])
+            ->whereNotIn('status_type', ['completed'])
+            ->orderBy('end_time', 'desc')
+            ->limit(5)
+            ->get();
+    }
+
+    return view('matches.local.index', compact('matches', 'tab', 'myMatchesOnly', 'scorePendingMatches'));
 }
 
     public function create(Request $request)
@@ -238,6 +257,9 @@ public function index(Request $request)
             'arena_id' => $arena->id,
             'home_players' => $validated['home_players'],
             'away_players' => $validated['away_players'],
+            'created_by' => isset($validated['match_request_id'])
+                ? (MatchRequest::find($validated['match_request_id'])?->user_id ?? auth()->id())
+                : auth()->id(),
         ]);
 
         if ($request->hasFile('home_logo')) {

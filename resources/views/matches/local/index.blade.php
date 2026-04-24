@@ -84,11 +84,59 @@
               </a>
             </div>
           </form>
+
+          @auth
+          <div class="mt-4 pt-4 border-t border-gray-100">
+            <a href="{{ route('local.matches.index', array_merge(request()->except('my_matches', 'page'), ['my_matches' => $myMatchesOnly ? 0 : 1])) }}"
+               class="flex items-center gap-2 w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-colors
+                      {{ $myMatchesOnly ? 'bg-blue-600 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50' }}">
+              <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+              Mani mači
+              @if($myMatchesOnly)
+                <svg class="w-3.5 h-3.5 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              @endif
+            </a>
+          </div>
+          @endauth
         </div>
       </aside>
 
       {{-- Match grid --}}
       <main class="flex-1">
+
+        {{-- Score-pending banner for match creators --}}
+        @if($scorePendingMatches->isNotEmpty())
+          <div class="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4">
+            <div class="flex items-start gap-3">
+              <div class="mt-0.5 w-8 h-8 shrink-0 rounded-full bg-amber-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                </svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-amber-800">Jūsu mači gaida rezultāta atjauninājumu</p>
+                <div class="mt-2 space-y-1.5">
+                  @foreach($scorePendingMatches as $sp)
+                    <div class="flex items-center justify-between gap-3 bg-white rounded-xl px-3 py-2 border border-amber-100">
+                      <span class="text-sm font-medium text-gray-800 truncate">{{ $sp->home_team_name }} vs {{ $sp->away_team_name }}</span>
+                      <div class="flex items-center gap-2 shrink-0">
+                        <span class="text-xs text-gray-500">{{ $sp->end_time?->format('d.m.Y') }}</span>
+                        <a href="{{ route('local.matches.show', $sp->id) }}"
+                           class="px-2.5 py-1 text-xs font-semibold bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition">
+                          Atjaunināt
+                        </a>
+                      </div>
+                    </div>
+                  @endforeach
+                </div>
+              </div>
+            </div>
+          </div>
+        @endif
 
         {{-- Tab navigation --}}
         <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-5 w-fit">
@@ -179,6 +227,14 @@
                     <span class="font-semibold text-emerald-600">€{{ number_format($match->ticket_price ?? 0, 2) }}</span>
                   @endif
                 </div>
+                @if(auth()->check() && $match->created_by === auth()->id())
+                  <div class="mt-2 flex items-center gap-1.5 text-xs text-indigo-600">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                    </svg>
+                    <span>{{ $match->tickets_count }} biļečes pirdâtas</span>
+                  </div>
+                @endif
               </div>
 
               <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">

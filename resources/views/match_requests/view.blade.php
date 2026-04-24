@@ -191,6 +191,107 @@
                 </div>
             </div>
 
+            {{-- Coaches --}}
+            @if($mr->home_coach || $mr->away_coach)
+                <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-medium mb-3">Treneri</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-sm text-gray-500">Mājas treneris</div>
+                            <div class="font-medium">{{ $mr->home_coach ?: '—' }}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-500">Viesu treneris</div>
+                            <div class="font-medium">{{ $mr->away_coach ?: '—' }}</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Judges --}}
+            @php
+                $judgesList = is_array($mr->judges) ? $mr->judges : (json_decode($mr->judges ?? '[]', true) ?: []);
+            @endphp
+            @if(!empty($judgesList))
+                <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-medium mb-3">Tiesneši</h3>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach($judgesList as $judge)
+                            <span class="inline-block px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">{{ $judge }}</span>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            {{-- Arena --}}
+            @if(!empty($mr->arena_name))
+                <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
+                    <h3 class="text-lg font-medium mb-3">Arēna</h3>
+                    <div class="text-sm text-gray-700 font-medium">{{ $mr->arena_name }}</div>
+                    @if($mr->arena_width && $mr->arena_height)
+                        <div class="text-xs text-gray-500 mt-1">Izmērs: {{ $mr->arena_width }} × {{ $mr->arena_height }} px</div>
+                    @endif
+
+                    {{-- Arena layout canvas --}}
+                    @php
+                        $arenaElements = is_array($mr->arena_elements) ? $mr->arena_elements : (json_decode($mr->arena_elements ?? '[]', true) ?: []);
+                    @endphp
+                    @if(!empty($arenaElements))
+                        <div class="mt-4 overflow-auto rounded-xl border border-gray-100 bg-gray-50">
+                            <canvas id="arenaPreview" class="block mx-auto" style="max-width:100%;"></canvas>
+                        </div>
+                        <div class="mt-3 flex flex-wrap gap-4 text-xs text-gray-500 justify-center">
+                            <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 rounded bg-amber-400 border border-amber-600"></span>Laukums</span>
+                            <span class="flex items-center gap-1.5"><span class="inline-block w-4 h-4 rounded bg-sky-600 border border-sky-700"></span>Sēdvieta</span>
+                        </div>
+                        <script>
+                        (function(){
+                            var elements = @json($arenaElements);
+                            var srcW = {{ (int)($mr->arena_width ?? 1000) }};
+                            var srcH = {{ (int)($mr->arena_height ?? 700) }};
+                            var canvas = document.getElementById('arenaPreview');
+                            var maxW = Math.min(860, canvas.parentElement.clientWidth - 32);
+                            var scale = Math.min(maxW / srcW, 520 / srcH, 1);
+                            var cw = Math.round(srcW * scale);
+                            var ch = Math.round(srcH * scale);
+                            canvas.width = cw; canvas.height = ch;
+                            canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+                            var ctx = canvas.getContext('2d');
+                            ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, cw, ch);
+                            ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
+                            var gs = Math.round(50 * scale);
+                            for (var x = 0; x < cw; x += gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,ch); ctx.stroke(); }
+                            for (var y = 0; y < ch; y += gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(cw,y); ctx.stroke(); }
+                            function roundRect(ctx, x, y, w, h, r) {
+                                ctx.beginPath(); ctx.moveTo(x+r, y);
+                                ctx.lineTo(x+w-r, y); ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+                                ctx.lineTo(x+w, y+h-r); ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                                ctx.lineTo(x+r, y+h); ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+                                ctx.lineTo(x, y+r); ctx.quadraticCurveTo(x, y, x+r, y); ctx.closePath();
+                            }
+                            elements.forEach(function(el) {
+                                var ex = Math.round(el.x*scale), ey = Math.round(el.y*scale);
+                                var ew = Math.round(el.width*scale), eh = Math.round(el.height*scale);
+                                if (el.type === 'court') {
+                                    ctx.fillStyle = '#fbbf24'; ctx.strokeStyle = '#b45309'; ctx.lineWidth = 1.5;
+                                    roundRect(ctx, ex, ey, ew, eh, 8); ctx.fill(); ctx.stroke();
+                                    ctx.fillStyle = '#92400e'; ctx.font = 'bold ' + Math.max(10, Math.round(14*scale)) + 'px sans-serif';
+                                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                                    ctx.fillText(el.label || 'Laukums', ex+ew/2, ey+eh/2);
+                                } else {
+                                    ctx.fillStyle = '#0284c7'; ctx.strokeStyle = '#0369a1'; ctx.lineWidth = 1;
+                                    roundRect(ctx, ex, ey, ew, eh, 6); ctx.fill(); ctx.stroke();
+                                    ctx.fillStyle = '#fff'; ctx.font = 'bold ' + Math.max(7, Math.round(11*scale)) + 'px sans-serif';
+                                    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                                    ctx.fillText(el.number || el.label || '', ex+ew/2, ey+eh/2);
+                                }
+                            });
+                        })();
+                        </script>
+                    @endif
+                </div>
+            @endif
+
             {{-- Logos --}}
             @if($mr->home_logo || $mr->away_logo)
                 <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
@@ -211,8 +312,6 @@
                     </div>
                 </div>
             @endif
-
-            {{-- Actions: edit / cancel for owner and pending only --}}
             <div class="flex gap-3 items-center">
                 <a href="{{ route('match_requests.my') }}" class="text-sm text-gray-600 underline">Atpakaļ uz pieprasījumiem</a>
 

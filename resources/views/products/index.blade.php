@@ -8,6 +8,7 @@
             <p class="text-sm text-gray-500 mt-0.5">{{ $products->total() }} preces pieejamas</p>
         </div>
         @auth
+            @if(auth()->user()->role === 'admin')
             <a href="{{ route('products.create') }}"
                class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,6 +16,15 @@
                 </svg>
                 Pievienot preci
             </a>
+            @else
+            <a href="{{ route('product_requests.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Pieteikt produktu
+            </a>
+            @endif
         @endauth
     </div>
 
@@ -55,6 +65,15 @@
                     class="w-full pl-7 pr-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
             </div>
 
+            {{-- Category --}}
+            <select name="category"
+                class="w-full md:w-52 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white">
+                <option value="">Visas kategorijas</option>
+                @foreach($categories as $key => $label)
+                    <option value="{{ $key }}" {{ request('category') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                @endforeach
+            </select>
+
             {{-- Sort --}}
             <select name="sort"
                 class="w-full md:w-52 px-3 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition bg-white">
@@ -68,7 +87,7 @@
                 Filtrēt
             </button>
 
-            @if(request()->hasAny(['search','min_price','max_price','sort']))
+            @if(request()->hasAny(['search','min_price','max_price','sort','category']))
                 <a href="{{ route('products.index') }}"
                    class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-medium rounded-xl transition whitespace-nowrap">
                     Notīrīt
@@ -94,9 +113,17 @@
                             </svg>
                         </div>
                     @endif
-                    @if($product->status === 'sold')
+                    @if($product->status === 'sold' || $product->stock <= 0)
                         <div class="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <span class="px-3 py-1 bg-white text-gray-800 text-xs font-bold rounded-full tracking-wide">Pārdots</span>
+                            <span class="px-3 py-1 bg-white text-gray-800 text-xs font-bold rounded-full tracking-wide">Izpārdots</span>
+                        </div>
+                    @elseif($product->stock <= 5)
+                        <div class="absolute top-2 right-2">
+                            <span class="px-2 py-0.5 bg-amber-500 text-white text-xs font-semibold rounded-full">Atlicis: {{ $product->stock }}</span>
+                        </div>
+                    @else
+                        <div class="absolute top-2 right-2">
+                            <span class="px-2 py-0.5 bg-green-600/90 text-white text-xs font-semibold rounded-full">{{ $product->stock }} gb.</span>
                         </div>
                     @endif
                 </div>

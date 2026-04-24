@@ -16,6 +16,7 @@ use App\Http\Controllers\{
     ProductController,
     WalletController,
     ProductRequestController,
+    ProductReviewController,
     ArenaController,
     TeamController,
 };
@@ -72,12 +73,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/wallet/buy-discount', [WalletController::class, 'buyDiscountCard'])->name('wallet.buy.post');
     Route::get('/wallet/discount-cards', [WalletController::class, 'listDiscountCards'])->name('wallet.cards.list');
 });
+
+Route::middleware('auth')->group(function () {
     Route::get('/tickets', [TicketsController::class, 'index'])->name('tickets.index');
     Route::post('/tickets/{ticket}/claim', [TicketClaimController::class, 'claim'])->name('tickets.claim');
     Route::post('/tickets/{ticket}/admin-claim', [TicketClaimController::class, 'adminClaim'])
         ->name('tickets.admin_claim')->middleware('role:admin');
-
     Route::post('/seats/{seatId}/reserve', [SeatController::class, 'reserve']);
+});
 
 
 Route::get('/seats/{matchId}', [SeatController::class, 'index']);
@@ -146,6 +149,7 @@ Route::middleware(['auth', 'role:admin'])
 
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 
 Route::middleware('auth')->group(function () {
@@ -159,6 +163,11 @@ Route::delete('/product-requests/{productRequest}/cancel', [ProductRequestContro
     Route::post('/products/{product}/buy', [ProductController::class, 'buy'])->name('products.buy');
     Route::get('/products/purchase-success', [ProductController::class, 'purchaseSuccess'])->name('products.purchase_success');
     Route::get('/products/purchase-cancel', [ProductController::class, 'purchaseCancel'])->name('products.purchase_cancel');
+    Route::get('/my-orders', [ProductController::class, 'myOrders'])->name('orders.index');
+    Route::get('/my-products', [ProductController::class, 'myProducts'])->name('products.my');
+    Route::post('/products/{product}/restock', [ProductController::class, 'restock'])->name('products.restock');
+    Route::post('/products/{product}/reviews', [ProductReviewController::class, 'store'])->name('products.reviews.store');
+    Route::delete('/products/{product}/reviews', [ProductReviewController::class, 'destroy'])->name('products.reviews.destroy');
 });
 
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');

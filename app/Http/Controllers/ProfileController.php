@@ -9,15 +9,43 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use App\Models\VolleyballMatch;
+use App\Models\MatchRequest;
+use App\Models\Ticket;
 
 class ProfileController extends Controller
 {
     
     public function edit(Request $request): View
     {
-        return view('profile.edit', [
-            'user' => $request->user(),
-        ]);
+        $user = $request->user();
+
+        $matchesCreated = VolleyballMatch::where('created_by', $user->id)->count();
+
+        $myMatchIds = VolleyballMatch::where('created_by', $user->id)->pluck('id');
+        $ticketsSold = Ticket::whereIn('event_id', $myMatchIds)->count();
+
+        $totalRevenue = Ticket::whereIn('event_id', $myMatchIds)->sum('amount_paid');
+
+        $matchRequestsSubmitted = MatchRequest::where('user_id', $user->id)->count();
+
+        $ticketsBought = Ticket::where('user_id', $user->id)->where('status', 'paid')->count();
+
+        $pendingScoreMatches = VolleyballMatch::where('created_by', $user->id)
+            ->where('end_time', '<', now())
+            ->whereNotIn('match_state', ['completed'])
+            ->whereNotIn('status_type', ['completed'])
+            ->count();
+
+        return view('profile.edit', compact(
+            'user',
+            'matchesCreated',
+            'ticketsSold',
+            'totalRevenue',
+            'matchRequestsSubmitted',
+            'ticketsBought',
+            'pendingScoreMatches'
+        ));
     }
 
    

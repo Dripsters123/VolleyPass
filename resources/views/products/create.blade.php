@@ -3,7 +3,7 @@
         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Pievienot produktu</h2>
     </x-slot>
 
-    <div class="max-w-2xl mx-auto px-4 py-8">
+    <div class="max-w-5xl mx-auto px-4 py-8">
         <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
 
             @if($errors->any())
@@ -12,59 +12,148 @@
                 </div>
             @endif
 
-            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+            <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nosaukums *</label>
-                    <input type="text" name="title" value="{{ old('title') }}" required
-                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                           placeholder="Piemēram: Volejbola bumba Mikasa V300W">
-                    @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apraksts</label>
-                    <textarea name="description" rows="4"
-                              class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="Produkta apraksts…">{{ old('description') }}</textarea>
-                    @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cena (EUR) *</label>
-                        <div class="relative">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
-                            <input type="number" step="0.01" min="0" name="price" value="{{ old('price') }}" required
-                                   class="w-full pl-7 rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="0.00">
+                <div class="lg:grid lg:grid-cols-5 lg:gap-8">
+                    {{-- Left: form fields --}}
+                    <div class="lg:col-span-3 space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nosaukums *</label>
+                            <input type="text" name="title" value="{{ old('title') }}" required
+                                   class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Piemēram: Volejbola bumba Mikasa V300W">
+                            @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                         </div>
-                        @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apraksts</label>
+                            <textarea name="description" rows="4"
+                                      class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Produkta apraksts…">{{ old('description') }}</textarea>
+                            @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cena (EUR) *</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
+                                    <input type="number" step="0.01" min="0" name="price" value="{{ old('price') }}" required
+                                           class="w-full pl-7 rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="0.00">
+                                </div>
+                                @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                            <div x-data="{ cat: '{{ old('category', '') }}' }">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategorija</label>
+                                <select name="category" x-model="cat"
+                                        class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">-- Izvēlies kategoriju --</option>
+                                    @foreach(config('products.categories') as $key => $label)
+                                        <option value="{{ $key }}" {{ old('category') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                    <option value="_other" {{ old('category') === '_other' ? 'selected' : '' }}>Cita (norādīt)</option>
+                                </select>
+                                <input x-show="cat === '_other'" x-cloak
+                                       type="text" name="category_custom" value="{{ old('category_custom') }}"
+                                       class="mt-2 w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Ievadi kategoriju">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daudzums noliktavā *</label>
+                            <input type="number" name="stock" value="{{ old('stock', 1) }}" required min="1" max="9999"
+                                   class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="1">
+                            @error('stock') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="border-t border-gray-100 dark:border-gray-700 pt-5">
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Pārdevēja kontaktinformācija</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilns vārds *</label>
+                                    @php
+                                        $profileFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) ?: null;
+                                        $defaultFullName = old('seller_full_name', $profileFullName);
+                                    @endphp
+                                    <input type="text" name="seller_full_name" value="{{ $defaultFullName }}" required
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Jānis Bērziņš">
+                                    @if($profileFullName)
+                                        <p class="mt-1 text-xs text-gray-400">Automātiski aizpildīts no profila.</p>
+                                    @endif
+                                    @error('seller_full_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-pasts</label>
+                                    <input type="email" name="contact_email" value="{{ old('contact_email') }}"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="pārdevējs@epasts.lv">
+                                    @error('contact_email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tālrunis</label>
+                                    <div class="flex gap-2">
+                                        <select name="phone_code" class="rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm w-36">
+                                            @php
+                                            $phoneCodes = ['+371'=>'🇱🇻 +371','+370'=>'🇱🇹 +370','+372'=>'🇪🇪 +372','+358'=>'🇫🇮 +358','+46'=>'🇸🇪 +46','+47'=>'🇳🇴 +47','+45'=>'🇩🇰 +45','+49'=>'🇩🇪 +49','+44'=>'🇬🇧 +44','+33'=>'🇫🇷 +33','+31'=>'🇳🇱 +31','+48'=>'🇵🇱 +48','+34'=>'🇪🇸 +34','+39'=>'🇮🇹 +39','+7'=>'🇷🇺 +7','+380'=>'🇺🇦 +380','+1'=>'🇺🇸 +1'];
+                                            $oldCode = old('phone_code', '+371');
+                                            @endphp
+                                            @foreach($phoneCodes as $code => $label)
+                                                <option value="{{ $code }}" {{ $oldCode === $code ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="tel" name="phone_number" value="{{ old('phone_number') }}"
+                                               class="flex-1 rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="2X XXX XXX">
+                                    </div>
+                                    @error('contact_phone') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adrese (kur atrodas prece)</label>
+                                    <input type="text" name="address" value="{{ old('address') }}"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Piemēram: Rīga, Brīvības iela 1">
+                                    @error('address') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Piegādes laiks (dienas)</label>
+                                    <input type="number" name="delivery_days" value="{{ old('delivery_days') }}" min="1" max="365"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Piemēram: 3">
+                                    @error('delivery_days') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategorija</label>
-                        <input type="text" name="category" value="{{ old('category') }}"
-                               class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-                               placeholder="Piemēram: Ekipējums">
+
+                    {{-- Right: image upload --}}
+                    <div class="lg:col-span-2 mt-5 lg:mt-0 flex flex-col">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attēls</label>
+                        <label id="imageDropZone"
+                               class="relative w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition overflow-hidden block">
+                            <img id="imagePreview" src="" alt="" class="hidden absolute inset-0 w-full h-full object-cover rounded-xl">
+                            <div id="imageDropLabel" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4">
+                                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-sm text-gray-500 text-center">Spied vai velc attēlu šeit</span>
+                                <span class="text-xs text-gray-400 mt-1">JPG, PNG, WebP (bez GIF)</span>
+                            </div>
+                            <div id="imageChosen" class="hidden absolute bottom-0 inset-x-0 bg-black/50 text-white text-xs text-center py-1.5 truncate px-2"></div>
+                            <input id="imageInput" type="file" name="image" accept="image/jpeg,image/png,image/webp" class="hidden">
+                        </label>
+                        <p id="imageError" class="hidden mt-1 text-sm text-red-600">GIF attēli nav atļauti.</p>
+                        @error('image') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attēls</label>
-                    <label class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition">
-                        <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                        </svg>
-                        <span class="text-sm text-gray-500">Spied vai velc attēlu šeit</span>
-                        <input type="file" name="image" accept="image/*" class="hidden">
-                    </label>
-                    @error('image') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
-                </div>
-
-                <div class="flex gap-3 pt-2">
+                <div class="flex gap-3 pt-4 mt-4 border-t border-gray-100 dark:border-gray-700">
                     <button type="submit"
-                            class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-sm">
+                            class="flex-1 sm:flex-none sm:px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition shadow-sm">
                         Izveidot produktu
                     </button>
                     <a href="{{ route('products.index') }}"
@@ -75,5 +164,52 @@
             </form>
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('imageInput');
+        const preview = document.getElementById('imagePreview');
+        const dropLabel = document.getElementById('imageDropLabel');
+        const chosen = document.getElementById('imageChosen');
+        const zone = document.getElementById('imageDropZone');
+        const errorMsg = document.getElementById('imageError');
+
+        function handleFile(file) {
+            if (!file) return;
+            if (file.type === 'image/gif') {
+                errorMsg.classList.remove('hidden');
+                input.value = '';
+                return;
+            }
+            errorMsg.classList.add('hidden');
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                dropLabel.classList.add('hidden');
+                chosen.textContent = file.name;
+                chosen.classList.remove('hidden');
+                zone.classList.add('border-blue-400');
+                zone.classList.remove('border-gray-300');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        input.addEventListener('change', function () { handleFile(this.files[0]); });
+        zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('border-blue-400'); });
+        zone.addEventListener('dragleave', function () { if (preview.classList.contains('hidden')) zone.classList.remove('border-blue-400'); });
+        zone.addEventListener('drop', function (e) {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                handleFile(file);
+            }
+        });
+    });
+    </script>
 </x-app-layout>
 

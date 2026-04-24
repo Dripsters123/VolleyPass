@@ -128,4 +128,4 @@
     </div>
 </div>
 
-<script src="{{ asset('js/arena-builder.js') }}"></script>
+<script src="{{ asset('js/arena-builder.js') }}?v={{ filemtime(public_path('js/arena-builder.js')) }}"></script>

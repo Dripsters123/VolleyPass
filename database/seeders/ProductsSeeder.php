@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\Order;
 use App\Models\Wallet;
 use App\Models\ProductRequest;
+use App\Models\ProductReview;
 
 class ProductsSeeder extends Seeder
 {
@@ -72,8 +73,76 @@ class ProductsSeeder extends Seeder
 
         $this->ensurePlaceholderExists();
 
+        $latvianCities = [
+            'Rīga, Brīvības iela 55',
+            'Rīga, Čaka iela 12',
+            'Rīga, Miera iela 28',
+            'Rīga, Tallinas iela 71',
+            'Jūrmala, Jomas iela 14',
+            'Jelgava, Akadēmijas iela 3',
+            'Liepāja, Rīgas iela 42',
+            'Ventspils, Jūras iela 8',
+            'Jēkabpils, Brīvības iela 97',
+            'Valmiera, Lāčplēša iela 5',
+            'Daugavpils, Mihoelsa iela 22',
+            'Rēzekne, Atbrīvošanas aleja 100',
+        ];
+
         $requestTypes    = ['create_product', 'update_product', 'price_change'];
         $requestStatuses = ['pending', 'approved', 'rejected'];
+
+        // Review bias per catalog index: 'liked', 'disliked', 'mixed'
+        $reviewBiases = [
+            'liked',    // 0  Mikasa V200W
+            'liked',    // 1  Asics Gel-Rocket
+            'liked',    // 2  Molten V5M5000
+            'mixed',    // 3  VolleyPass krekls
+            'liked',    // 4  Mizuno Thunder Blade
+            'mixed',    // 5  Ceļgalu aizsargi
+            'mixed',    // 6  Fanu šalle
+            'mixed',    // 7  Treniņu antenas
+            'liked',    // 8  Nike Hyperspike
+            'mixed',    // 9  Komandas soma
+            'liked',    // 10 Volejbola tīkls
+            'mixed',    // 11 Libero krekls
+            'mixed',    // 12 Sienas plakāts
+            'mixed',    // 13 Treniņu kones
+            'liked',    // 14 Asics Gel-Task 2
+            'mixed',    // 15 Bumbu soma
+            'mixed',    // 16 Sporta cepure
+            'mixed',    // 17 Plaukstu aizsargi
+            'liked',    // 18 Mikasa MVA200
+            'disliked', // 19 Treniņu pīlārs (pārāk dārgs)
+            'mixed',    // 20 Sporta dvielis
+            'disliked', // 21 Sezonas abonements (dārgs)
+            'disliked', // 22 Komandas formu komplekts (dārgs)
+            'mixed',    // 23 Elastīgās jostas
+            'mixed',    // 24 Grāmata
+            'liked',    // 25 Adidas Ligra 7
+            'mixed',    // 26 Marķēšanas lente
+            'mixed',    // 27 Roku siksna
+            'disliked', // 28 Profesionāla kamera (dārga/nišas)
+            'mixed',    // 29 Motivācijas plakāts
+        ];
+
+        $phonePool = [
+            '+37120111222',
+            '+37126333444',
+            '+37128555666',
+            '+37129777888',
+            '+37127999000',
+            '+37122444555',
+            '+37125678901',
+            '+37124321098',
+        ];
+
+        $emailPool = [
+            'volleyshop@inbox.lv',
+            'sporta.preces@gmail.com',
+            'parvaldnieks@volley.lv',
+            'pardavejs@sporta.lv',
+            'veikals@vball.lv',
+        ];
 
         foreach ($this->catalog as $i => $item) {
             $seller = $users->random();
@@ -92,13 +161,20 @@ class ProductsSeeder extends Seeder
             }
 
             $product = Product::create([
-                'user_id'     => $seller->id,
-                'title'       => $item['title'],
-                'description' => $item['desc'],
-                'price'       => $item['price'],
-                'currency'    => 'eur',
-                'status'      => 'active',
-                'image_path'  => $imagePath,
+                'user_id'          => $seller->id,
+                'seller_full_name' => trim($seller->first_name . ' ' . $seller->last_name) ?: $seller->name,
+                'title'            => $item['title'],
+                'description'   => $item['desc'],
+                'price'         => $item['price'],
+                'currency'      => 'eur',
+                'status'        => 'active',
+                'category'      => $item['category'],
+                'stock'         => rand(5, 30),
+                'contact_email' => $emailPool[array_rand($emailPool)],
+                'contact_phone' => $phonePool[array_rand($phonePool)],
+                'address'       => $latvianCities[array_rand($latvianCities)],
+                'delivery_days' => rand(1, 7),
+                'image_path'    => $imagePath,
             ]);
 
             // 20% chance of simulated sale
@@ -115,6 +191,7 @@ class ProductsSeeder extends Seeder
                         'stripe_payment_intent'  => 'seeded-intent-' . Str::random(12),
                     ]);
                     $product->status = 'sold';
+                    $product->stock  = 0;
                     $product->save();
 
                     // Award coins: 5 per €1 spent
@@ -147,16 +224,44 @@ class ProductsSeeder extends Seeder
             }
 
             ProductRequest::create([
-                'user_id'      => $users->random()->id,
-                'product_id'   => $product->id,
-                'request_type' => $requestTypes[array_rand($requestTypes)],
-                'title'        => $product->title,
-                'description'  => $product->description,
-                'price'        => $product->price,
-                'currency'     => $product->currency,
-                'status'       => $requestStatuses[array_rand($requestStatuses)],
-                'image_path'   => $product->image_path,
+                'user_id'          => $users->random()->id,
+                'seller_full_name' => $product->seller_full_name,
+                'product_id'       => $product->id,
+                'request_type'  => $requestTypes[array_rand($requestTypes)],
+                'title'         => $product->title,
+                'description'   => $product->description,
+                'price'         => $product->price,
+                'stock'         => rand(5, 30),
+                'currency'      => $product->currency,
+                'category'      => $product->category,
+                'contact_email' => $product->contact_email,
+                'contact_phone' => $product->contact_phone,
+                'address'       => $product->address,
+                'delivery_days' => $product->delivery_days,
+                'status'        => $requestStatuses[array_rand($requestStatuses)],
+                'image_path'    => $product->image_path,
             ]);
+
+            // Seed reviews with bias
+            $bias = $reviewBiases[$i] ?? 'mixed';
+            $reviewerPool = $users->filter(fn($u) => $u->id !== $seller->id)->values()->shuffle();
+            $reviewCount  = match($bias) {
+                'liked'    => rand(6, min(12, $reviewerPool->count())),
+                'disliked' => rand(4, min(10, $reviewerPool->count())),
+                default    => rand(2, min(8, $reviewerPool->count())),
+            };
+            foreach ($reviewerPool->take($reviewCount) as $reviewer) {
+                $vote = match($bias) {
+                    'liked'    => rand(1, 10) <= 8 ? 'like' : 'dislike',
+                    'disliked' => rand(1, 10) <= 8 ? 'dislike' : 'like',
+                    default    => rand(0, 1) ? 'like' : 'dislike',
+                };
+                ProductReview::create([
+                    'product_id' => $product->id,
+                    'user_id'    => $reviewer->id,
+                    'vote'       => $vote,
+                ]);
+            }
         }
     }
 
