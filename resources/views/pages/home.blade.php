@@ -149,7 +149,7 @@
                                     {{ $match['arena'] }}
                                 @endif
                             </span>
-                            <span class="text-xs font-medium text-blue-600 group-hover:underline">Iegādāties →</span>
+                            <span class="text-xs font-medium text-blue-600 group-hover:underline">Skatīt ></span>
                         </div>
                     </a>
                     @endforeach

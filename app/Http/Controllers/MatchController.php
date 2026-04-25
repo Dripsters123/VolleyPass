@@ -383,6 +383,8 @@ class MatchController extends Controller
     // Rāda lokālā mača detaļlapu ar sēdvietu karti un jauno lietotāju promo
     public function localShow($id)
     {
+        $match = VolleyballMatch::findOrFail($id);
+
         $match->home_players = is_array($match->home_players) ? $match->home_players : (json_decode($match->home_players ?? '[]', true) ?: []);
         $match->away_players = is_array($match->away_players) ? $match->away_players : (json_decode($match->away_players ?? '[]', true) ?: []);
 
