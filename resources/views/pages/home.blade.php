@@ -17,7 +17,7 @@
                     <span class="bg-gradient-to-r from-orange-400 to-blue-500 bg-clip-text text-transparent">centrs.</span>
                 </h1>
                 <p class="mt-5 text-lg text-gray-400 max-w-lg mx-auto md:mx-0">
-                    Atrod spēles, iegādājies biļetes un sekoji savam komandas ceļam – viss vienā vietā.
+                    Atrod spēles, iegādājies biļetes un seko savam komandas ceļam – viss vienā vietā.
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
                     <a href="{{ route('local.matches.index') }}"
