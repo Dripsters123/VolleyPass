@@ -18,7 +18,7 @@ class CalendarController extends Controller
     {
         $matches = VolleyballMatch::where('is_local', true)
             ->orderBy('start_time', 'asc')
-            ->get(['id', 'home_team_name', 'away_team_name', 'start_time', 'end_time', 'location', 'ticket_price', 'match_state', 'status_type']);
+            ->get(['id', 'home_team_name', 'away_team_name', 'start_time', 'end_time', 'location', 'ticket_price', 'match_state']);
 
         $events = $matches->map(function ($match) {
             $status = $match->effective_state ?? 'upcoming';

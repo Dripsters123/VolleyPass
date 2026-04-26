@@ -5,6 +5,8 @@
 
     <div class="max-w-5xl mx-auto px-4 py-8">
 
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Mani pasūtījumi</h1>
+
         @if(session('success'))
             <div class="mb-5 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">
                 {{ session('success') }}

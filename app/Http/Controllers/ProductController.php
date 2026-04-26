@@ -71,6 +71,7 @@ class ProductController extends Controller
     // Jauna produkta izveides forma
     public function create()
     {
+        return view('products.create');
     }
 
     // Saglabā jauno produktu ar attēlu
@@ -123,6 +124,80 @@ class ProductController extends Controller
 
         return redirect()->route('products.show', $product)
             ->with('success', 'Produkts veiksmīgi pievienots!');
+    }
+
+    // Rāda produkta rediģēšanas formu
+    public function edit(Product $product)
+    {
+        if ($product->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        return view('products.edit', compact('product'));
+    }
+
+    // Atjaunina produkta informāciju
+    public function update(Request $request, Product $product)
+    {
+        if ($product->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'title'           => 'required|string|max:255',
+            'description'     => 'nullable|string',
+            'price'           => 'required|numeric|min:0.01',
+            'category'        => 'nullable|string|max:100',
+            'category_custom' => 'nullable|string|max:100',
+            'stock'           => 'required|integer|min:0|max:9999',
+            'seller_full_name'=> 'nullable|string|max:255',
+            'contact_email'   => 'nullable|email|max:255',
+            'contact_phone'   => 'nullable|string|max:50',
+            'address'         => 'nullable|string|max:255',
+            'delivery_days'   => 'nullable|integer|min:1|max:365',
+            'image'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'status'          => 'nullable|in:active,inactive,sold',
+        ]);
+
+        $category = $request->category === '_other'
+            ? trim($request->category_custom ?? '')
+            : $request->category;
+
+        $phone = null;
+        if ($request->filled('phone_code') && $request->filled('phone_number')) {
+            $phone = $request->phone_code . $request->phone_number;
+        } elseif ($request->filled('phone_number')) {
+            $phone = $request->phone_number;
+        }
+
+        $updateData = [
+            'title'            => $request->title,
+            'description'      => $request->description,
+            'price'            => $request->price,
+            'category'         => $category ?: null,
+            'stock'            => (int) $request->stock,
+            'seller_full_name' => $request->seller_full_name ?: $product->seller_full_name,
+            'contact_email'    => $request->contact_email ?: $product->contact_email,
+            'contact_phone'    => $phone ?: $product->contact_phone,
+            'address'          => $request->address ?: $product->address,
+            'delivery_days'    => $request->delivery_days ? (int) $request->delivery_days : $product->delivery_days,
+        ];
+
+        if (auth()->user()->role === 'admin') {
+            $updateData['status'] = $request->status ?? $product->status;
+        }
+
+        if ($request->hasFile('image')) {
+            if ($product->image_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image_path);
+            }
+            $updateData['image_path'] = $request->file('image')->store('products', 'public');
+        }
+
+        $product->update($updateData);
+
+        return redirect()->route('products.show', $product)
+            ->with('success', 'Produkts veiksmīgi atjaunināts!');
     }
 
     // Uzsāk Stripe maksājumu sesiju produkta iegādei

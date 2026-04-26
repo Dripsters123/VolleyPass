@@ -9,6 +9,7 @@ use App\Models\VolleyballMatch;
 use App\Models\Ticket;
 use App\Models\MatchRequest;
 use App\Models\MatchScoreVerification;
+use App\Models\VolleyballMatchSet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -124,7 +125,6 @@ class LocalMatchSeeder extends Seeder
                 'start_time'       => now()->addDays($n)->setTime(18, 0),
                 'end_time'         => now()->addDays($n)->setTime(20, 0),
                 'is_local'         => true,
-                'status_type'      => 'scheduled',
                 'match_state'      => 'scheduled',
                 'ticket_price'     => 12.00 + $n,
                 'home_coach'       => $coachData[$n]['home'],
@@ -159,7 +159,6 @@ class LocalMatchSeeder extends Seeder
                 'start_time'       => now()->addDays($n + 1)->setTime(17, 0),
                 'end_time'         => now()->addDays($n + 1)->setTime(19, 0),
                 'is_local'         => true,
-                'status_type'      => 'scheduled',
                 'match_state'      => 'scheduled',
                 'ticket_price'     => 10.00 + $n,
                 'home_coach'       => $coachData[$n]['home'],
@@ -194,7 +193,6 @@ class LocalMatchSeeder extends Seeder
                 'start_time'       => now()->subDays(2)->setTime(18, 0),
                 'end_time'         => now()->subDays(2)->setTime(20, 0),
                 'is_local'         => true,
-                'status_type'      => 'completed',
                 'match_state'      => 'completed',
                 'ticket_price'     => 8.00 + $n,
                 'home_coach'       => $coachData[$n]['home'],
@@ -218,6 +216,106 @@ class LocalMatchSeeder extends Seeder
             }
             $this->assignRandomTickets($completedMatch, $users);
 
+            $verifiedSets = match ([$completedMatch->home_score, $completedMatch->away_score]) {
+                [3, 0] => [
+                    ['home' => 25, 'away' => 18],
+                    ['home' => 25, 'away' => 21],
+                    ['home' => 25, 'away' => 19],
+                ],
+                [3, 1] => [
+                    ['home' => 25, 'away' => 20],
+                    ['home' => 22, 'away' => 25],
+                    ['home' => 25, 'away' => 19],
+                    ['home' => 25, 'away' => 21],
+                ],
+                [3, 2] => [
+                    ['home' => 25, 'away' => 19],
+                    ['home' => 22, 'away' => 25],
+                    ['home' => 25, 'away' => 23],
+                    ['home' => 21, 'away' => 25],
+                    ['home' => 15, 'away' => 12],
+                ],
+                [0, 3] => [
+                    ['home' => 19, 'away' => 25],
+                    ['home' => 21, 'away' => 25],
+                    ['home' => 18, 'away' => 25],
+                ],
+                [1, 3] => [
+                    ['home' => 22, 'away' => 25],
+                    ['home' => 25, 'away' => 23],
+                    ['home' => 20, 'away' => 25],
+                    ['home' => 18, 'away' => 25],
+                ],
+                [2, 3] => [
+                    ['home' => 25, 'away' => 21],
+                    ['home' => 23, 'away' => 25],
+                    ['home' => 25, 'away' => 22],
+                    ['home' => 18, 'away' => 25],
+                    ['home' => 13, 'away' => 15],
+                ],
+                default => [],
+            };
+
+            $pendingSets = match ([$completedMatch->home_score, $completedMatch->away_score]) {
+                [3, 0] => [
+                    ['home' => 25, 'away' => 23],
+                    ['home' => 25, 'away' => 22],
+                    ['home' => 25, 'away' => 20],
+                ],
+                [3, 1] => [
+                    ['home' => 25, 'away' => 18],
+                    ['home' => 23, 'away' => 25],
+                    ['home' => 25, 'away' => 22],
+                    ['home' => 25, 'away' => 16],
+                ],
+                [3, 2] => [
+                    ['home' => 25, 'away' => 21],
+                    ['home' => 21, 'away' => 25],
+                    ['home' => 25, 'away' => 19],
+                    ['home' => 23, 'away' => 25],
+                    ['home' => 15, 'away' => 10],
+                ],
+                [0, 3] => [
+                    ['home' => 21, 'away' => 25],
+                    ['home' => 23, 'away' => 25],
+                    ['home' => 19, 'away' => 25],
+                ],
+                [1, 3] => [
+                    ['home' => 20, 'away' => 25],
+                    ['home' => 25, 'away' => 23],
+                    ['home' => 18, 'away' => 25],
+                    ['home' => 22, 'away' => 25],
+                ],
+                [2, 3] => [
+                    ['home' => 25, 'away' => 23],
+                    ['home' => 21, 'away' => 25],
+                    ['home' => 25, 'away' => 20],
+                    ['home' => 20, 'away' => 25],
+                    ['home' => 12, 'away' => 15],
+                ],
+                default => [],
+            };
+
+            $pendingHomeWins = 0;
+            $pendingAwayWins = 0;
+            foreach ($pendingSets as $pendingSet) {
+                if (($pendingSet['home'] ?? 0) > ($pendingSet['away'] ?? 0)) {
+                    $pendingHomeWins++;
+                } elseif (($pendingSet['away'] ?? 0) > ($pendingSet['home'] ?? 0)) {
+                    $pendingAwayWins++;
+                }
+            }
+
+            foreach ($verifiedSets as $setIndex => $setResult) {
+                VolleyballMatchSet::create([
+                    'match_id' => $completedMatch->id,
+                    'set_number' => $setIndex + 1,
+                    'home_score' => $setResult['home'],
+                    'away_score' => $setResult['away'],
+                    'completed' => true,
+                ]);
+            }
+
             MatchScoreVerification::create([
                 'match_id'     => $completedMatch->id,
                 'user_id'      => $users->random()->id,
@@ -226,18 +324,18 @@ class LocalMatchSeeder extends Seeder
                 'status'       => 'finalized',
                 'approved'     => true,
                 'approvals'    => 3,
-                'confirmations'=> json_encode([]),
+                'confirmations'=> ['sets' => $verifiedSets],
             ]);
 
             MatchScoreVerification::create([
                 'match_id'     => $completedMatch->id,
                 'user_id'      => $users->random()->id,
-                'home_score'   => max(0, $completedMatch->home_score - 1),
-                'away_score'   => max(0, $completedMatch->away_score - 1),
+                'home_score'   => $pendingHomeWins,
+                'away_score'   => $pendingAwayWins,
                 'status'       => 'pending',
                 'approved'     => false,
                 'approvals'    => 0,
-                'confirmations'=> json_encode([]),
+                'confirmations'=> ['sets' => $pendingSets],
             ]);
 
            
@@ -297,8 +395,8 @@ class LocalMatchSeeder extends Seeder
                 'end_time'     => $adminMatch->end_time,
                 'players_per_team' => $adminMatch->players_per_team,
                 'match_id'     => $adminMatch->id,
-                'score_home'   => rand(0, 20),
-                'score_away'   => rand(0, 20),
+                'score_home'   => 3,
+                'score_away'   => 1,
                 'status'       => 'pending',
                 'home_coach'   => $adminMatch->home_coach,
                 'away_coach'   => $adminMatch->away_coach,
@@ -306,6 +404,24 @@ class LocalMatchSeeder extends Seeder
                 'location'     => $adminMatch->location,
                 'home_players' => json_encode($adminMatch->home_players ?? []),
                 'away_players' => json_encode($adminMatch->away_players ?? []),
+            ]);
+
+            MatchScoreVerification::create([
+                'match_id'     => $adminMatch->id,
+                'user_id'      => $users->random()->id,
+                'home_score'   => 3,
+                'away_score'   => 1,
+                'status'       => 'pending',
+                'approved'     => false,
+                'approvals'    => 0,
+                'confirmations'=> [
+                    'sets' => [
+                        ['home' => 25, 'away' => 20],
+                        ['home' => 23, 'away' => 25],
+                        ['home' => 27, 'away' => 25],
+                        ['home' => 25, 'away' => 18],
+                    ],
+                ],
             ]);
 
             MatchRequest::create([

@@ -67,6 +67,56 @@
             </div>
         </div>
 
+        {{-- Contact and request details --}}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            @php
+                $typeMap = [
+                    'create_product' => 'Jauns produkts',
+                    'update_product' => 'Produkta izmaiņas',
+                    'delete_request' => 'Dzēšanas pieprasījums',
+                    'price_change' => 'Cenas maiņa',
+                ];
+                $requestTypeLabel = $typeMap[$productRequest->request_type ?? 'create_product'] ?? ($productRequest->request_type ?? '—');
+            @endphp
+
+            <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Kontaktinformācija un piegāde</h4>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-gray-400">Pilns vārds</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->seller_full_name ?: '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">E-pasts</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->contact_email ?: '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Tālrunis</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->contact_phone ?: '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Adrese</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->address ?: '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Piegādes dienas</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->delivery_days ? $productRequest->delivery_days . ' dienas' : '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Daudzums (stock)</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->stock ?? '—' }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Pieprasījuma tips</span>
+                    <p class="font-medium text-gray-900">{{ $requestTypeLabel }}</p>
+                </div>
+                <div>
+                    <span class="text-gray-400">Saistītais produkts</span>
+                    <p class="font-medium text-gray-900">{{ $productRequest->product_id ? '#' . $productRequest->product_id : '—' }}</p>
+                </div>
+            </div>
+        </div>
+
         {{-- Requester card --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Iesniedzējs</h4>

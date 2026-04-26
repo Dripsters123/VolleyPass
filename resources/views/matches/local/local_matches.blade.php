@@ -52,6 +52,20 @@
           </div>
         @endif
       </div>
+
+      @if($match->match_state === 'completed' && $match->sets->isNotEmpty())
+        <div class="mt-6 bg-white/5 border border-white/10 rounded-2xl p-4">
+          <h2 class="text-sm font-semibold text-white mb-3">Setu rezultāti</h2>
+          <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            @foreach($match->sets as $set)
+              <div class="bg-black/20 border border-white/10 rounded-xl px-3 py-2 flex items-center justify-between">
+                <span class="text-xs text-gray-300">Sets {{ $set->set_number }}</span>
+                <span class="text-sm font-bold text-white">{{ $set->home_score }} : {{ $set->away_score }}</span>
+              </div>
+            @endforeach
+          </div>
+        </div>
+      @endif
     </div>
   </section>
 
@@ -298,22 +312,25 @@
         <div id="rightPanel" class="space-y-4">
 
           @auth
-            @if($match->match_state !== 'completed' && auth()->id() === $match->created_by)
+            @if($match->match_state !== 'completed' && auth()->id() === $match->created_by && auth()->user()->role !== 'admin')
               <div class="bg-white rounded-2xl border border-gray-200 p-5">
-                <h4 class="font-bold text-gray-900 mb-3">Iesniegt rezultātu</h4>
+                <h4 class="font-bold text-gray-900 mb-3">Saglabāt rezultātu</h4>
                 <form method="POST" action="{{ route('matches.score.request', $match->id) }}" id="setScoreForm" class="space-y-3">
                   @csrf
                   <div id="setsContainer" class="space-y-2">
                     @for ($i = 1; $i <= 3; $i++)
                       <div class="grid grid-cols-3 gap-2 items-center set-row">
                         <label class="text-xs text-gray-500 text-center">Sets {{ $i }}</label>
-                        <input type="number" name="sets[{{ $i }}][home]" min="0" max="100"
+                        <input type="number" name="sets[{{ $i }}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)"
                                class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Māj." required>
-                        <input type="number" name="sets[{{ $i }}][away]" min="0" max="100"
+                        <input type="number" name="sets[{{ $i }}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)"
                                class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Vies." required>
                       </div>
                     @endfor
                   </div>
+                  <p class="text-xs text-gray-400">
+                    Sāciet ar 3 setiem. Ja pēc 4 setiem ir 2:2, pievienojiet 5. setu ar "+ Setu". Deuce ir atļauts, tāpēc ievadiet faktiskos punktus, piemēram, 28:26 vai 17:15.
+                  </p>
                   <div class="flex gap-2">
                     <button type="button" id="addSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">+ Setu</button>
                     <button type="button" id="removeSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">− Setu</button>
@@ -324,7 +341,7 @@
                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                   </div>
                   <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
-                    Nosūtīt pieprasījumu
+                    Saglabāt rezultātu
                   </button>
                 </form>
               </div>
@@ -348,22 +365,34 @@
           @endauth
 
           @if(auth()->user()?->role === 'admin')
-            <div class="bg-white rounded-2xl border border-red-100 p-5">
-              <h4 class="font-bold text-red-700 mb-3">Admin – apstiprināt rezultātu</h4>
+            <div class="bg-white rounded-2xl border border-gray-200 p-5">
+              <h4 class="font-bold text-gray-900 mb-3">Admin – apstiprināt rezultātu</h4>
               <form method="POST" action="{{ route('matches.score.finalize', $match->id) }}" class="space-y-3">
                 @csrf
                 <div id="adminSetsContainer" class="space-y-2">
                   @for ($i = 1; $i <= 3; $i++)
-                    <div class="grid grid-cols-3 gap-2 items-center">
+                    <div class="grid grid-cols-3 gap-2 items-center set-row">
                       <label class="text-xs text-gray-500 text-center">Sets {{ $i }}</label>
-                      <input type="number" name="sets[{{ $i }}][home]" min="0" max="100"
-                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Māj.">
-                      <input type="number" name="sets[{{ $i }}][away]" min="0" max="100"
-                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Vies.">
+                      <input type="number" name="sets[{{ $i }}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)"
+                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Māj." required>
+                      <input type="number" name="sets[{{ $i }}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)"
+                             class="px-2 py-1.5 border border-gray-200 rounded-lg text-center text-sm" placeholder="Vies." required>
                     </div>
                   @endfor
                 </div>
-                <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 transition-colors">
+                <p class="text-xs text-gray-400">
+                  Sāciet ar 3 setiem. Ja pēc 4 setiem ir 2:2, pievienojiet 5. setu ar "+ Setu". Deuce ir atļauts, tāpēc ievadiet faktiskos punktus, piemēram, 28:26 vai 17:15.
+                </p>
+                <div class="flex gap-2">
+                  <button type="button" id="adminAddSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">+ Setu</button>
+                  <button type="button" id="adminRemoveSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">− Setu</button>
+                </div>
+                <div>
+                  <label class="block text-xs text-gray-500 mb-1">Beigu laiks</label>
+                  <input type="datetime-local" name="actual_end_time"
+                         class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
+                </div>
+                <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                   Apstiprināt un pabeigt
                 </button>
               </form>
@@ -432,6 +461,16 @@
   <script src="{{ asset('js/purchases/matchPurchase.js') }}"></script>
 
   <script>
+    function limitScoreInput(el) {
+      const sanitized = (el.value || '').replace(/\D/g, '').slice(0, 3);
+      if (sanitized === '') {
+        el.value = '';
+        return;
+      }
+      const value = Math.min(parseInt(sanitized, 10), 100);
+      el.value = Number.isNaN(value) ? '' : String(value);
+    }
+
     (function(){
       const thumbs = Array.from(document.querySelectorAll('.gallery-thumb img'));
       const srcs = thumbs.map(i => i.src);
@@ -451,6 +490,7 @@
       document.getElementById('galleryNext')?.addEventListener('click',()=>{ next(); startAutoplay(); });
       document.getElementById('galleryPrev')?.addEventListener('click',()=>{ prev(); startAutoplay(); });
       document.getElementById('galleryModal')?.addEventListener('click',(ev)=>{ if(ev.target.id==='galleryModal') closeGallery(); });
+      const rightPanel = document.getElementById('rightPanel');
       if(rightPanel && window.innerWidth<768) rightPanel.style.display='none';
       const modalCloseBtn=document.getElementById('modalCloseBtn');
       const seatModal=document.getElementById('seatSelectionModal');
@@ -460,8 +500,16 @@
       const container=document.getElementById('setsContainer');
       if(addSetBtn && removeSetBtn && container){
         let setCount=container.querySelectorAll('.set-row').length;
-        addSetBtn.addEventListener('click',()=>{ if(setCount>=5) return alert('Maksimālais setu skaits ir 5!'); setCount++; const div=document.createElement('div'); div.classList.add('grid','grid-cols-3','gap-2','items-center','set-row'); div.innerHTML=`<label class="text-xs text-gray-600 text-center">Sets ${setCount}</label><input type="number" name="sets[${setCount}][home]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Mājas" required><input type="number" name="sets[${setCount}][away]" min="0" max="100" class="p-2 border rounded text-center" placeholder="Viesu" required>`; container.appendChild(div); });
-        removeSetBtn.addEventListener('click',()=>{ if(container.querySelectorAll('.set-row').length>1){ container.lastElementChild.remove(); setCount--; }});
+        addSetBtn.addEventListener('click',()=>{ if(setCount>=5) return alert('Maksimālais setu skaits ir 5!'); setCount++; const div=document.createElement('div'); div.classList.add('grid','grid-cols-3','gap-2','items-center','set-row'); div.innerHTML=`<label class="text-xs text-gray-600 text-center">Sets ${setCount}</label><input type="number" name="sets[${setCount}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Mājas" required><input type="number" name="sets[${setCount}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Viesu" required>`; container.appendChild(div); });
+        removeSetBtn.addEventListener('click',()=>{ if(container.querySelectorAll('.set-row').length>3){ container.lastElementChild.remove(); setCount--; }});
+      }
+      const adminAddSetBtn=document.getElementById('adminAddSetBtn');
+      const adminRemoveSetBtn=document.getElementById('adminRemoveSetBtn');
+      const adminContainer=document.getElementById('adminSetsContainer');
+      if(adminAddSetBtn && adminRemoveSetBtn && adminContainer){
+        let adminSetCount=adminContainer.querySelectorAll('.set-row').length;
+        adminAddSetBtn.addEventListener('click',()=>{ if(adminSetCount>=5) return alert('Maksimālais setu skaits ir 5!'); adminSetCount++; const div=document.createElement('div'); div.classList.add('grid','grid-cols-3','gap-2','items-center','set-row'); div.innerHTML=`<label class="text-xs text-gray-600 text-center">Sets ${adminSetCount}</label><input type="number" name="sets[${adminSetCount}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Mājas" required><input type="number" name="sets[${adminSetCount}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Viesu" required>`; adminContainer.appendChild(div); });
+        adminRemoveSetBtn.addEventListener('click',()=>{ if(adminContainer.querySelectorAll('.set-row').length>3){ adminContainer.lastElementChild.remove(); adminSetCount--; }});
       }
     })();
   </script>

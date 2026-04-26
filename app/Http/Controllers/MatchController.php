@@ -16,6 +16,7 @@ use App\Notifications\ScoreUpdateRequested;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
 class MatchController extends Controller
@@ -64,23 +65,17 @@ class MatchController extends Controller
 
     // Apply tab filter at DB level for efficiency
     if ($tab === 'completed') {
-        $query->where(function ($q) {
-            $q->where('match_state', 'completed')->orWhere('status_type', 'completed');
-        });
+        $query->where('match_state', 'completed');
         $query->orderBy('start_time', 'desc');
     } elseif ($tab === 'results_pending') {
         $query->where(function ($q) {
             $q->where('match_state', '!=', 'completed')->orWhereNull('match_state');
-        })->where(function ($q) {
-            $q->where('status_type', '!=', 'completed')->orWhereNull('status_type');
         })->where('end_time', '<', now());
         $query->orderBy('end_time', 'desc');
     } else {
         // upcoming: end_time in future or not yet ended
         $query->where(function ($q) {
             $q->where('match_state', '!=', 'completed')->orWhereNull('match_state');
-        })->where(function ($q) {
-            $q->where('status_type', '!=', 'completed')->orWhereNull('status_type');
         })->where(function ($q) {
             $q->whereNull('end_time')->orWhere('end_time', '>=', now());
         });
@@ -96,7 +91,6 @@ class MatchController extends Controller
             ->where('created_by', auth()->id())
             ->where('end_time', '<', now())
             ->whereNotIn('match_state', ['completed'])
-            ->whereNotIn('status_type', ['completed'])
             ->orderBy('end_time', 'desc')
             ->limit(5)
             ->get();
@@ -251,8 +245,7 @@ class MatchController extends Controller
             'players_per_team' => $validated['players_per_team'],
             'ticket_price' => $validated['ticket_price'] ?? 10.00,
             'is_local' => true,
-            'status' => 'scheduled',
-            'status_type' => 'upcoming',
+            'match_state' => 'scheduled',
             'home_coach' => $validated['home_coach'] ?? null,
             'away_coach' => $validated['away_coach'] ?? null,
             'judges' => $judgesArr,
@@ -285,6 +278,7 @@ class MatchController extends Controller
     // Mača rediģēšanas forma administratoram
     public function adminEdit($id)
     {
+        $match = VolleyballMatch::findOrFail($id);
 
         $prefill = [
             'home_team_name'   => $match->home_team_name,
@@ -310,6 +304,7 @@ class MatchController extends Controller
     // Atjaunina maèa datus (admin)
     public function adminUpdate(Request $request, $id)
     {
+        $match = VolleyballMatch::findOrFail($id);
 
         $validated = $request->validate([
             'home_team_name' => 'required|string|max:255',
@@ -367,6 +362,8 @@ class MatchController extends Controller
     // Dzēš maèu, ja nav pārdotu biļešu
     public function adminDestroy($id)
     {
+        $match = VolleyballMatch::findOrFail($id);
+
         if ($match->tickets()->where('status', 'paid')->exists()) {
             return back()->with('error', 'Nevar dzēst maču ar pārdotām biļetēm.');
         }
@@ -383,7 +380,7 @@ class MatchController extends Controller
     // Rāda lokālā mača detaļlapu ar sēdvietu karti un jauno lietotāju promo
     public function localShow($id)
     {
-        $match = VolleyballMatch::findOrFail($id);
+        $match = VolleyballMatch::with(['sets' => fn($q) => $q->orderBy('set_number')])->findOrFail($id);
 
         $match->home_players = is_array($match->home_players) ? $match->home_players : (json_decode($match->home_players ?? '[]', true) ?: []);
         $match->away_players = is_array($match->away_players) ? $match->away_players : (json_decode($match->away_players ?? '[]', true) ?: []);
@@ -417,83 +414,84 @@ class MatchController extends Controller
     // Iesniedz rezultāta pieprasījumu apskatīšanai administratoram
     public function submitScoreRequest(Request $request, $id)
     {
+        $match = VolleyballMatch::findOrFail($id);
+        abort_unless(auth()->id() === $match->created_by || auth()->user()?->role === 'admin', 403);
 
         $validated = $request->validate([
             'sets' => 'required|array|min:3|max:5',
-            'sets.*.home' => 'required|integer|min:0|max:100',
-            'sets.*.away' => 'required|integer|min:0|max:100',
-            'actual_end_time' => 'nullable|date|after_or_equal:start_time',
+            'sets.*.home' => 'required|integer|min:0|max:100|max_digits:3',
+            'sets.*.away' => 'required|integer|min:0|max:100|max_digits:3',
+            'actual_end_time' => 'nullable|date',
         ]);
 
-        $sets = $validated['sets'];
-        $homeWins = 0; $awayWins = 0;
-        foreach ($sets as $s) {
-            if ($s['home'] > $s['away']) $homeWins++;
-            elseif ($s['away'] > $s['home']) $awayWins++;
+        if (!empty($validated['actual_end_time']) && $match->start_time && Carbon::parse($validated['actual_end_time'])->lt($match->start_time)) {
+            return back()->withInput()->withErrors([
+                'actual_end_time' => 'Beigu laiks nedrīkst būt pirms mača sākuma laika.',
+            ]);
         }
+
+        ['sets' => $sets, 'homeWins' => $homeWins, 'awayWins' => $awayWins] = $this->validateVolleyballSets($validated['sets']);
+
+        $this->persistFinalScore($match, $sets, $homeWins, $awayWins, $validated['actual_end_time'] ?? null);
 
         $ver = MatchScoreVerification::create([
             'match_id' => $match->id,
             'user_id' => auth()->id(),
             'home_score' => $homeWins,
             'away_score' => $awayWins,
-            'status' => 'pending',
-            'approvals' => 0,
+            'status' => 'finalized',
+            'approved' => true,
+            'approvals' => 1,
             'confirmations' => ['sets' => $sets],
         ]);
 
-        if (!empty($validated['actual_end_time'])) {
-            $match->actual_end_time = $validated['actual_end_time'];
-            $match->save();
+        if (auth()->user()?->role !== 'admin') {
+            $admins = User::where('role', 'admin')->get();
+            Notification::send($admins, new ScoreUpdateRequested($ver));
         }
 
-        $admins = User::where('role', 'admin')->get();
-        Notification::send($admins, new ScoreUpdateRequested($ver));
+        $this->resolvePredictions($match->fresh());
 
-        return back()->with('success', 'Rezultāta pieprasījums nosūtīts.');
+        return back()->with('success', 'Rezultāts veiksmīgi saglabāts un mačs pabeigts.');
     }
 
     // Apstiprina mača rezultātu, saglabā setēs un nosūta paziņojumu (admin)
     public function finalizeScore(Request $request, $id)
     {
+        $match = VolleyballMatch::findOrFail($id);
+        abort_unless(auth()->id() === $match->created_by || auth()->user()?->role === 'admin', 403);
 
         $validated = $request->validate([
             'sets' => 'required|array|min:3|max:5',
-            'sets.*.home' => 'required|integer|min:0|max:100',
-            'sets.*.away' => 'required|integer|min:0|max:100',
-            'actual_end_time' => 'nullable|date|after_or_equal:start_time',
+            'sets.*.home' => 'required|integer|min:0|max:100|max_digits:3',
+            'sets.*.away' => 'required|integer|min:0|max:100|max_digits:3',
+            'actual_end_time' => 'nullable|date',
         ]);
 
-        $sets = $validated['sets'];
-        $homeWins = 0; $awayWins = 0;
-
-        VolleyballMatchSet::where('match_id', $match->id)->delete();
-
-        $setNumber = 1;
-        foreach ($sets as $s) {
-            VolleyballMatchSet::create([
-                'match_id' => $match->id,
-                'set_number' => $setNumber,
-                'home_score' => $s['home'],
-                'away_score' => $s['away'],
-                'completed' => true,
+        if (!empty($validated['actual_end_time']) && $match->start_time && Carbon::parse($validated['actual_end_time'])->lt($match->start_time)) {
+            return back()->withInput()->withErrors([
+                'actual_end_time' => 'Beigu laiks nedrīkst būt pirms mača sākuma laika.',
             ]);
-            if ($s['home'] > $s['away']) $homeWins++;
-            elseif ($s['away'] > $s['home']) $awayWins++;
-            $setNumber++;
         }
 
-        $match->update([
+        ['sets' => $sets, 'homeWins' => $homeWins, 'awayWins' => $awayWins] = $this->validateVolleyballSets($validated['sets']);
+
+        $this->persistFinalScore($match, $sets, $homeWins, $awayWins, $validated['actual_end_time'] ?? null);
+
+        MatchScoreVerification::create([
+            'match_id' => $match->id,
+            'user_id' => auth()->id(),
             'home_score' => $homeWins,
             'away_score' => $awayWins,
-            'actual_end_time' => $validated['actual_end_time'] ?? now(),
-            'match_state' => 'completed',
-            'status_type' => 'completed',
+            'status' => 'finalized',
+            'approved' => true,
+            'approvals' => 1,
+            'confirmations' => ['sets' => $sets],
         ]);
 
         MatchScoreVerification::where('match_id', $match->id)
-            ->where('home_score', $match->home_score)
-            ->where('away_score', $match->away_score)
+            ->where('home_score', $homeWins)
+            ->where('away_score', $awayWins)
             ->update(['status' => 'finalized', 'approved' => true]);
 
         $admins = User::where('role', 'admin')->get();
@@ -503,6 +501,104 @@ class MatchController extends Controller
 
         return back()->with('success', 'Rezultāts apstiprināts.');
     }
+
+    private function persistFinalScore(VolleyballMatch $match, array $sets, int $homeWins, int $awayWins, ?string $actualEndTime = null): void
+    {
+        VolleyballMatchSet::where('match_id', $match->id)->delete();
+
+        $setNumber = 1;
+        foreach ($sets as $s) {
+            VolleyballMatchSet::create([
+                'match_id' => $match->id,
+                'set_number' => $setNumber,
+                'home_score' => (int) $s['home'],
+                'away_score' => (int) $s['away'],
+                'completed' => true,
+            ]);
+            $setNumber++;
+        }
+
+        $match->update([
+            'home_score' => $homeWins,
+            'away_score' => $awayWins,
+            'actual_end_time' => $actualEndTime ?? now(),
+            'match_state' => 'completed',
+        ]);
+    }
+
+    private function validateVolleyballSets(array $sets): array
+    {
+        $normalizedSets = array_values($sets);
+        $homeWins = 0;
+        $awayWins = 0;
+
+        foreach ($normalizedSets as $index => $set) {
+            $home = (int) ($set['home'] ?? 0);
+            $away = (int) ($set['away'] ?? 0);
+            $setNumber = $index + 1;
+            $targetPoints = $setNumber === 5 ? 15 : 25;
+            $deuceThreshold = $targetPoints - 1;
+
+            if ($home === $away) {
+                throw ValidationException::withMessages([
+                    "sets.$index.home" => "{$setNumber}. setā nevar būt neizšķirts rezultāts.",
+                ]);
+            }
+
+            $winner = max($home, $away);
+            $loser = min($home, $away);
+            if ($winner < $targetPoints) {
+                throw ValidationException::withMessages([
+                    "sets.$index.home" => $setNumber === 5
+                        ? '5. setā uzvarētājam jābūt vismaz 15 punktiem un 2 punktu pārsvaram.'
+                        : "{$setNumber}. setā uzvarētājam jābūt vismaz 25 punktiem un 2 punktu pārsvaram.",
+                ]);
+            }
+
+            if ($winner === $targetPoints && $loser > ($targetPoints - 2)) {
+                throw ValidationException::withMessages([
+                    "sets.$index.home" => $setNumber === 5
+                        ? '5. setā rezultāts 15:14 nav derīgs — nepieciešams vismaz 2 punktu pārsvars.'
+                        : "{$setNumber}. setā rezultāts 25:24 nav derīgs — nepieciešams vismaz 2 punktu pārsvars.",
+                ]);
+            }
+
+            if ($winner > $targetPoints) {
+                if ($loser < $deuceThreshold || ($winner - $loser) !== 2) {
+                    throw ValidationException::withMessages([
+                        "sets.$index.home" => $setNumber === 5
+                            ? '5. seta deuce rezultātā uzvarētājam jāuzvar tieši ar 2 punktu pārsvaru (piem., 17:15).'
+                            : "{$setNumber}. seta deuce rezultātā uzvarētājam jāuzvar tieši ar 2 punktu pārsvaru (piem., 28:26).",
+                    ]);
+                }
+            }
+
+            if ($home > $away) {
+                $homeWins++;
+            } else {
+                $awayWins++;
+            }
+
+            if (($homeWins === 3 || $awayWins === 3) && $setNumber !== count($normalizedSets)) {
+                throw ValidationException::withMessages([
+                    'sets' => 'Pēc uzvaras 3 setos papildu setus pievienot nedrīkst.',
+                ]);
+            }
+        }
+
+        if ($homeWins !== 3 && $awayWins !== 3) {
+            throw ValidationException::withMessages([
+                'sets' => 'Mača rezultātā vienai komandai jāuzvar 3 seti.',
+            ]);
+        }
+
+        return [
+            'sets' => $normalizedSets,
+            'homeWins' => $homeWins,
+            'awayWins' => $awayWins,
+        ];
+    }
+
     // Apstrādā pareģojumus — atzīmē uzvarētājus un piešķir monētas
     protected function resolvePredictions(\App\Models\VolleyballMatch $match)
 {

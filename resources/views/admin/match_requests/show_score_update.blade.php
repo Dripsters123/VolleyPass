@@ -11,10 +11,10 @@
                 </a>
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        Rezultata pieprasijums #{{ $req->id }}
+                        Rezultāta pieprasījums #{{ $req->id }}
                     </h2>
                     <p class="text-sm text-gray-400 mt-0.5">
-                        Iesniedzejs: {{ optional($req->user)->name ?? '—' }}
+                        Iesniedzējs : {{ optional($req->user)->name ?? '—' }}
                         @if(optional($req->user)->email) · {{ optional($req->user)->email }} @endif
                     </p>
                 </div>
@@ -44,11 +44,32 @@
         @endif
 
         {{-- Teams + score card --}}
+        @php
+            $sets = [];
+            if (isset($verification) && $verification) {
+                $conf = $verification->confirmations;
+                if (!empty($conf['sets']) && is_array($conf['sets'])) {
+                    $sets = array_values($conf['sets']);
+                }
+            }
+
+            $setsWonHome = 0;
+            $setsWonAway = 0;
+            foreach ($sets as $set) {
+                if (($set['home'] ?? 0) > ($set['away'] ?? 0)) {
+                    $setsWonHome++;
+                } elseif (($set['away'] ?? 0) > ($set['home'] ?? 0)) {
+                    $setsWonAway++;
+                }
+            }
+
+            $fallbackHome = $req->score_home ?? $verification?->home_score;
+            $fallbackAway = $req->score_away ?? $verification?->away_score;
+        @endphp
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Macs</h3>
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Mačs</h3>
 
             <div class="flex items-center justify-between gap-4">
-                {{-- Home team --}}
                 <div class="flex-1 text-center">
                     @if($req->home_logo)
                         <img src="{{ asset('storage/' . $req->home_logo) }}" class="w-16 h-16 rounded-xl object-cover mx-auto mb-2 border" alt="">
@@ -63,48 +84,37 @@
                     @endif
                 </div>
 
-                {{-- Score --}}
-                @php
-                    $scoreDisplay = null;
-                    $scoreSource  = null;
-                    if (isset($verification) && $verification) {
-                        $h = $verification->home_score;
-                        $a = $verification->away_score;
-                        if (!is_null($h) || !is_null($a)) {
-                            $scoreDisplay = ($h ?? '?') . ' - ' . ($a ?? '?');
-                            $scoreSource  = 'verification';
-                        }
-                    }
-                    if (!$scoreDisplay) {
-                        if (!empty($req->requested_home_score) || !empty($req->requested_away_score)) {
-                            $scoreDisplay = ($req->requested_home_score ?? '?') . ' - ' . ($req->requested_away_score ?? '?');
-                            $scoreSource  = 'request_fields';
-                        } elseif (!empty($req->requested_score)) {
-                            $scoreDisplay = $req->requested_score;
-                            $scoreSource  = 'request_fields';
-                        }
-                    }
-                    if (!$scoreDisplay) {
-                        $candidate = $req->notes ?? $req->description ?? '';
-                        if ($candidate && preg_match('/\b\d+\s*(?:[:\-])\s*\d+(?:\s*(?:,|\|)\s*\d+\s*(?:[:\-])\s*\d+)*\b/', $candidate, $m)) {
-                            $scoreDisplay = $m[0];
-                            $scoreSource  = 'notes';
-                        }
-                    }
-                @endphp
-                <div class="flex-shrink-0 text-center px-6">
-                    @if($scoreDisplay)
-                        <div class="text-4xl font-extrabold text-gray-900 tracking-tight">{{ $scoreDisplay }}</div>
-                        <div class="text-xs text-gray-400 mt-1">
-                            @if($scoreSource === 'verification') Verificets @else Pieprasitais rezultats @endif
+                <div class="flex-shrink-0 text-center px-4 min-w-[220px]">
+                    @if(count($sets))
+                        <div class="flex flex-wrap items-center justify-center gap-2 mb-3">
+                            @foreach($sets as $i => $set)
+                                @php
+                                    $homeWonSet = ($set['home'] ?? 0) > ($set['away'] ?? 0);
+                                    $awayWonSet = ($set['away'] ?? 0) > ($set['home'] ?? 0);
+                                @endphp
+                                <div class="rounded-xl border border-gray-200 px-3 py-2 min-w-[68px] bg-gray-50">
+                                    <div class="text-[10px] uppercase tracking-wide text-gray-400">{{ $i + 1 }}. sets</div>
+                                    <div class="text-sm font-bold text-gray-900">
+                                        <span class="{{ $homeWonSet ? 'text-green-600' : 'text-gray-700' }}">{{ $set['home'] ?? '?' }}</span>
+                                        <span class="text-gray-300">:</span>
+                                        <span class="{{ $awayWonSet ? 'text-green-600' : 'text-gray-700' }}">{{ $set['away'] ?? '?' }}</span>
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
+                        <div class="text-lg font-extrabold text-gray-900 tracking-tight">
+                            Seti {{ $setsWonHome }} <span class="text-gray-300 font-light">–</span> {{ $setsWonAway }}
+                        </div>
+                        <div class="text-xs text-gray-400 mt-1">Pieprasītais rezultāts pa setiem</div>
+                    @elseif(!is_null($fallbackHome) || !is_null($fallbackAway))
+                        <div class="text-2xl font-extrabold text-gray-900 tracking-tight">{{ $fallbackHome ?? '?' }} – {{ $fallbackAway ?? '?' }}</div>
+                        <div class="text-xs text-amber-600 mt-1">Pieejams tikai kopsavilkums, nevis setu sadalījums</div>
                     @else
-                        <div class="text-2xl font-bold text-gray-300">? - ?</div>
-                        <div class="text-xs text-gray-400 mt-1">Nav rezultata</div>
+                        <div class="text-2xl font-bold text-gray-300">? – ?</div>
+                        <div class="text-xs text-gray-400 mt-1">Nav rezultāta</div>
                     @endif
                 </div>
 
-                {{-- Away team --}}
                 <div class="flex-1 text-center">
                     @if($req->away_logo)
                         <img src="{{ asset('storage/' . $req->away_logo) }}" class="w-16 h-16 rounded-xl object-cover mx-auto mb-2 border" alt="">
@@ -120,10 +130,9 @@
                 </div>
             </div>
 
-            {{-- Times --}}
             <div class="grid grid-cols-2 gap-3 mt-5 pt-5 border-t border-gray-50 text-sm">
                 <div>
-                    <span class="text-gray-400 text-xs">Sakums</span>
+                    <span class="text-gray-400 text-xs">Sākums</span>
                     <p class="font-medium text-gray-800">
                         @if($req->start_time)
                             {{ \Carbon\Carbon::parse($req->start_time)->timezone('Europe/Riga')->format('d.m.Y H:i') }}
@@ -141,52 +150,10 @@
             </div>
         </div>
 
-        {{-- Player rosters --}}
-        @php
-            $homePlayers = is_array($req->home_players) ? $req->home_players : json_decode($req->home_players ?? '[]', true);
-            $awayPlayers = is_array($req->away_players) ? $req->away_players : json_decode($req->away_players ?? '[]', true);
-            $homePlayers = is_array($homePlayers) ? $homePlayers : [];
-            $awayPlayers = is_array($awayPlayers) ? $awayPlayers : [];
-        @endphp
-
-        @if(count($homePlayers) || count($awayPlayers))
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Spelataji</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">{{ $req->home_team ?? 'Majas komanda' }}</h4>
-                    <ol class="space-y-1">
-                        @forelse($homePlayers as $i => $p)
-                            <li class="flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center flex-shrink-0">{{ $i+1 }}</span>
-                                <span class="text-sm text-gray-700">{{ trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) }}</span>
-                            </li>
-                        @empty
-                            <li class="text-sm text-gray-400">Nav spelataju</li>
-                        @endforelse
-                    </ol>
-                </div>
-                <div>
-                    <h4 class="text-sm font-semibold text-gray-700 mb-2">{{ $req->away_team ?? 'Viesu komanda' }}</h4>
-                    <ol class="space-y-1">
-                        @forelse($awayPlayers as $i => $p)
-                            <li class="flex items-center gap-2">
-                                <span class="w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center flex-shrink-0">{{ $i+1 }}</span>
-                                <span class="text-sm text-gray-700">{{ trim(($p['first_name'] ?? '') . ' ' . ($p['last_name'] ?? '')) }}</span>
-                            </li>
-                        @empty
-                            <li class="text-sm text-gray-400">Nav spelataju</li>
-                        @endforelse
-                    </ol>
-                </div>
-            </div>
-        </div>
-        @endif
-
         {{-- Notes --}}
         @if(!empty($req->notes) || !empty($req->description))
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Piezimes</h3>
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Piezīmes</h3>
             <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ $req->notes ?? $req->description }}</p>
         </div>
         @endif
@@ -194,29 +161,29 @@
         {{-- Admin actions --}}
         @if(in_array($req->status, ['pending', 'reviewing', 'appealed']))
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4" x-data="{ rejectOpen: false }">
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Darbibas</h3>
+            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Darbības</h3>
 
             <div class="flex flex-wrap gap-3">
                 <form method="POST" action="{{ route('admin.match_requests.accept', $req->id) }}"
-                      onsubmit="return confirm('Apstiprinat so rezultata pieprasijumu?');">
+                      onsubmit="return confirm('Apstiprināt šo rezultāta pieprasījumu?');">
                     @csrf
                     <button type="submit"
                             class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition shadow-sm text-sm">
-                        Apstiprinat
+                        Apstiprināt
                     </button>
                 </form>
 
                 <button @click="rejectOpen = !rejectOpen"
-                        class="inline-flex items-center gap-2 px-5 py-2.5 border border-red-200 hover:bg-red-50 text-red-600 font-medium rounded-xl transition text-sm">
-                    Noraidit
+                        class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition shadow-sm text-sm">
+                    Noraidīt
                 </button>
 
                 @if($req->status === 'pending')
                 <form method="POST" action="{{ route('admin.match_requests.review', $req->id) }}">
                     @csrf
                     <button type="submit"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 border border-blue-200 hover:bg-blue-50 text-blue-600 font-medium rounded-xl transition text-sm">
-                        Atzimet kā Tiek izskatits
+                            class="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition shadow-sm text-sm">
+                        Atzīmēt kā Tiek izskatīts
                     </button>
                 </form>
                 @endif
@@ -226,14 +193,14 @@
                 <form method="POST" action="{{ route('admin.match_requests.reject', $req->id) }}" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Noraidijuma iemesls</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Noraidījuma iemesls</label>
                         <textarea name="rejection_reason" rows="3"
                                   class="w-full rounded-xl border-gray-300 text-sm focus:ring-red-500 focus:border-red-500"
-                                  placeholder="Paskaidrojiet noraidijuma iemeslu..."></textarea>
+                                  placeholder="Paskaidrojiet noraidījuma iemeslu..."></textarea>
                     </div>
                     <button type="submit"
                             class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl transition text-sm">
-                        Apstiprinat noraidijumu
+                        Apstiprināt noraidījumu
                     </button>
                 </form>
             </div>

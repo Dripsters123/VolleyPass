@@ -34,7 +34,6 @@ class ProfileController extends Controller
         $pendingScoreMatches = VolleyballMatch::where('created_by', $user->id)
             ->where('end_time', '<', now())
             ->whereNotIn('match_state', ['completed'])
-            ->whereNotIn('status_type', ['completed'])
             ->count();
 
         return view('profile.edit', compact(

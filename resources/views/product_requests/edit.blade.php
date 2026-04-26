@@ -1,51 +1,172 @@
-<x-app-layout>
-<div class="max-w-2xl mx-auto mt-10 bg-white p-6 rounded shadow">
-    <h1 class="text-xl font-bold mb-4">Rediģēt produkta pieprasījumu</h1>
+<x-app-layout title="Rediģēt produkta pieprasījumu – VolleyPass">
+    <x-slot name="header">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Rediģēt produkta pieprasījumu</h2>
+    </x-slot>
 
-    <form method="POST" action="{{ route('product_requests.update', $productRequest) }}" enctype="multipart/form-data">
-        @csrf
-        @method('PUT')
+    <div class="max-w-5xl mx-auto px-4 py-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
 
-        <div class="mb-3">
-            <label class="block">Nosaukums</label>
-            <input type="text" name="title" class="border p-2 w-full" value="{{ old('title', $productRequest->title) }}" required>
-        </div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Rediģēt produkta pieprasījumu</h1>
 
-        <div class="mb-3">
-            <label class="block">Apraksts</label>
-            <textarea name="description" class="border p-2 w-full">{{ old('description', $productRequest->description) }}</textarea>
-        </div>
-
-        <div class="mb-3">
-            <label class="block">Cena</label>
-            <input type="number" step="0.01" name="price" class="border p-2 w-full" value="{{ old('price', $productRequest->price) }}" required>
-        </div>
-
-        <div class="mb-3">
-            <label class="block mb-1">Attēls</label>
-            <label id="imageDropZone"
-                   class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition relative overflow-hidden
-                          {{ $productRequest->image_path ? 'border-blue-400' : 'border-gray-300' }}">
-                <img id="imagePreview"
-                     src="{{ $productRequest->image_path ? asset('storage/' . $productRequest->image_path) : '' }}"
-                     alt=""
-                     class="{{ $productRequest->image_path ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover rounded-xl">
-                <div id="imageDropLabel" class="{{ $productRequest->image_path ? 'hidden' : '' }} flex flex-col items-center pointer-events-none">
-                    <svg class="w-8 h-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <span class="text-sm text-gray-500">Spied vai velc attēlu šeit</span>
+            @if($errors->any())
+                <div class="mb-5 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                    <ul class="space-y-1">@foreach($errors->all() as $e)<li>• {{ $e }}</li>@endforeach</ul>
                 </div>
-                <div id="imageChosen" class="{{ $productRequest->image_path ? '' : 'hidden' }} absolute bottom-0 inset-x-0 bg-black/50 text-white text-xs text-center py-1 truncate px-2">
-                    {{ $productRequest->image_path ? basename($productRequest->image_path) : '' }}
-                </div>
-                <input id="imageInput" type="file" name="image" class="hidden" accept="image/*">
-            </label>
-        </div>
+            @endif
 
-        <button class="px-4 py-2 bg-green-600 text-white rounded">Rediģēt</button>
-    </form>
-</div>
+            <form method="POST" action="{{ route('product_requests.update', $productRequest) }}" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                <div class="lg:grid lg:grid-cols-5 lg:gap-8">
+                    {{-- Left: form fields --}}
+                    <div class="lg:col-span-3 space-y-5">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Produkta nosaukums *</label>
+                            <input type="text" name="title" value="{{ old('title', $productRequest->title) }}" required
+                                   class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                   placeholder="Piemēram: Volejbola ceļgalu sargi">
+                            @error('title') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Apraksts</label>
+                            <textarea name="description" rows="4"
+                                      class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                      placeholder="Aprakstiet produktu…">{{ old('description', $productRequest->description) }}</textarea>
+                            @error('description') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ieteicamā cena (EUR) *</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">€</span>
+                                <input type="number" step="0.01" min="0" name="price" value="{{ old('price', $productRequest->price) }}" required
+                                       class="w-full pl-7 rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="0.00">
+                            </div>
+                            @error('price') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Kategorija</label>
+                                <select name="category"
+                                        class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500">
+                                    <option value="">-- Izvēlies kategoriju --</option>
+                                    @foreach(config('products.categories') as $key => $label)
+                                        <option value="{{ $key }}" {{ old('category', $productRequest->category) === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Daudzums (skaits noliktavā) *</label>
+                                <input type="number" name="stock" value="{{ old('stock', $productRequest->stock ?? 1) }}" required min="1" max="9999"
+                                       class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                       placeholder="Piemēram: 10">
+                                @error('stock') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                            </div>
+                        </div>
+
+                        <div class="border-t border-gray-100 dark:border-gray-700 pt-5">
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">Kontaktinformācija</p>
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pilns vārds *</label>
+                                    @php
+                                        $profileFullName = trim(auth()->user()->first_name . ' ' . auth()->user()->last_name) ?: null;
+                                        $defaultFullName = old('seller_full_name', $productRequest->seller_full_name ?: $profileFullName);
+                                    @endphp
+                                    <input type="text" name="seller_full_name" value="{{ $defaultFullName }}" required
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Jānis Bērziņš">
+                                    @error('seller_full_name') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">E-pasts</label>
+                                    <input type="email" name="contact_email" value="{{ old('contact_email', $productRequest->contact_email) }}"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="tavs@epasts.lv">
+                                    @error('contact_email') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tālrunis</label>
+                                    <div class="flex gap-2">
+                                        <select name="phone_code" class="rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 text-sm w-36">
+                                            @php
+                                            $phoneCodes = ['+371'=>'🇱🇻 +371','+370'=>'🇱🇹 +370','+372'=>'🇪🇪 +372','+358'=>'🇫🇮 +358','+46'=>'🇸🇪 +46','+47'=>'🇳🇴 +47','+45'=>'🇩🇰 +45','+49'=>'🇩🇪 +49','+44'=>'🇬🇧 +44','+33'=>'🇫🇷 +33','+31'=>'🇳🇱 +31','+48'=>'🇵🇱 +48','+34'=>'🇪🇸 +34','+39'=>'🇮🇹 +39','+7'=>'🇷🇺 +7','+380'=>'🇺🇦 +380','+1'=>'🇺🇸 +1'];
+                                            $existingPhone = old('phone_number', $productRequest->contact_phone);
+                                            $code = '+371';
+                                            if ($existingPhone) {
+                                                foreach ($phoneCodes as $c => $l) {
+                                                    if (strpos($existingPhone, $c) === 0) {
+                                                        $code = $c;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            $oldCode = old('phone_code', $code);
+                                            @endphp
+                                            @foreach($phoneCodes as $c => $label)
+                                                <option value="{{ $c }}" {{ $oldCode === $c ? 'selected' : '' }}>{{ $label }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="tel" name="phone_number" value="{{ old('phone_number', $existingPhone ? substr($existingPhone, strlen($code)) : '') }}"
+                                               class="flex-1 rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                               placeholder="2X XXX XXX">
+                                    </div>
+                                    @error('contact_phone') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Adrese (kur atrodas prece)</label>
+                                    <input type="text" name="address" value="{{ old('address', $productRequest->address) }}"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Piemēram: Rīga, Brīvības iela 1">
+                                    @error('address') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Aptuvens piegādes laiks (dienas)</label>
+                                    <input type="number" name="delivery_days" value="{{ old('delivery_days', $productRequest->delivery_days) }}" min="1" max="365"
+                                           class="w-full rounded-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500"
+                                           placeholder="Piemēram: 3">
+                                    @error('delivery_days') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Right: image upload --}}
+                    <div class="lg:col-span-2 mt-5 lg:mt-0 flex flex-col">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attēls</label>
+                        <label id="imageDropZone"
+                               class="relative w-full aspect-square border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition overflow-hidden block">
+                            <img id="imagePreview" src="{{ $productRequest->image_path ? asset('storage/' . $productRequest->image_path) : '' }}" alt="" class="{{ $productRequest->image_path ? '' : 'hidden' }} absolute inset-0 w-full h-full object-cover rounded-xl">
+                            <div id="imageDropLabel" class="{{ $productRequest->image_path ? 'hidden' : '' }} absolute inset-0 flex flex-col items-center justify-center pointer-events-none p-4">
+                                <svg class="w-10 h-10 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-sm text-gray-500 text-center">Spied vai velc attēlu šeit</span>
+                                <span class="text-xs text-gray-400 mt-1">JPG, PNG, WebP (bez GIF)</span>
+                            </div>
+                            <div id="imageChosen" class="{{ $productRequest->image_path ? '' : 'hidden' }} absolute bottom-0 inset-x-0 bg-black/50 text-white text-xs text-center py-1.5 truncate px-2"></div>
+                            <input id="imageInput" type="file" name="image" accept="image/jpeg,image/png,image/webp" class="hidden">
+                        </label>
+                        <p id="imageError" class="hidden mt-1 text-sm text-red-600">GIF attēli nav atļauti.</p>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button type="submit" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors">
+                        Saglabāt izmaiņas
+                    </button>
+                    <a href="{{ route('product_requests.index') }}" class="px-6 py-2.5 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                        Atcelt
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -54,9 +175,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const label = document.getElementById('imageDropLabel');
     const chosen = document.getElementById('imageChosen');
     const zone = document.getElementById('imageDropZone');
+    const errorMsg = document.getElementById('imageError');
 
     function handleFile(file) {
-        if (!file || !file.type.startsWith('image/')) return;
+        if (!file) return;
+        if (file.type === 'image/gif') {
+            errorMsg.classList.remove('hidden');
+            input.value = '';
+            return;
+        }
+        errorMsg.classList.add('hidden');
+        if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
         reader.onload = function (e) {
             preview.src = e.target.result;
@@ -73,14 +202,18 @@ document.addEventListener('DOMContentLoaded', function () {
     input.addEventListener('change', function () { handleFile(this.files[0]); });
 
     zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('border-blue-400'); });
-    zone.addEventListener('dragleave', function () { if (!preview.src) zone.classList.remove('border-blue-400'); });
+    zone.addEventListener('dragleave', function () { if (preview.classList.contains('hidden')) zone.classList.remove('border-blue-400'); });
     zone.addEventListener('drop', function (e) {
         e.preventDefault();
-        const dt = new DataTransfer();
-        dt.items.add(e.dataTransfer.files[0]);
-        input.files = dt.files;
-        handleFile(e.dataTransfer.files[0]);
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            input.files = dt.files;
+            handleFile(file);
+        }
     });
 });
 </script>
+
 </x-app-layout>

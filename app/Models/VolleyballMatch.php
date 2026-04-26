@@ -17,7 +17,6 @@ class VolleyballMatch extends Model
         'home_team_name',
         'away_team_name',
         'players_per_team',
-        'status_type',
         'start_time',
         'end_time',
         'home_score',
@@ -55,7 +54,7 @@ class VolleyballMatch extends Model
      */
     public function getEffectiveStateAttribute(): string
     {
-        if (($this->match_state ?? $this->status_type ?? '') === 'completed') {
+        if (($this->match_state ?? '') === 'completed') {
             return 'completed';
         }
         if ($this->end_time && $this->end_time->isPast()) {
@@ -140,6 +139,12 @@ class VolleyballMatch extends Model
 
     protected static function booted()
     {
+        static::saving(function (self $match) {
+            if (empty($match->match_state)) {
+                $match->match_state = 'scheduled';
+            }
+        });
+
         static::saved(function (self $match) {
             if ($match->is_local) {
                

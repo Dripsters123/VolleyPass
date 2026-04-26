@@ -8,6 +8,7 @@ use App\Models\ProductRequest;
 use App\Models\Team;
 use App\Models\User;
 use App\Models\VolleyballMatch;
+use App\Models\MatchScoreVerification;
 use App\Notifications\RequestStatusChanged;
 use App\Notifications\RequestSubmitted;
 use Illuminate\Http\Request;
@@ -231,7 +232,9 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('match_requests.edit', ['request' => $requestData, 'arenas' => $arenas]);
+        $teams = Team::where('user_id', Auth::id())->latest()->get();
+
+        return view('match_requests.edit', ['request' => $requestData, 'arenas' => $arenas, 'teams' => $teams]);
     }
 
     // Atjaunina gaidošo mača pieteikumu
@@ -465,7 +468,10 @@ $arenaLayout = $validated['arena_layout'] ?? [];
     $req = MatchRequest::with('user')->find($id);
     if ($req) {
         if ($req->request_type === 'score_update') {
-            return view('admin.match_requests.show_score_update', compact('req'));
+            $verification = $req->match_id
+                ? MatchScoreVerification::where('match_id', $req->match_id)->latest()->first()
+                : null;
+            return view('admin.match_requests.show_score_update', compact('req', 'verification'));
         }
         return view('admin.match_requests.show', compact('req'));
     }
@@ -500,7 +506,6 @@ $arenaLayout = $validated['arena_layout'] ?? [];
                     'home_score'  => $req->score_home ?? 0,
                     'away_score'  => $req->score_away ?? 0,
                     'match_state' => 'completed',
-                    'status_type' => 'completed',
                 ]);
             }
             return redirect()

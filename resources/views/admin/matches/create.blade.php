@@ -116,7 +116,7 @@
     }
   </style>
   <div class="max-w-3xl mx-auto p-6 bg-white rounded mt-8">
-    <h1 class="text-2xl font-bold mb-4">Izveidot lokālo maču</h1>
+    <h1 class="text-2xl font-bold mb-4">Izveidot maču</h1>
 
     @php
       $p = $prefill ?? [];

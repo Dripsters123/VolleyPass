@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Create New Arena')
+@section('title', 'Izveidot jaunu arēnu')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Create New Arena</h1>
-        <a href="{{ route('arenas.index') }}" class="text-blue-600 hover:text-blue-800">Back to Arenas</a>
+        <h1 class="text-3xl font-bold text-gray-900">Izveidot jaunu arēnu</h1>
+        <a href="{{ route('arenas.index') }}" class="text-blue-600 hover:text-blue-800">Atpakaļ uz arēnām</a>
     </div>
 
     @if($errors->any())
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements:     [],
         onSave: function (elements) {
             var name = document.getElementById('arena-name').value.trim();
-            if (!name) { alert('Please enter an arena name'); return; }
+            if (!name) { alert('Lūdzu, ievadiet arēnas nosaukumu'); return; }
 
             document.getElementById('form-name').value        = name;
             document.getElementById('form-description').value  = document.getElementById('arena-description').value.trim();

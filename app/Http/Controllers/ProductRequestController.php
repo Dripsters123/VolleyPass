@@ -23,6 +23,7 @@ class ProductRequestController extends Controller
     // Jauna produkta pieteikuma izveides forma
     public function create()
     {
+        return view('product_requests.create');
     }
 
     // Validē un saglabā produkta pieteikumu ar attēlu
@@ -148,12 +149,29 @@ class ProductRequestController extends Controller
             return back()->with('error', 'Šis pieprasījums jau apstrādāts.');
         }
 
+        $allowedCategories = array_keys(config('products.categories', []));
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0.01',
+            'stock' => 'required|integer|min:1|max:9999',
+            'category' => ['nullable', 'string', 'in:' . implode(',', $allowedCategories)],
+            'seller_full_name' => 'required|string|max:255',
+            'contact_email' => 'nullable|email|max:255',
+            'contact_phone' => 'nullable|string|max:50',
+            'address' => 'nullable|string|max:255',
+            'delivery_days' => 'nullable|integer|min:1|max:365',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
+
+        $phone = null;
+        if ($request->filled('phone_code') && $request->filled('phone_number')) {
+            $phone = $request->phone_code . $request->phone_number;
+        } elseif ($request->filled('phone_number')) {
+            $phone = $request->phone_number;
+        } elseif (!empty($validated['contact_phone'])) {
+            $phone = $validated['contact_phone'];
+        }
 
         if ($request->hasFile('image')) {
             if ($productRequest->image_path) {
@@ -163,9 +181,16 @@ class ProductRequestController extends Controller
         }
 
         $productRequest->update([
+            'seller_full_name' => $validated['seller_full_name'],
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'price' => $validated['price'],
+            'stock' => (int) $validated['stock'],
+            'category' => $validated['category'] ?? null,
+            'contact_email' => $validated['contact_email'] ?? null,
+            'contact_phone' => $phone,
+            'address' => $validated['address'] ?? null,
+            'delivery_days' => isset($validated['delivery_days']) ? (int) $validated['delivery_days'] : null,
             'image_path' => $productRequest->image_path,
             'status' => 'approved',
         ]);

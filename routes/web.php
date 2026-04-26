@@ -113,7 +113,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::post('/matches/{id}/finalize', [MatchController::class, 'finalizeScore'])->name('matches.score.finalize');
 });
 
@@ -149,11 +149,13 @@ Route::middleware(['auth', 'role:admin'])
 
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+Route::get('/products/create', [ProductController::class, 'create'])->name('products.create')->middleware('auth');
+Route::get('/products/purchase-success', [ProductController::class, 'purchaseSuccess'])->name('products.purchase_success')->middleware('auth');
+Route::get('/products/purchase-cancel', [ProductController::class, 'purchaseCancel'])->name('products.purchase_cancel')->middleware('auth');
 Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
@@ -161,8 +163,6 @@ Route::middleware('auth')->group(function () {
 Route::delete('/product-requests/{productRequest}/cancel', [ProductRequestController::class, 'cancel'])
         ->name('product_requests.cancel');
     Route::post('/products/{product}/buy', [ProductController::class, 'buy'])->name('products.buy');
-    Route::get('/products/purchase-success', [ProductController::class, 'purchaseSuccess'])->name('products.purchase_success');
-    Route::get('/products/purchase-cancel', [ProductController::class, 'purchaseCancel'])->name('products.purchase_cancel');
     Route::get('/my-orders', [ProductController::class, 'myOrders'])->name('orders.index');
     Route::get('/my-products', [ProductController::class, 'myProducts'])->name('products.my');
     Route::post('/products/{product}/restock', [ProductController::class, 'restock'])->name('products.restock');

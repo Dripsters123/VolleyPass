@@ -28,8 +28,6 @@ return new class extends Migration
 
          
             $table->integer('players_per_team')->default(6);
-            $table->string('status_type')->default('scheduled'); 
-            $table->string('status')->default('scheduled');      
             $table->string('match_state')->default('scheduled'); 
 
           

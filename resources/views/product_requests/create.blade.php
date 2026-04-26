@@ -6,6 +6,8 @@
     <div class="max-w-5xl mx-auto px-4 py-8">
         <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
 
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Pieteikt produkta pieprasījumu</h1>
+
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-5">
                 Iesniedz pieprasījumu pievienot produktu veikalā. Administrators to izskatīs un apstiprinās.
             </p>
