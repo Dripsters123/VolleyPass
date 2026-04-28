@@ -9,8 +9,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // Change status enum to include 'reviewing' and 'appealed'
-        DB::statement("ALTER TABLE match_requests MODIFY COLUMN status ENUM('pending','reviewing','accepted','rejected','appealed') NOT NULL DEFAULT 'pending'");
+        // SQLite does not support MODIFY COLUMN; skip the ENUM change (column already stores strings)
+        // For MySQL/MariaDB, alter the status column to include 'reviewing' and 'appealed'
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE match_requests MODIFY COLUMN status ENUM('pending','reviewing','accepted','rejected','appealed') NOT NULL DEFAULT 'pending'");
+        }
 
         Schema::table('match_requests', function (Blueprint $table) {
             $table->text('rejection_reason')->nullable()->after('status');
@@ -24,6 +27,8 @@ return new class extends Migration
             $table->dropColumn(['rejection_reason', 'appeal_message']);
         });
 
-        DB::statement("ALTER TABLE match_requests MODIFY COLUMN status ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending'");
+        if (DB::getDriverName() !== 'sqlite') {
+            DB::statement("ALTER TABLE match_requests MODIFY COLUMN status ENUM('pending','accepted','rejected') NOT NULL DEFAULT 'pending'");
+        }
     }
 };

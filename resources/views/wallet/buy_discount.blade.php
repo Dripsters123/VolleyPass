@@ -182,8 +182,7 @@ document.addEventListener('DOMContentLoaded', function () {
     buyButtons.forEach(btn => {
         btn.addEventListener('click', function () {
             const percent = parseInt(this.dataset.percent, 10);
-            if (!confirm(`Iegādāties ${percent}% atlaižu karti?`)) return;
-            buy(percent);
+            vpConfirm(`Iegādāties ${percent}% atlažu karti?`, () => buy(percent), { confirmText: 'Iegādāties' });
         });
     });
 

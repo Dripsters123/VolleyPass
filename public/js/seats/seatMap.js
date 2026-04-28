@@ -1,7 +1,7 @@
 (function () {
   'use strict';
 
-  // Pārvērš tekstu vienotā formātā salīdzināšanai (bez diakritikām, mazie burti)
+  // Pārvērš tekstu vienotā formātā salīdzināšanai (piemēram, "Kreisā tribīne" -> "kreisā-tribīne")
   function slugify(s) {
     try {
       const base = (s || '').toString();
@@ -12,7 +12,7 @@
     }
   }
 
-  // Uzzīmē sēdvietu karti konteinerā ar pielāgotu vai noklusuma izkārtojumu
+  // Uzzīmē sēdvietu karti konteinerā ar pielāgotu vai noklusējuma izkārtojumu
     function renderSeatMap(container, options = {}) {
     if (!container) return;
 
@@ -288,7 +288,7 @@
       container.innerHTML = '';
       container.appendChild(detailView);
 
-      // Create canvas container sized to match the arena-builder canvas
+      // Pielāgotas arēnas izkārtojums ar definējamiem elementiem (sēdvietas, laukums, u.c.) un to stāvokli (aizņemts, rezervēts, brīvs)
       const canvasContainer = document.createElement('div');
       canvasContainer.style.position = 'relative';
       canvasContainer.style.overflow = 'auto';
@@ -299,7 +299,7 @@
         canvasContainer.style.minWidth  = arenaWidth  + 'px';
         canvasContainer.style.minHeight = arenaHeight + 'px';
       } else {
-        // Derive bounds from element positions
+        // Automātiski pielāgo izmēru, lai ietilptu visi definētie elementi, ar nelielu rezervi
         let maxX = 600, maxY = 400;
         customElements.forEach(el => {
           const right  = (Number(el.x) || 0) + (Number(el.width)  || 44);
@@ -321,7 +321,7 @@
       canvasContainer.style.backgroundSize = '50px 50px';
       container.appendChild(canvasContainer);
 
-      // Render custom elements
+      // Uzzīmē pielāgotus elementus (sēdvietas, laukums, u.c.) atbilstoši definīcijai un to stāvoklim (aizņemts, rezervēts, brīvs)
       customElements.forEach(element => {
         if (element.type === 'seat') {
           const seatElement = createCustomSeat(element);

@@ -71,9 +71,10 @@
                            class="flex-1 text-center px-3 py-2 text-sm font-medium border border-gray-200 rounded-xl text-gray-700 hover:bg-gray-50 transition">
                             ✏️ Rediģēt
                         </a>
-                        <form method="POST" action="{{ route('teams.destroy', $team) }}" onsubmit="return confirm('Dzēst komandu?');">
+                        <form method="POST" action="{{ route('teams.destroy', $team) }}">
                             @csrf @method('DELETE')
-                            <button type="submit"
+                            <button type="button"
+                                    onclick="vpConfirm('Dzēst komandu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Dzēst' })"
                                     class="px-3 py-2 text-sm font-medium border border-red-200 rounded-xl text-red-600 hover:bg-red-50 transition">
                                 🗑
                             </button>

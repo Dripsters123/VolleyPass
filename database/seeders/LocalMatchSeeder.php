@@ -36,6 +36,25 @@ class LocalMatchSeeder extends Seeder
             6 => Arena::where('name', 'Olimpijas halle (6v6)')->first(),
         ];
 
+        foreach ([2, 4, 6] as $format) {
+            if (!$arenas[$format]) {
+                $arenas[$format] = Arena::firstOrCreate(
+                    [
+                        'name' => "Auto Arena ({$format}v{$format})",
+                        'user_id' => $admin->id,
+                    ],
+                    [
+                        'description' => 'Auto-generated fallback arena for seeding.',
+                        'layout' => [],
+                        'elements' => [],
+                        'width' => 1000,
+                        'height' => 700,
+                        'is_public' => false,
+                    ]
+                );
+            }
+        }
+
         $teamNames = [
             2 => [
                 'adminMatch'     => ['home' => 'Jūrmalas Volejs',   'away' => 'Pludmales Vilki'],
@@ -120,7 +139,7 @@ class LocalMatchSeeder extends Seeder
             $adminMatch = VolleyballMatch::create([
                 'home_team_name'   => $names['adminMatch']['home'],
                 'away_team_name'   => $names['adminMatch']['away'],
-                'arena_id'         => $arena?->id,
+                'arena_id'         => $arena->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->addDays($n)->setTime(18, 0),
                 'end_time'         => now()->addDays($n)->setTime(20, 0),
@@ -143,18 +162,14 @@ class LocalMatchSeeder extends Seeder
             ]);
 
             $this->attachLogos($adminMatch);
-            if ($arena) {
-                $arena->generateSeatsForMatch($adminMatch, $adminMatch->ticket_price);
-            } else {
-                $this->generateSeats($adminMatch);
-            }
+            $arena->generateSeatsForMatch($adminMatch, $adminMatch->ticket_price);
             $this->assignRandomTickets($adminMatch, $users);
 
             
             $userMatch = VolleyballMatch::create([
                 'home_team_name'   => $names['userMatch']['home'],
                 'away_team_name'   => $names['userMatch']['away'],
-                'arena_id'         => $arena?->id,
+                'arena_id'         => $arena->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->addDays($n + 1)->setTime(17, 0),
                 'end_time'         => now()->addDays($n + 1)->setTime(19, 0),
@@ -177,18 +192,14 @@ class LocalMatchSeeder extends Seeder
             ]);
 
             $this->attachLogos($userMatch);
-            if ($arena) {
-                $arena->generateSeatsForMatch($userMatch, $userMatch->ticket_price);
-            } else {
-                $this->generateSeats($userMatch);
-            }
+            $arena->generateSeatsForMatch($userMatch, $userMatch->ticket_price);
             $this->assignRandomTickets($userMatch, $users);
 
          
             $completedMatch = VolleyballMatch::create([
                 'home_team_name'   => $names['completedMatch']['home'],
                 'away_team_name'   => $names['completedMatch']['away'],
-                'arena_id'         => $arena?->id,
+                'arena_id'         => $arena->id,
                 'players_per_team' => $n,
                 'start_time'       => now()->subDays(2)->setTime(18, 0),
                 'end_time'         => now()->subDays(2)->setTime(20, 0),
@@ -209,11 +220,7 @@ class LocalMatchSeeder extends Seeder
             ]);
 
             $this->attachLogos($completedMatch);
-            if ($arena) {
-                $arena->generateSeatsForMatch($completedMatch, $completedMatch->ticket_price);
-            } else {
-                $this->generateSeats($completedMatch);
-            }
+            $arena->generateSeatsForMatch($completedMatch, $completedMatch->ticket_price);
             $this->assignRandomTickets($completedMatch, $users);
 
             $verifiedSets = match ([$completedMatch->home_score, $completedMatch->away_score]) {

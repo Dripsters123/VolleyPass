@@ -9,7 +9,6 @@ use App\Models\MatchRequest;
 use App\Models\MatchScoreVerification;
 use App\Models\MatchMedia;
 use App\Models\VolleyballMatchSet;
-use App\Models\Prediction;
 use App\Models\User;
 use App\Notifications\MatchFinalized;
 use App\Notifications\ScoreUpdateRequested;
@@ -421,18 +420,11 @@ class MatchController extends Controller
             'sets' => 'required|array|min:3|max:5',
             'sets.*.home' => 'required|integer|min:0|max:100|max_digits:3',
             'sets.*.away' => 'required|integer|min:0|max:100|max_digits:3',
-            'actual_end_time' => 'nullable|date',
         ]);
-
-        if (!empty($validated['actual_end_time']) && $match->start_time && Carbon::parse($validated['actual_end_time'])->lt($match->start_time)) {
-            return back()->withInput()->withErrors([
-                'actual_end_time' => 'Beigu laiks nedrīkst būt pirms mača sākuma laika.',
-            ]);
-        }
 
         ['sets' => $sets, 'homeWins' => $homeWins, 'awayWins' => $awayWins] = $this->validateVolleyballSets($validated['sets']);
 
-        $this->persistFinalScore($match, $sets, $homeWins, $awayWins, $validated['actual_end_time'] ?? null);
+        $this->persistFinalScore($match, $sets, $homeWins, $awayWins);
 
         $ver = MatchScoreVerification::create([
             'match_id' => $match->id,
@@ -465,18 +457,11 @@ class MatchController extends Controller
             'sets' => 'required|array|min:3|max:5',
             'sets.*.home' => 'required|integer|min:0|max:100|max_digits:3',
             'sets.*.away' => 'required|integer|min:0|max:100|max_digits:3',
-            'actual_end_time' => 'nullable|date',
         ]);
-
-        if (!empty($validated['actual_end_time']) && $match->start_time && Carbon::parse($validated['actual_end_time'])->lt($match->start_time)) {
-            return back()->withInput()->withErrors([
-                'actual_end_time' => 'Beigu laiks nedrīkst būt pirms mača sākuma laika.',
-            ]);
-        }
 
         ['sets' => $sets, 'homeWins' => $homeWins, 'awayWins' => $awayWins] = $this->validateVolleyballSets($validated['sets']);
 
-        $this->persistFinalScore($match, $sets, $homeWins, $awayWins, $validated['actual_end_time'] ?? null);
+        $this->persistFinalScore($match, $sets, $homeWins, $awayWins);
 
         MatchScoreVerification::create([
             'match_id' => $match->id,
@@ -502,7 +487,7 @@ class MatchController extends Controller
         return back()->with('success', 'Rezultāts apstiprināts.');
     }
 
-    private function persistFinalScore(VolleyballMatch $match, array $sets, int $homeWins, int $awayWins, ?string $actualEndTime = null): void
+    private function persistFinalScore(VolleyballMatch $match, array $sets, int $homeWins, int $awayWins): void
     {
         VolleyballMatchSet::where('match_id', $match->id)->delete();
 
@@ -521,7 +506,6 @@ class MatchController extends Controller
         $match->update([
             'home_score' => $homeWins,
             'away_score' => $awayWins,
-            'actual_end_time' => $actualEndTime ?? now(),
             'match_state' => 'completed',
         ]);
     }
@@ -599,28 +583,7 @@ class MatchController extends Controller
         ];
     }
 
-    // Apstrādā pareģojumus — atzīmē uzvarētājus un piešķir monētas
-    protected function resolvePredictions(\App\Models\VolleyballMatch $match)
-{
-    $predictions = Prediction::where('match_id', $match->id)->where('status','pending')->get();
 
-    foreach ($predictions as $p) {
-        $user = $p->user;
-        $correct = false;
-        if ($match->home_score > $match->away_score && $p->prediction === 'home') $correct = true;
-        if ($match->away_score > $match->home_score && $p->prediction === 'away') $correct = true;
-        if ($match->home_score === $match->away_score && $p->prediction === 'draw') $correct = true;
-
-        if ($correct) {
-            $reward = floatval(config('app.prediction_base_reward', 5.00)) + (floatval($p->staked_coins) * 2.0);
-            $wallet = \App\Models\Wallet::firstOrCreate(['user_id' => $user->id], ['balance' => 0]);
-            $wallet->credit($reward, 'earned_prediction', $user->id, $p, 'Prediction reward');
-            $p->update(['status' => 'won', 'reward' => $reward]);
-        } else {
-            $p->update(['status' => 'lost', 'reward' => 0.00]);
-        }
-    }
-}
 
 
     // Augšupielādē bildes mačam (max 8 uz maèu)

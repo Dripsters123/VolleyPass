@@ -33,7 +33,6 @@ class VolleyballMatch extends Model
         'home_color',
         'away_color',
         'estimated_duration_minutes',
-        'actual_end_time',
         'match_state',
         'arena_id',
         'created_by',
@@ -45,7 +44,6 @@ class VolleyballMatch extends Model
         'judges' => 'array',
         'start_time' => 'datetime',
         'end_time' => 'datetime',
-        'actual_end_time' => 'datetime',
     ];
 
     /**

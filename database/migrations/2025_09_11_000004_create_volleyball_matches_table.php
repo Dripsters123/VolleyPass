@@ -33,7 +33,6 @@ return new class extends Migration
           
             $table->dateTime('start_time');
             $table->dateTime('end_time');
-            $table->dateTime('actual_end_time')->nullable();
             $table->integer('estimated_duration_minutes')->default(90);
 
             

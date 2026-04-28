@@ -22,6 +22,8 @@ it('allows a logged-in user to create a product request', function () {
         'title' => 'Test Product',
         'description' => 'This is a test product request.',
         'price' => 100.50,
+        'stock' => 10,
+        'seller_full_name' => 'John Doe',
         'currency' => 'eur',
         'request_type' => 'create_product',
         'image' => UploadedFile::fake()->image('product.jpg'), // Izmanto viltotu attēlu

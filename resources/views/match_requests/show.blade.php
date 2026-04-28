@@ -263,11 +263,12 @@
                    class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg text-sm font-medium transition">
                     Rediģēt
                 </a>
-                <form method="POST" action="{{ route('match_requests.cancel', $matchRequest->id) }}"
-                      onsubmit="return confirm('Vai tiešām vēlaties atcelt šo pieprasījumu?');">
+                <form method="POST" action="{{ route('match_requests.cancel', $matchRequest->id) }}">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition">
+                    <button type="button"
+                            onclick="vpConfirm('Vai tiešām vēlaties atcelt šo pieprasījumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })"
+                            class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition">
                         Atcelt
                     </button>
                 </form>
@@ -310,10 +311,10 @@
 
         {{-- Delete rejected request --}}
         <div class="mt-3 flex justify-end">
-            <form method="POST" action="{{ route('match_requests.destroy', $matchRequest->id) }}"
-                  onsubmit="return confirm('Dzēst šo pieprasījumu? Šī darbība ir neatgriezeniska.');">
+            <form method="POST" action="{{ route('match_requests.destroy', $matchRequest->id) }}">
                 @csrf @method('DELETE')
-                <button type="submit"
+                <button type="button"
+                        onclick="vpConfirm('Dzēst šo pieprasījumu? Šī darbība ir neatgriezeniska.', () => this.closest('form').submit(), { danger: true, confirmText: 'Dzēst' })"
                         class="px-4 py-2 text-xs text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-300 rounded-xl transition">
                     🗑 Dzēst pieprasījumu
                 </button>

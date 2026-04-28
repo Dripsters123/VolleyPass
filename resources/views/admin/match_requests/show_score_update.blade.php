@@ -164,10 +164,10 @@
             <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Darbības</h3>
 
             <div class="flex flex-wrap gap-3">
-                <form method="POST" action="{{ route('admin.match_requests.accept', $req->id) }}"
-                      onsubmit="return confirm('Apstiprināt šo rezultāta pieprasījumu?');">
+                <form method="POST" action="{{ route('admin.match_requests.accept', $req->id) }}">
                     @csrf
-                    <button type="submit"
+                    <button type="button"
+                            onclick="vpConfirm('Apstiprintāt šo rezultāta pieprasījumu?', () => this.closest('form').submit(), { confirmText: 'Apstiprintāt' })"
                             class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-xl transition shadow-sm text-sm">
                         Apstiprināt
                     </button>

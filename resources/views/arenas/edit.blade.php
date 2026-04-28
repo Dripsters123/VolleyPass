@@ -3,7 +3,7 @@
 @section('title', 'Rediģēt arēnu: ' . $arena->name)
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
+<div class="max-w-[2000px] mx-auto px-4 py-8">
     <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold text-gray-900">Rediģēt arēnu: {{ $arena->name }}</h1>
         <a href="{{ route('arenas.index') }}" class="text-blue-600 hover:text-blue-800">Atpakaļ uz arēnām</a>

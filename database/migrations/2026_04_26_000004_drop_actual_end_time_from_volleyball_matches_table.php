@@ -6,22 +6,21 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::table('volleyball_matches', function (Blueprint $table) {
-            $table->foreignId('arena_id')->constrained('arenas')->restrictOnDelete();
-            $table->index('arena_id');
+            if (Schema::hasColumn('volleyball_matches', 'actual_end_time')) {
+                $table->dropColumn('actual_end_time');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('volleyball_matches', function (Blueprint $table) {
-            $table->dropForeign(['arena_id']);
-            $table->dropColumn('arena_id');
+            if (!Schema::hasColumn('volleyball_matches', 'actual_end_time')) {
+                $table->dateTime('actual_end_time')->nullable()->after('end_time');
+            }
         });
     }
 };

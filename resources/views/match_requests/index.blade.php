@@ -84,20 +84,22 @@
                                    class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition">Skatīt</a>
                                 <a href="{{ route('match_requests.edit', $r->id) }}"
                                    class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition">Rediģēt</a>
-                                <form action="{{ route('match_requests.cancel', $r->id) }}" method="POST"
-                                      onsubmit="return confirm('Atcelt šo pieprasījumu?');" class="inline">
+                                <form action="{{ route('match_requests.cancel', $r->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition">Atcelt</button>
+                                    <button type="button"
+                                            onclick="vpConfirm('Atcelt šo pieprasījumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })"
+                                            class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition">Atcelt</button>
                                 </form>
                             @elseif($r->type === 'product')
                                 <a href="{{ route('product_requests.edit', $r->id) }}"
                                    class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium rounded-lg transition">Rediģēt</a>
-                                <form action="{{ route('product_requests.cancel', $r->id) }}" method="POST"
-                                      onsubmit="return confirm('Atcelt šo pieprasījumu?');" class="inline">
+                                <form action="{{ route('product_requests.cancel', $r->id) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition">Atcelt</button>
+                                    <button type="button"
+                                            onclick="vpConfirm('Atcelt šo pieprasījumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })"
+                                            class="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white text-xs font-medium rounded-lg transition">Atcelt</button>
                                 </form>
                             @endif
                         </div>

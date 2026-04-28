@@ -318,10 +318,10 @@
                 @if(auth()->check() && auth()->id() === $mr->user_id && ($mr->status ?? '') === 'pending')
                     <a href="{{ route('match_requests.edit', $mr->id) }}" class="ml-auto inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Rediģēt</a>
 
-                    <form method="POST" action="{{ route('match_requests.cancel', $mr->id) }}" onsubmit="return confirm('Vai tiešām atcelt šo pieprasījumu?');">
+                    <form method="POST" action="{{ route('match_requests.cancel', $mr->id) }}">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Atcelt</button>
+                        <button type="button" onclick="vpConfirm('Vai tie�am atcelt �o pieprasijumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Atcelt</button>
                     </form>
                 @endif
             </div>

@@ -92,10 +92,12 @@ class ProductController extends Controller
             'image'           => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
+        // Kategorija: ja izvēlēts "_other", izmanto brīvi ievadīto vērtību
         $category = $request->category === '_other'
             ? trim($request->category_custom ?? '')
             : $request->category;
 
+        // Apvieno tālruņa kodu un numuru vienā laukā, ja abi aizpildīti
         $phone = null;
         if ($request->filled('phone_code') && $request->filled('phone_number')) {
             $phone = $request->phone_code . $request->phone_number;
@@ -103,6 +105,7 @@ class ProductController extends Controller
             $phone = $request->phone_number;
         }
 
+        // Saglabā augšupielādēto attēlu publiskajā storage mapē 'products/'
         $path = $request->file('image')?->store('products', 'public');
 
         $product = Product::create([
@@ -126,7 +129,7 @@ class ProductController extends Controller
             ->with('success', 'Produkts veiksmīgi pievienots!');
     }
 
-    // Rāda produkta rediģēšanas formu
+    // Atgriež produkta rediģēšanas formas skatu
     public function edit(Product $product)
     {
         if ($product->user_id !== auth()->id() && auth()->user()->role !== 'admin') {
@@ -183,10 +186,12 @@ class ProductController extends Controller
             'delivery_days'    => $request->delivery_days ? (int) $request->delivery_days : $product->delivery_days,
         ];
 
+        // Tikai administrators drīkst mainīt produkta statusu
         if (auth()->user()->role === 'admin') {
             $updateData['status'] = $request->status ?? $product->status;
         }
 
+        // Ja pievienots jauns attēls, dzēš veco un saglabā jauno
         if ($request->hasFile('image')) {
             if ($product->image_path) {
                 \Illuminate\Support\Facades\Storage::disk('public')->delete($product->image_path);
@@ -203,104 +208,112 @@ class ProductController extends Controller
     // Uzsāk Stripe maksājumu sesiju produkta iegādei
     public function buy(Request $request, Product $product)
     {
-        $user = auth()->user();
+        $user = auth()->user(); // Iegūst pašreizējo autentificēto lietotāju
 
+        // Validācija: lietotājs nedrīkst pirkt savu paša produktu
         if ($product->user_id == $user->id) {
-            return redirect()->route('products.show', $product)
-                ->with('error', 'Jūs nevarat iegādāties savu produktu.');
+            return redirect()->route('products.show', $product) // Novirza atpakaļ uz produkta lapu
+                ->with('error', 'Jūs nevarat iegādāties savu produktu.'); // Pievienots kļūdas ziņojums
         }
 
+        // Pārbauda vai produkts ir aktīvs un pieejams pirkumam
         if ($product->status !== 'active') {
-            return redirect()->route('products.show', $product)
-                ->with('error', 'Produkts nav pieejams.');
+            return redirect()->route('products.show', $product) // Novirza atpakaļ uz produkta lapu
+                ->with('error', 'Produkts nav pieejams.'); // Pievienots kļūdas ziņojums
         }
 
+        // Pārbauda produkta daudzumu noliktavā (stock > 0)
         if ($product->stock < 1) {
-            return redirect()->route('products.show', $product)
-                ->with('error', 'Produkts ir izpārdots.');
+            return redirect()->route('products.show', $product) // Novirza atpakaļ uz produkta lapu
+                ->with('error', 'Produkts ir izpārdots.'); // Pievienots kļūdas ziņojums
         }
 
+        // Izveido jaunu pasūtījuma ierakstu datubāzē ar statusu 'pending' pirms Stripe izsaukuma
         $order = Order::create([
-            'buyer_id'   => $user->id,
-            'product_id' => $product->id,
-            'amount'     => $product->price,
-            'currency'   => $product->currency ?? 'eur',
-            'status'     => 'pending',
+            'buyer_id'   => $user->id,          // Pircēja lietotāja ID
+            'product_id' => $product->id,       // Iegādājamā produkta ID
+            'amount'     => $product->price,    // Produkta cena, ko jāmaksā
+            'currency'   => $product->currency ?? 'eur', // Valūta (noklusējuma valūta: EUR)
+            'status'     => 'pending',          // Statuss: gaida maksājuma apstiprinājumu
         ]);
 
+        // Mēģina izveidot Stripe Checkout sesiju maksājumam
         try {
             $session = StripeSession::create([
-                'payment_method_types' => ['card'],
+                'payment_method_types' => ['card'], // Atbalstītā maksājuma metode: karte
                 'line_items' => [[
                     'price_data' => [
-                        'currency'     => $product->currency ?? 'eur',
-                        'product_data' => ['name' => $product->title],
-                        'unit_amount'  => (int) round($product->price * 100),
+                        'currency'     => $product->currency ?? 'eur', // Valūta maksājumam
+                        'product_data' => ['name' => $product->title], // Produkta nosaukums Stripe pirkuma lapā
+                        'unit_amount'  => (int) round($product->price * 100), // Cena centos (Stripe prasība)
                     ],
-                    'quantity' => 1,
+                    'quantity' => 1, // Viena prece uz vienu pirkumu
                 ]],
-                'mode'        => 'payment',
-                'success_url' => route('products.purchase_success', ['order' => $order->id]) . '&session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url'  => route('products.purchase_cancel', ['order' => $order->id]),
-                'metadata'    => ['order_id' => (string) $order->id],
+                'mode'        => 'payment', // Vienreizējs maksājums
+                'success_url' => route('products.purchase_success', ['order' => $order->id]) . '&session_id={CHECKOUT_SESSION_ID}', // URL pēc veiksmīga maksājuma
+                'cancel_url'  => route('products.purchase_cancel', ['order' => $order->id]), // URL ja lietotājs atceļ maksājumu
+                'metadata'    => ['order_id' => (string) $order->id], // Metadati: pasūtījuma ID webhook apstrādei
             ]);
         } catch (\Throwable $e) {
-            \Log::error("Stripe checkout session error: {$e->getMessage()}");
-            $order->delete();
+            \Log::error("Stripe checkout session error: {$e->getMessage()}"); // Ieraksta kļūdu sistēmas žurnālā
+            $order->delete(); // Dzēš izveidoto pasūtījumu, jo Stripe sesija neizdeviās
             return redirect()->route('products.show', $product)
-                ->with('error', 'Maksājumu sistēmas kļūda.');
+                ->with('error', 'Maksājumu sistēmas kļūda.'); // Pievienots kļūdas ziņojums
         }
 
-        return redirect()->away($session->url);
+        return redirect()->away($session->url); // Novirza lietotāju uz Stripe checkout lapu
     }
 
     // Apstrādā veiksmīgu produkta pirkumu un nosūta apstiprinājuma e-pastu
     public function purchaseSuccess(Request $request)
     {
-        $order = Order::find($request->order);
+        $order = Order::find($request->order); // Atrod pasūtījumu datubāzē pēc URL parametra 'order'
 
+        // Apstrādā tikai ja pasūtījums eksistē un vēl ir 'pending' (aizsardzība pret dubultu apstrādi)
         if ($order && $order->status === 'pending') {
-            DB::transaction(function () use ($order) {
-                $order->status = 'paid';
-                $order->save();
+            DB::transaction(function () use ($order) { // Sāk datubāzes transakciju
+                $order->status = 'paid'; // Nomaina pasūtījuma statusu uz 'paid'
+                $order->save(); // Saglabā statusu datubāzē
 
-                // Decrement stock atomically; if it reaches 0, mark product sold
+                // Pārbauda un atjaunina produkta daudzumu noliktavā, izmantojot "SELECT ... FOR UPDATE" bloķēšanu, lai izvairītos no "konkurences" problēmām
                 $product = Product::lockForUpdate()->find($order->product_id);
-                if ($product && $product->stock > 0) {
-                    $product->decrement('stock');
-                    if ($product->fresh()->stock <= 0) {
-                        $product->status = 'sold';
-                        $product->save();
+                if ($product && $product->stock > 0) { // Pārbauda vai produkts ir vēl ir pieejams noliktavā
+                    $product->decrement('stock'); // Samazina produktu daudzumu par 1
+                    if ($product->fresh()->stock <= 0) { // Pārlasa produkta daudzumu pēc samazināšanas
+                        $product->status = 'sold'; // Ja krājums sasniedz 0 — atzīmē produktu kā 'sold' jeb pārdotu
+                        $product->save(); // Saglabā jauno statusu datubāzē
                     }
                 }
             });
 
+            // Mēģina nosūtīt apstiprinājuma e-pastu pircējam
             try {
-                $order->load('product', 'buyer');
-                if ($order->buyer?->email) {
-                    Mail::to($order->buyer->email)->send(new OrderConfirmed($order));
+                $order->load('product', 'buyer'); // Ielādē saistītos modeļus e-pasta saturam
+                if ($order->buyer?->email) { // Pārbauda vai pircējam ir e-pasta adrese
+                    Mail::to($order->buyer->email)->send(new OrderConfirmed($order)); // Nosūta apstiprinājuma vēstuli
                 }
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send OrderConfirmed email: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Failed to send OrderConfirmed email: ' . $e->getMessage()); // Ieraksta kļūdu žurnālā
             }
         }
 
-        return redirect()->route('orders.index')
-            ->with('success', 'Pirkums veiksmīgs! Pasūtījuma apstiprinājums nosūtīts uz jūsu e-pastu.');
+        return redirect()->route('orders.index') // Novirza uz lietotāja pasūtījumu vēsturi
+            ->with('success', 'Pirkums veiksmīgs! Pasūtījuma apstiprinājums nosūtīts uz jūsu e-pastu.'); //  Paziņojums par veiksmīgu pirkumu
     }
 
-    // Atceļ gaidošo pasūtījumu
+    // Atceļ pasūtījumu
     public function purchaseCancel(Request $request)
     {
-        $order = Order::find($request->order);
+        $order = Order::find($request->order); // Atrod pasūtījumu datubāzē pēc URL parametra 'order'
 
+        // Atceļ pasūtījumu tikai ja tas vēl ir 'pending' — ja 'paid' jeb samaksāts, to nemaina
         if ($order && $order->status === 'pending') {
-            $order->status = 'cancelled';
-            $order->save();
+            $order->status = 'cancelled'; // Nomaina statusu uz 'cancelled' jeb atcelts
+            $order->save(); // Saglabā jauno statusu datubāzē
         }
 
-        return redirect()->route('products.show', $order->product)
-            ->with('error', 'Pasūtījums tika atcelts.');
+        return redirect()->route('products.show', $order->product) // Novirza atpakaļ uz produkta lapu
+            ->with('error', 'Pasūtījums tika atcelts.'); // Pievienots informācijas ziņojums
     }
 
     // Rāda lietotāja pasūtījumu vēsturi
@@ -337,7 +350,7 @@ class ProductController extends Controller
 
         $product->increment('stock', (int) $request->quantity);
 
-        // If product was sold out, reactivate it
+        // Ja produkts bija atzīmēts kā 'sold' un tiek papildināts ar jauno vērtību, maina statusu atpakaļ uz 'active'
         if ($product->status === 'sold') {
             $product->status = 'active';
             $product->save();

@@ -10,13 +10,46 @@
     let selectedEl     = null;
     let dragEl         = null;
     let dragOffset     = { x: 0, y: 0 };
+    let canvasScale    = 1;
     let dragStart      = null;
     let notifyTimer    = null;
     let onSaveCb       = null;
 
     /* ── DOM elementi ───────────────────────────────────────────── */
-    let canvas, wrapper, propPanel, notifEl;
+    let canvas, wrapper, canvasStage, propPanel, notifEl;
     let totalInput, colsInput, rowsInput;
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 768px)').matches;
+    }
+
+    function getCanvasScale() {
+        return canvasScale || 1;
+    }
+
+    function updateCanvasViewport() {
+        if (!canvas || !wrapper || !canvasStage) return;
+
+        if (isMobileViewport()) {
+            canvasScale = 1;
+            canvas.style.transform = 'none';
+            canvasStage.style.width = CANVAS_W + 'px';
+            canvasStage.style.height = CANVAS_H + 'px';
+            return;
+        }
+
+        var wrapperStyles = window.getComputedStyle(wrapper);
+        var paddingX = (parseFloat(wrapperStyles.paddingLeft) || 0) + (parseFloat(wrapperStyles.paddingRight) || 0);
+        var availableWidth = Math.max(1, wrapper.clientWidth - paddingX);
+        canvasScale = Math.min(1, availableWidth / CANVAS_W);
+        if (!isFinite(canvasScale) || canvasScale <= 0) canvasScale = 1;
+
+        canvas.style.transform = 'scale(' + canvasScale + ')';
+        canvasStage.style.width = Math.round(CANVAS_W * canvasScale) + 'px';
+        canvasStage.style.height = Math.round(CANVAS_H * canvasScale) + 'px';
+        wrapper.scrollLeft = 0;
+        wrapper.scrollTop = 0;
+    }
 
     /* ══════════════════════════════════════════════════════════════
        Inicializācija — iestata kanvas, ielādē elementus, piesiena notikumus
@@ -40,6 +73,7 @@
 
         canvas     = document.getElementById('arena-canvas');
         wrapper    = document.querySelector('.canvas-wrapper');
+        canvasStage = document.getElementById('canvas-stage');
         propPanel  = document.getElementById('element-properties');
         notifEl    = document.getElementById('builder-notification');
         totalInput = document.getElementById('seat-count');
@@ -56,6 +90,7 @@
         bindEvents();
         render();
         recalcRows();
+        updateCanvasViewport();
     }
 
     /* ══════════════════════════════════════════════════════════════
@@ -96,6 +131,11 @@
         /* grid size */
         var gridSlider = document.getElementById('grid-size-slider');
         if (gridSlider) {
+            gridSlider.addEventListener('wheel', function (e) {
+                e.preventDefault();
+                this.blur();
+            }, { passive: false });
+
             gridSlider.addEventListener('input', function () {
                 GRID_SIZE = parseInt(this.value, 10);
                 SEAT_SIZE = Math.max(10, GRID_SIZE - 6);
@@ -125,6 +165,15 @@
 
         if (totalInput) totalInput.addEventListener('input', recalcRows);
         if (colsInput)  colsInput.addEventListener('input', recalcRows);
+
+        if (wrapper) {
+            wrapper.addEventListener('wheel', function (e) {
+                if (isMobileViewport()) return;
+                e.preventDefault();
+            }, { passive: false });
+        }
+
+        window.addEventListener('resize', updateCanvasViewport);
 
         /* canvas events */
         canvas.addEventListener('click', onCanvasClick);
@@ -170,8 +219,9 @@
         var d = dataFor(el);
         dragStart = d ? { x: d.x, y: d.y } : null;
         var r = el.getBoundingClientRect();
-        dragOffset.x = cx - r.left;
-        dragOffset.y = cy - r.top;
+        var scale = getCanvasScale();
+        dragOffset.x = (cx - r.left) / scale;
+        dragOffset.y = (cy - r.top) / scale;
         el.style.cursor = 'grabbing';
     }
 
@@ -179,9 +229,13 @@
     function moveDrag(cx, cy) {
         if (!dragEl) return;
         var cr = canvas.getBoundingClientRect();
-        var er = dragEl.getBoundingClientRect();
-        var x = Math.max(0, Math.min(cx - cr.left - dragOffset.x, cr.width  - er.width));
-        var y = Math.max(0, Math.min(cy - cr.top  - dragOffset.y, cr.height - er.height));
+        var d = dataFor(dragEl);
+        if (!d) return;
+        var scale = getCanvasScale();
+        var px = (cx - cr.left) / scale;
+        var py = (cy - cr.top) / scale;
+        var x = Math.max(0, Math.min(px - dragOffset.x, CANVAS_W - d.width));
+        var y = Math.max(0, Math.min(py - dragOffset.y, CANVAS_H - d.height));
         dragEl.style.left = x + 'px';
         dragEl.style.top  = y + 'px';
     }

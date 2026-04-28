@@ -71,10 +71,10 @@
                                 {{-- Coin reward --}}
                                 <div class="mt-4 flex items-center justify-end">
                                     @if(!$ticket->coin_reward_claimed)
-                                        <form action="{{ route('tickets.claim', $ticket->id) }}" method="POST"
-                                              onsubmit="return confirm('Apstiprināt monētu pieprasījumu?');">
+                                        <form action="{{ route('tickets.claim', $ticket->id) }}" method="POST">
                                             @csrf
-                                            <button type="submit"
+                                            <button type="button"
+                                                    onclick="vpConfirm('Apstiprintāt monētu pieprasījumu?', () => this.closest('form').submit(), { confirmText: 'Saņemt' })"
                                                     class="inline-flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-yellow-900 text-sm font-semibold rounded-xl transition shadow-sm">
                                                 🪙 Saņemt {{ $ticket->quantity * 50 }} monētas
                                             </button>

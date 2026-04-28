@@ -39,6 +39,11 @@ it('allows a logged-in user to create a match request', function () {
         'away_coach' => $faker->regexify('[A-Za-z ]{5,12}'), // Viesu trenera vārds
         'judges' => implode(', ', [$faker->regexify('[A-Za-z ]{5,12}'), $faker->regexify('[A-Za-z ]{5,12}')]), // Tiesnešu saraksts
         'location' => $faker->city() . ', Latvia', // Norises vieta
+        'arena_name' => $faker->regexify('[A-Za-z][A-Za-z]{4,19}'), // Arēnas nosaukums (obligāts)
+        'arena_layout' => '[]', // Noklusējuma tukšs arēnas plānojums
+        'arena_elements' => '[]', // Noklusējuma tukšs elementu saraksts
+        'arena_width' => 800, // Arēnas platums
+        'arena_height' => 600, // Arēnas augstums
         'players_per_team' => 2, // Spēlētāju skaits komandā
         'start_time' => now()->addDay()->format('Y-m-d\TH:i'), // Spēles sākuma laiks
         'end_time' => now()->addDay()->addHour()->format('Y-m-d\TH:i'), // Spēles beigu laiks
@@ -60,6 +65,7 @@ it('allows a logged-in user to create a match request', function () {
         'home_coach' => $formData['home_coach'],
         'away_coach' => $formData['away_coach'],
         'location' => $formData['location'],
+        'arena_name' => $formData['arena_name'],
         'players_per_team' => $formData['players_per_team'],
         'status' => 'pending', // Pārbauda, vai statuss pēc izveides ir "pending"
     ]);

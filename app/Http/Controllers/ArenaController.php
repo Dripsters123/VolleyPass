@@ -44,10 +44,10 @@ class ArenaController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'layout' => 'nullable',
-            'elements' => 'nullable',
-            'width' => 'nullable|integer|min:400|max:2000',
-            'height' => 'nullable|integer|min:300|max:1500',
+            'layout' => 'required',
+            'elements' => 'required',
+            'width' => 'required|integer|min:400|max:2000',
+            'height' => 'required|integer|min:300|max:1500',
             'is_public' => 'boolean',
             'width_m' => 'nullable|numeric|min:1|max:200',
             'height_m' => 'nullable|numeric|min:1|max:200',
@@ -73,8 +73,8 @@ class ArenaController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'user_id' => Auth::id(),
-            'width' => $request->width ?? 1000,
-            'height' => $request->height ?? 700,
+            'width' => $request->width,
+            'height' => $request->height,
             'is_public' => $request->boolean('is_public', false),
             'layout' => $layout,
             'elements' => $elements,
@@ -107,10 +107,10 @@ class ArenaController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'layout' => 'nullable',
-            'elements' => 'nullable',
-            'width' => 'nullable|integer|min:400|max:2000',
-            'height' => 'nullable|integer|min:300|max:1500',
+            'layout' => 'required',
+            'elements' => 'required',
+            'width' => 'required|integer|min:400|max:2000',
+            'height' => 'required|integer|min:300|max:1500',
             'is_public' => 'boolean',
         ]);
 
@@ -135,8 +135,8 @@ class ArenaController extends Controller
             'description' => $request->description,
             'layout' => $layout,
             'elements' => $elements,
-            'width' => $request->width ?? $arena->width,
-            'height' => $request->height ?? $arena->height,
+            'width' => $request->width,
+            'height' => $request->height,
             'is_public' => $request->boolean('is_public', $arena->is_public),
         ]);
 

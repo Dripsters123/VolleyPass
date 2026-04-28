@@ -15,9 +15,7 @@ use App\Models\ProductReview;
 
 class ProductsSeeder extends Seeder
 {
-    /**
-     * Realistic volleyball merchandise catalog.
-     */
+
     private array $catalog = [
         ['title' => 'Mikasa V200W Sacensību bumba',      'price' => 89.99,  'category' => 'ball',    'desc' => 'Oficiālā FIVB sacensību volejbola bumba. Ādas virsma ar 18 panelēm nodrošina izcilu kontroli un stabilu lidojumu.'],
         ['title' => 'Asics Gel-Rocket 10 apavi',         'price' => 74.95,  'category' => 'shoes',   'desc' => 'Viegls un elpojošs volejbola apavs ar GEL amortizācijas tehnoloģiju. Ideāli piemēroti ātrām kustībām laukumā.'],
@@ -91,38 +89,37 @@ class ProductsSeeder extends Seeder
         $requestTypes    = ['create_product', 'update_product', 'price_change'];
         $requestStatuses = ['pending', 'approved', 'rejected'];
 
-        // Review bias per catalog index: 'liked', 'disliked', 'mixed'
         $reviewBiases = [
-            'liked',    // 0  Mikasa V200W
-            'liked',    // 1  Asics Gel-Rocket
-            'liked',    // 2  Molten V5M5000
-            'mixed',    // 3  VolleyPass krekls
-            'liked',    // 4  Mizuno Thunder Blade
-            'mixed',    // 5  Ceļgalu aizsargi
-            'mixed',    // 6  Fanu šalle
-            'mixed',    // 7  Treniņu antenas
-            'liked',    // 8  Nike Hyperspike
-            'mixed',    // 9  Komandas soma
-            'liked',    // 10 Volejbola tīkls
-            'mixed',    // 11 Libero krekls
-            'mixed',    // 12 Sienas plakāts
-            'mixed',    // 13 Treniņu kones
-            'liked',    // 14 Asics Gel-Task 2
-            'mixed',    // 15 Bumbu soma
-            'mixed',    // 16 Sporta cepure
-            'mixed',    // 17 Plaukstu aizsargi
-            'liked',    // 18 Mikasa MVA200
-            'disliked', // 19 Treniņu pīlārs (pārāk dārgs)
-            'mixed',    // 20 Sporta dvielis
-            'disliked', // 21 Sezonas abonements (dārgs)
-            'disliked', // 22 Komandas formu komplekts (dārgs)
-            'mixed',    // 23 Elastīgās jostas
-            'mixed',    // 24 Grāmata
-            'liked',    // 25 Adidas Ligra 7
-            'mixed',    // 26 Marķēšanas lente
-            'mixed',    // 27 Roku siksna
-            'disliked', // 28 Profesionāla kamera (dārga/nišas)
-            'mixed',    // 29 Motivācijas plakāts
+            'liked',    
+            'liked',    
+            'liked',    
+            'mixed',    
+            'liked',    
+            'mixed',    
+            'mixed',    
+            'mixed',    
+            'liked',    
+            'mixed',    
+            'liked',     
+            'mixed',     
+            'mixed',     
+            'mixed',     
+            'liked',     
+            'mixed',     
+            'mixed',     
+            'mixed',     
+            'liked',     
+            'disliked',  
+            'mixed',     
+            'disliked',  
+            'disliked',  
+            'mixed',     
+            'mixed',    
+            'liked',     
+            'mixed',     
+            'mixed',    
+            'disliked',
+            'mixed',     
         ];
 
         $phonePool = [
@@ -177,7 +174,6 @@ class ProductsSeeder extends Seeder
                 'image_path'    => $imagePath,
             ]);
 
-            // 20% chance of simulated sale
             if (random_int(1, 100) <= 20) {
                 $buyerCandidates = $users->filter(fn($u) => $u->id !== $seller->id)->values();
                 if ($buyerCandidates->isNotEmpty()) {
@@ -194,7 +190,6 @@ class ProductsSeeder extends Seeder
                     $product->stock  = 0;
                     $product->save();
 
-                    // Award coins: 5 per €1 spent
                     try {
                         $coins  = round($product->price * 5);
                         $wallet = Wallet::firstOrCreate(['user_id' => $seller->id], ['balance' => 0]);
@@ -242,7 +237,6 @@ class ProductsSeeder extends Seeder
                 'image_path'    => $product->image_path,
             ]);
 
-            // Seed reviews with bias
             $bias = $reviewBiases[$i] ?? 'mixed';
             $reviewerPool = $users->filter(fn($u) => $u->id !== $seller->id)->values()->shuffle();
             $reviewCount  = match($bias) {
@@ -283,7 +277,6 @@ class ProductsSeeder extends Seeder
         $safeTitle  = htmlspecialchars(mb_substr($title, 0, 28), ENT_QUOTES | ENT_XML1, 'UTF-8');
         $safeIcon   = htmlspecialchars($icon, ENT_QUOTES | ENT_XML1, 'UTF-8');
 
-        // Wrap long title into two lines
         $words = explode(' ', $safeTitle);
         $line1 = '';
         $line2 = '';

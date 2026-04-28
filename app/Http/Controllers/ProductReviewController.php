@@ -24,7 +24,7 @@ class ProductReviewController extends Controller
 
         ProductReview::updateOrCreate(
             ['product_id' => $product->id, 'user_id' => $userId],
-            ['vote' => $request->vote, 'comment' => null]
+            ['vote' => $request->vote]
         );
 
         return back();

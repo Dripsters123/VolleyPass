@@ -8,8 +8,10 @@
 @push('styles')
 <style>
 /* ── Canvas ────────────────────────────────── */
-.canvas-wrapper{overflow:auto;width:100%;padding:1.5rem;display:flex;justify-content:center;background:#f3f4f6;border-radius:12px}
-.arena-canvas{position:relative;border:3px solid #e5e7eb;border-radius:16px;background:#fff url() repeat;background-image:linear-gradient(rgba(148,163,184,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.3) 1px,transparent 1px);background-size:50px 50px;box-shadow:0 10px 25px rgba(0,0,0,.08);overflow:hidden}
+.canvas-wrapper{overflow:hidden;width:100%;padding:1.5rem;display:flex;justify-content:center;background:#f3f4f6;border-radius:12px}
+.canvas-scroll-content{display:flex;justify-content:center;width:100%;min-width:0}
+.canvas-stage{position:relative;flex:0 0 auto}
+.arena-canvas{position:relative;border:3px solid #e5e7eb;border-radius:16px;background:#fff url() repeat;background-image:linear-gradient(rgba(148,163,184,.3) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.3) 1px,transparent 1px);background-size:50px 50px;box-shadow:0 10px 25px rgba(0,0,0,.08);overflow:hidden;transform-origin:top left}
 
 /* ── Elements ──────────────────────────────── */
 .arena-element{position:absolute;cursor:grab;user-select:none;display:flex;align-items:center;justify-content:center;font-weight:700;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:box-shadow .2s,transform .2s;z-index:10}
@@ -30,7 +32,7 @@
 .builder-notification.success{display:block;background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
 .builder-notification.hidden{display:none}
 
-@media(max-width:1280px){.arena-canvas{min-width:1200px}}
+@media(max-width:768px){.canvas-wrapper{overflow-x:auto;overflow-y:hidden;display:block;padding:1rem 0;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.canvas-scroll-content{display:block;width:max-content;min-width:max-content;padding:0 .75rem}.canvas-stage{width:1200px;height:840px}.arena-canvas{display:block;margin:0;transform:none !important}}
 </style>
 @endpush
 
@@ -92,7 +94,7 @@
 
             <div>
                 <h4 class="font-medium mb-2">Režģa izmērs</h4>
-                <input id="grid-size-slider" type="range" min="30" max="80" value="50" class="w-full">
+                <input id="grid-size-slider" type="range" min="30" max="80" step="5" value="50" class="w-full">
                 <div class="text-xs text-center text-slate-500" id="grid-size-label">50px</div>
             </div>
 
@@ -122,7 +124,11 @@
                 <div class="text-sm text-gray-500" id="canvas-size">1200 × 840 px</div>
             </div>
             <div class="canvas-wrapper">
-                <div id="arena-canvas" class="arena-canvas" style="width:1200px;height:840px;"></div>
+                <div class="canvas-scroll-content">
+                    <div id="canvas-stage" class="canvas-stage">
+                        <div id="arena-canvas" class="arena-canvas" style="width:1200px;height:840px;"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

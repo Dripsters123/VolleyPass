@@ -97,8 +97,8 @@
                 <form action="{{ route('arenas.destroy', $arena) }}" method="POST">
                     @csrf
                     @method('DELETE')
-                    <button type="submit"
-                            onclick="return confirm('Vai tiešām dzēst šo arēnu?')"
+                    <button type="button"
+                            onclick="vpConfirm('Vai tiešām dzēst šo arēnu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Dzēst' })"
                             title="Dzēst"
                             class="w-8 h-8 flex items-center justify-center rounded-lg text-red-500 bg-red-50 hover:bg-red-100 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

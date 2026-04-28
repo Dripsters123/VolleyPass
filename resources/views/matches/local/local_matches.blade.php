@@ -335,11 +335,6 @@
                     <button type="button" id="addSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">+ Setu</button>
                     <button type="button" id="removeSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">− Setu</button>
                   </div>
-                  <div>
-                    <label class="block text-xs text-gray-500 mb-1">Beigu laiks</label>
-                    <input type="datetime-local" name="actual_end_time"
-                           class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
-                  </div>
                   <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                     Saglabāt rezultātu
                   </button>
@@ -386,11 +381,6 @@
                 <div class="flex gap-2">
                   <button type="button" id="adminAddSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">+ Setu</button>
                   <button type="button" id="adminRemoveSetBtn" class="flex-1 py-1.5 text-xs rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors">− Setu</button>
-                </div>
-                <div>
-                  <label class="block text-xs text-gray-500 mb-1">Beigu laiks</label>
-                  <input type="datetime-local" name="actual_end_time"
-                         class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm">
                 </div>
                 <button class="w-full py-2.5 rounded-xl text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700 transition-colors">
                   Apstiprināt un pabeigt

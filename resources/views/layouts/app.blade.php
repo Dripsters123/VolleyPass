@@ -119,5 +119,57 @@
     </footer>
 
     @stack('scripts')
+
+    {{-- VolleyPass global confirm modal --}}
+    <div id="vpConfirmModal"
+         class="hidden fixed inset-0 z-[9998] flex items-center justify-center"
+         onclick="if(event.target===this) vpConfirmClose()">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+        <div class="relative bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 animate-in fade-in zoom-in-95 duration-150">
+            <p id="vpConfirmMessage" class="text-gray-800 dark:text-gray-100 text-base font-medium text-center mb-6"></p>
+            <div class="flex gap-3">
+                <button onclick="vpConfirmClose()"
+                        class="flex-1 px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 font-semibold text-sm transition">
+                    Atcelt
+                </button>
+                <button id="vpConfirmOk"
+                        class="flex-1 px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition shadow-sm">
+                    Apstiprināt
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        let _vpCallback = null;
+
+        window.vpConfirm = function (message, onConfirm, options) {
+            options = options || {};
+            var confirmText  = options.confirmText  || 'Apstiprināt';
+            var confirmColor = options.danger ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-600 hover:bg-blue-700';
+
+            document.getElementById('vpConfirmMessage').textContent = message;
+            var okBtn = document.getElementById('vpConfirmOk');
+            okBtn.textContent = confirmText;
+            okBtn.className = 'flex-1 px-4 py-2.5 rounded-xl font-semibold text-sm text-white transition shadow-sm ' + confirmColor;
+
+            _vpCallback = onConfirm;
+            document.getElementById('vpConfirmModal').classList.remove('hidden');
+        };
+
+        window.vpConfirmClose = function () {
+            document.getElementById('vpConfirmModal').classList.add('hidden');
+            _vpCallback = null;
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('vpConfirmOk').addEventListener('click', function () {
+                document.getElementById('vpConfirmModal').classList.add('hidden');
+                if (typeof _vpCallback === 'function') _vpCallback();
+                _vpCallback = null;
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

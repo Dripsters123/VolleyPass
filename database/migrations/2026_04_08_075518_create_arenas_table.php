@@ -16,8 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->text('description')->nullable();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->json('layout')->nullable(); // Store the custom layout configuration
-            $table->json('elements')->nullable(); // Store seats, court, etc. positions
+            $table->json('layout'); // Store the custom layout configuration
+            $table->json('elements'); // Store seats, court, etc. positions
             $table->integer('width')->default(800); // Canvas width
             $table->integer('height')->default(600); // Canvas height
             $table->boolean('is_public')->default(false);

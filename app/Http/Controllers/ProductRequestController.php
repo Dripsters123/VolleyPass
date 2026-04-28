@@ -80,7 +80,7 @@ class ProductRequestController extends Controller
 
         ProductRequest::create($data);
 
-        return redirect()->route('match_requests.my')
+        return redirect()->route('product_requests.index')
             ->with('success', 'Jūsu pieprasījums tika iesniegts administrācijai.');
     }
 

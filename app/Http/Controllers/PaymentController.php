@@ -19,6 +19,7 @@ use App\Mail\TicketPurchased;
 
 class PaymentController extends Controller
 {
+    // Iestata Stripe API atslēgu no lietojumprogrammas konfigurācijas
     public function __construct()
     {
         Stripe::setApiKey(config('services.stripe.secret'));
@@ -472,6 +473,7 @@ class PaymentController extends Controller
         return response()->json(['status' => 'ignored'], 200);
     }
 
+    // Pārbauda atlaižu koda derīgumu un aprēķina atlaides summu pēc izvēles sēdvietām
     public function validateDiscount(Request $request)
     {
         $request->validate([

@@ -267,7 +267,8 @@
       @if($req->status !== 'accepted')
         <form method="POST" action="{{ route('admin.match_requests.accept', $req->id) }}">
           @csrf
-          <button type="submit" onclick="return confirm('Apstiprināt pieprasījumu?');"
+          <button type="button"
+                  onclick="vpConfirm('Apstiprintāt pieprasījumu?', () => this.closest('form').submit(), { confirmText: 'Apstiprintāt' })"
                   class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-xl transition shadow-sm">
             ✅ Apstiprināt
           </button>
@@ -321,10 +322,10 @@
 
   {{-- Admin delete (cleanup) --}}
   <div class="mt-4 flex justify-end">
-    <form method="POST" action="{{ route('admin.match_requests.admin_destroy', $req->id) }}"
-          onsubmit="return confirm('Dzēst šo pieprasījumu pilnībā? Šī darbība ir neatgriezeniska.');">
+    <form method="POST" action="{{ route('admin.match_requests.admin_destroy', $req->id) }}">
       @csrf @method('DELETE')
-      <button type="submit"
+      <button type="button"
+              onclick="vpConfirm('Dzēst šo pieprasījumu pilnibā? Šī darbība ir neatgriezeniska.', () => this.closest('form').submit(), { danger: true, confirmText: 'Dzēst' })"
               class="px-4 py-2 text-xs text-gray-400 hover:text-red-600 border border-gray-200 hover:border-red-300 rounded-xl transition">
         🗑 Dzēst pieprasījumu
       </button>
