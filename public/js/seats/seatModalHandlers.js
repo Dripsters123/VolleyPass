@@ -388,7 +388,12 @@
       updateSummaryUI([]);
       try {
         const sel = seatMapContainer.querySelectorAll('.selected, .seat-item.selected');
-        sel.forEach(n => n.classList.remove('selected', 'bg-blue-600', 'bg-green-600', 'text-white', 'font-bold', 'font-semibold', 'shadow-md'));
+        sel.forEach(n => {
+          n.classList.remove('selected', 'bg-blue-600', 'bg-green-600', 'text-white', 'font-bold', 'font-semibold', 'shadow-md');
+          if (!n.classList.contains('bg-red-600') && !n.classList.contains('bg-yellow-400')) {
+            n.classList.add('bg-blue-500', 'text-white');
+          }
+        });
       } catch (e) {}
       // Clear the internal selection Set so re-opening modal starts fresh
       try {

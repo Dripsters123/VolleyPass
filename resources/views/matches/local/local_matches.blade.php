@@ -88,7 +88,10 @@
                   <span class="w-3 h-3 rounded bg-blue-500 inline-block"></span>Brīvs
                 </span>
                 <span class="flex items-center gap-1.5">
-                  <span class="w-3 h-3 rounded bg-red-400 inline-block"></span>Aizņemts
+                  <span class="w-3 h-3 rounded bg-yellow-400 inline-block"></span>Rezervēts
+                </span>
+                <span class="flex items-center gap-1.5">
+                  <span class="w-3 h-3 rounded bg-red-500 inline-block"></span>Aizņemts
                 </span>
               </div>
             </div>
@@ -106,10 +109,11 @@
                       $seatNum = $el['number'] ?? $el['label'] ?? 'S';
                       $seatId  = $el['id'] ?? (string)$seatNum;
                       $isTaken = in_array($seatId, $takenSeats ?? []);
+                      $isReserved = !$isTaken && in_array($seatId, $reservedSeats ?? []);
                     @endphp
-                    <div style="position:absolute;left:{{ $el['x'] }}px;top:{{ $el['y'] }}px;width:{{ $el['width'] ?? 40 }}px;height:{{ $el['height'] ?? 40 }}px;background:{{ $isTaken ? '#f87171' : '#3b82f6' }};color:#fff;border:2px solid {{ $isTaken ? '#ef4444' : '#2563eb' }};border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;cursor:{{ $isTaken ? 'not-allowed' : 'pointer' }};box-shadow:0 1px 4px rgba(0,0,0,.15);transition:transform .1s;"
-                         title="{{ $seatNum }}{{ $isTaken ? ' (aizņemts)' : ' – klikšķini lai izvēlētos' }}"
-                         onmouseover="{{ $isTaken ? '' : "this.style.transform='scale(1.12)'" }}"
+                    <div style="position:absolute;left:{{ $el['x'] }}px;top:{{ $el['y'] }}px;width:{{ $el['width'] ?? 40 }}px;height:{{ $el['height'] ?? 40 }}px;background:{{ $isTaken ? '#ef4444' : ($isReserved ? '#facc15' : '#3b82f6') }};color:{{ $isReserved ? '#713f12' : '#fff' }};border:2px solid {{ $isTaken ? '#dc2626' : ($isReserved ? '#eab308' : '#2563eb') }};border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;cursor:{{ ($isTaken || $isReserved) ? 'not-allowed' : 'pointer' }};box-shadow:0 1px 4px rgba(0,0,0,.15);transition:transform .1s;"
+                         title="{{ $seatNum }}{{ $isTaken ? ' (aizņemts)' : ($isReserved ? ' (rezervēts)' : ' – klikšķini lai izvēlētos') }}"
+                         onmouseover="{{ ($isTaken || $isReserved) ? '' : "this.style.transform='scale(1.12)'" }}"
                          onmouseout="this.style.transform='scale(1)'">
                       {{ $seatNum }}
                     </div>
@@ -134,6 +138,8 @@
                           data-ticket-price="{{ $match->ticket_price ?? 10 }}"
                           data-taken-seats="{{ json_encode($takenSeats) }}"
                           data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
+                          data-reserved-seats="{{ json_encode($reservedSeats) }}"
+                          data-reserved-seat-ids="{{ json_encode($reservedSeatIds) }}"
                           data-seat-prices="{{ json_encode($seatPrices) }}"
                           data-seat-ids="{{ json_encode($seatIdMap) }}"
                           data-new-user-promo="{{ $newUserPromoPercent }}"
@@ -166,6 +172,8 @@
                       data-ticket-price="{{ $match->ticket_price ?? 10 }}"
                       data-taken-seats="{{ json_encode($takenSeats) }}"
                       data-taken-seat-ids="{{ json_encode($takenSeatIds) }}"
+                      data-reserved-seats="{{ json_encode($reservedSeats) }}"
+                      data-reserved-seat-ids="{{ json_encode($reservedSeatIds) }}"
                       data-seat-prices="{{ json_encode($seatPrices) }}"
                       data-seat-ids="{{ json_encode($seatIdMap) }}"
                       data-new-user-promo="{{ $newUserPromoPercent }}"

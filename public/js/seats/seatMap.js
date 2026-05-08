@@ -151,7 +151,7 @@
         seat.classList.add('bg-yellow-400', 'cursor-not-allowed');
         seat.dataset.reserved = '1';
       } else {
-        seat.classList.add('bg-gray-300', 'hover:shadow-md', 'hover:scale-105');
+        seat.classList.add('bg-blue-500', 'text-white', 'hover:shadow-md', 'hover:scale-105');
         seat.dataset.taken = '0';
       }
 
@@ -173,10 +173,12 @@
         if (seat.dataset.taken === '1' || seat.dataset.reserved === '1') return;
         const selectedNow = seat.classList.contains('selected');
         if (!selectedNow) {
+          seat.classList.remove('bg-blue-500');
           seat.classList.add('selected', 'bg-green-600', 'text-white', 'font-bold', 'shadow-md');
           state.selected.add(key);
         } else {
           seat.classList.remove('selected', 'bg-green-600', 'text-white', 'font-bold', 'shadow-md');
+          seat.classList.add('bg-blue-500', 'text-white');
           state.selected.delete(key);
         }
 
@@ -369,12 +371,12 @@
         seat.classList.add('bg-yellow-400', 'cursor-not-allowed');
         seat.dataset.reserved = '1';
       } else {
-        seat.classList.add('bg-green-600', 'text-white', 'hover:shadow-md', 'hover:scale-105');
+        seat.classList.add('bg-blue-500', 'text-white', 'hover:shadow-md', 'hover:scale-105');
         seat.dataset.taken = '0';
       }
 
       if (state.selected.has(key) && !isTaken && !isReserved) {
-        seat.classList.add('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+        seat.classList.add('selected', 'bg-green-600', 'text-white', 'font-bold', 'shadow-md');
       }
 
       seat.addEventListener('mouseenter', () => {
@@ -391,10 +393,12 @@
         if (seat.dataset.taken === '1' || seat.dataset.reserved === '1') return;
         const selectedNow = seat.classList.contains('selected');
         if (!selectedNow) {
-          seat.classList.add('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+          seat.classList.remove('bg-blue-500');
+          seat.classList.add('selected', 'bg-green-600', 'text-white', 'font-bold', 'shadow-md');
           state.selected.add(key);
         } else {
-          seat.classList.remove('selected', 'bg-blue-600', 'text-white', 'font-bold', 'shadow-md');
+          seat.classList.remove('selected', 'bg-green-600', 'text-white', 'font-bold', 'shadow-md');
+          seat.classList.add('bg-blue-500', 'text-white');
           state.selected.delete(key);
         }
 
@@ -436,7 +440,7 @@
       container.innerHTML = '';
       container.appendChild(detailView);
 
-      // Handle custom arena layouts
+      // Pielāgotas arēnas izkārtojums ar definējamiem elementiem (sēdvietas, laukums, u.c.) un to stāvokli (aizņemts, rezervēts, brīvs)
       if (useCustomLayout) {
         return applyCustomLayout();
       }

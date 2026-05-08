@@ -389,6 +389,19 @@ class MatchController extends Controller
         $takenSeatIds = $match->seats()->whereNotNull('ticket_id')->pluck('id', 'seat_number')->toArray();
         $seatIdMap = $match->seats()->pluck('id', 'seat_number')->toArray();
 
+        $reservedSeats = $match->seats()
+            ->whereNull('ticket_id')
+            ->whereNotNull('reserved_by')
+            ->where('reserved_until', '>', now())
+            ->pluck('seat_number')
+            ->toArray();
+        $reservedSeatIds = $match->seats()
+            ->whereNull('ticket_id')
+            ->whereNotNull('reserved_by')
+            ->where('reserved_until', '>', now())
+            ->pluck('id', 'seat_number')
+            ->toArray();
+
         $seatPriceValues = array_values(array_filter($seatPrices, fn($p) => $p > 0));
         $minSeatPrice = !empty($seatPriceValues) ? min($seatPriceValues) : ($match->ticket_price ?? 0);
         $maxSeatPrice = !empty($seatPriceValues) ? max($seatPriceValues) : ($match->ticket_price ?? 0);
@@ -406,7 +419,7 @@ class MatchController extends Controller
 
         return view('matches.local.local_matches', compact(
             'match', 'takenSeats', 'seatPrices', 'takenSeatIds', 'seatIdMap', 'arena', 'customElements', 'newUserPromoPercent',
-            'minSeatPrice', 'maxSeatPrice'
+            'minSeatPrice', 'maxSeatPrice', 'reservedSeats', 'reservedSeatIds'
         ));
     }
 

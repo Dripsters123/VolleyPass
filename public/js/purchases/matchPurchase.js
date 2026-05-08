@@ -33,6 +33,13 @@
     return res;
   }
 
+  // Tūlītēja pārbaude — izpildās sinhroni kad skripts ielādējas (aptver gadījumu kad lapa
+  // no jauna ielādēta pēc atgriešanās no Stripe, nevis no BF kešatmiņas).
+  if (sessionStorage.getItem('stripeCheckoutPending') === '1') {
+    sessionStorage.removeItem('stripeCheckoutPending');
+    safeFetch('/payment/release-reservation', { method: 'POST', credentials: 'include' }).catch(function () {});
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const finalizeBtn = document.getElementById('finalizePurchaseBtn');
     const buyBtn = document.getElementById('buyTicketBtn');
