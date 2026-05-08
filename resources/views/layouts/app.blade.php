@@ -102,7 +102,7 @@
         @endisset
     </main>
 
-    <footer class="mt-auto bg-gray-950 border-t border-white/10 text-gray-400 py-7">
+    <footer class="mt-auto bg-gray-950 border-t border-white/10 text-gray-300 py-7">
         <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
             <div class="flex items-center gap-2">
                 <span class="flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-orange-400 to-blue-600">

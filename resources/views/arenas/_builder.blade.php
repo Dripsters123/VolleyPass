@@ -32,7 +32,12 @@
 .builder-notification.success{display:block;background:#dcfce7;color:#166534;border:1px solid #bbf7d0}
 .builder-notification.hidden{display:none}
 
-@media(max-width:768px){.canvas-wrapper{overflow-x:auto;overflow-y:hidden;display:block;padding:1rem 0;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}.canvas-scroll-content{display:block;width:max-content;min-width:max-content;padding:0 .75rem}.canvas-stage{width:1200px;height:840px}.arena-canvas{display:block;margin:0;transform:none !important}}
+@media(max-width:768px){
+  .canvas-wrapper{overflow:hidden;display:block;padding:.5rem 0;background:#f3f4f6}
+  .canvas-scroll-content{display:block;width:100%;padding:0}
+  .canvas-stage{overflow:hidden}
+  .arena-canvas{display:block;margin:0;transform-origin:top left}
+}
 </style>
 @endpush
 

@@ -23,29 +23,29 @@
       {{-- Filter sidebar --}}
       <aside class="hidden lg:block w-72 shrink-0">
         <div class="bg-white rounded-2xl border border-gray-200 p-5 sticky top-24">
-          <p class="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-4">Filtri</p>
+          <p class="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-4">Filtri</p>
           <form method="GET" action="{{ route('local.matches.index') }}" class="space-y-4">
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Komanda</label>
-              <input type="text" name="team_name" value="{{ request('team_name') }}" placeholder="Meklēt pēc komandas"
+              <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-team">Komanda</label>
+              <input type="text" id="filter-team" name="team_name" value="{{ request('team_name') }}" placeholder="Meklēt pēc komandas"
                    class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-colors">
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Treneris</label>
-              <input type="text" name="coach_name" value="{{ request('coach_name') }}" placeholder="Meklēt pēc trenera"
+              <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-coach">Treneris</label>
+              <input type="text" id="filter-coach" name="coach_name" value="{{ request('coach_name') }}" placeholder="Meklēt pēc trenera"
                    class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-colors">
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Vieta</label>
-              <input type="text" name="location" value="{{ request('location') }}" placeholder="Meklēt pēc vietas"
+              <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-location">Vieta</label>
+              <input type="text" id="filter-location" name="location" value="{{ request('location') }}" placeholder="Meklēt pēc vietas"
                    class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/20 transition-colors">
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Formāts</label>
-              <select name="players_per_team"
+              <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-format">Formāts</label>
+              <select id="filter-format" name="players_per_team"
                   class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 transition-colors">
                 <option value="">Visi</option>
                 <option value="2" {{ request('players_per_team') == 2 ? 'selected' : '' }}>2 pret 2</option>
@@ -56,20 +56,20 @@
 
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">No</label>
-                <input type="date" name="date_from" value="{{ request('date_from') }}"
+                <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-date-from">No</label>
+                <input type="date" id="filter-date-from" name="date_from" value="{{ request('date_from') }}"
                      class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 transition-colors">
               </div>
               <div>
-                <label class="block text-xs font-medium text-gray-600 mb-1.5">Līdz</label>
-                <input type="date" name="date_to" value="{{ request('date_to') }}"
+                <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-date-to">Līdz</label>
+                <input type="date" id="filter-date-to" name="date_to" value="{{ request('date_to') }}"
                      class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 transition-colors">
               </div>
             </div>
 
             <div>
-              <label class="block text-xs font-medium text-gray-600 mb-1.5">Maks. cena (€)</label>
-              <input type="number" step="0.01" name="max_price" value="{{ request('max_price') }}"
+              <label class="block text-xs font-medium text-gray-600 mb-1.5" for="filter-price">Maks. cena (€)</label>
+              <input type="number" id="filter-price" step="0.01" name="max_price" value="{{ request('max_price') }}"
                    class="w-full px-3 py-2 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-blue-400 transition-colors">
             </div>
 
@@ -143,7 +143,7 @@
           @foreach(['upcoming' => 'Gaidāmie', 'results_pending' => 'Rezultāti gaidāmi', 'completed' => 'Pabeigti'] as $key => $label)
             <a href="{{ route('local.matches.index', array_merge(request()->except('tab', 'page'), ['tab' => $key])) }}"
                class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all
-               {{ ($tab ?? 'upcoming') === $key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700' }}">
+               {{ ($tab ?? 'upcoming') === $key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-700 hover:text-gray-900' }}">
               {{ $label }}
             </a>
           @endforeach
@@ -181,7 +181,7 @@
                 <div class="flex items-center gap-3 mb-4">
                   <div class="flex-1 text-center">
                     @if($match->home_logo)
-                      <img src="{{ Storage::url($match->home_logo) }}" class="w-8 h-8 object-cover rounded-full mx-auto mb-1">
+                      <img src="{{ Storage::url($match->home_logo) }}" alt="{{ $match->home_team_name }}" class="w-8 h-8 object-cover rounded-full mx-auto mb-1">
                     @else
                       <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-xs font-bold text-orange-600 mx-auto mb-1">
                         {{ strtoupper(substr($match->home_team_name, 0, 2)) }}
@@ -191,7 +191,7 @@
                       {{ $match->home_team_name }}
                     </p>
                   </div>
-                  <div class="shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400">
+                  <div class="shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-[10px] font-black text-gray-600">
                     @if($done)
                       {{ $match->home_score }}–{{ $match->away_score }}
                     @elseif($resultsPending)
@@ -202,7 +202,7 @@
                   </div>
                   <div class="flex-1 text-center">
                     @if($match->away_logo)
-                      <img src="{{ Storage::url($match->away_logo) }}" class="w-8 h-8 object-cover rounded-full mx-auto mb-1">
+                      <img src="{{ Storage::url($match->away_logo) }}" alt="{{ $match->away_team_name }}" class="w-8 h-8 object-cover rounded-full mx-auto mb-1">
                     @else
                       <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-600 mx-auto mb-1">
                         {{ strtoupper(substr($match->away_team_name, 0, 2)) }}
@@ -224,7 +224,7 @@
                     {{ \Carbon\Carbon::parse($match->start_time)->format('d.m.Y H:i') }}
                   </div>
                   @if(!$done && !$resultsPending)
-                    <span class="font-semibold text-emerald-600">€{{ number_format($match->ticket_price ?? 0, 2) }}</span>
+                    <span class="font-semibold text-emerald-700">€{{ number_format($match->ticket_price ?? 0, 2) }}</span>
                   @endif
                 </div>
                 @if(auth()->check() && $match->created_by === auth()->id())
@@ -238,8 +238,8 @@
               </div>
 
               <div class="px-5 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
-                <span class="text-xs text-gray-400 truncate">{{ $match->location ?? '' }}</span>
-                <span class="text-xs font-medium {{ $done ? 'text-gray-400' : ($resultsPending ? 'text-amber-600' : 'text-blue-600 group-hover:underline') }}">
+                <span class="text-xs text-gray-500 truncate">{{ $match->location ?? '' }}</span>
+                <span class="text-xs font-medium whitespace-nowrap {{ $done ? 'text-gray-500' : ($resultsPending ? 'text-amber-700' : 'text-blue-600 group-hover:underline') }}">
                   @if($done) Pabeigts @elseif($resultsPending) Rezultāti gaidāmi @else Apskatīt → @endif
                 </span>
               </div>

@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  // Izsūta Alpine.js toast paziņojumu (izmanto globālo toast sistēmu)
+  function showToast(message, type = 'error') {
+    window.dispatchEvent(new CustomEvent('toast', { detail: { message, type } }));
+  }
+
   // Iegūst CSRF tokenu no meta taga
   function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
@@ -130,14 +135,14 @@
     finalizeBtn.addEventListener('click', async () => {
       if (finalizeBtn.disabled) return;
       if (!selectedSeat || selectedSeat.length === 0) {
-        alert('Nav izvēlēta vieta. Lūdzu izvēlies vietu pirms maksājuma.');
+        showToast('Nav izvēlēta vieta. Lūdzu izvēlies vietu pirms maksājuma.', 'warning');
         return;
       }
 
       const missing = selectedSeat.filter(s => !s.dbId);
       if (missing.length > 0) {
         console.error('[matchPurchase] Some seats missing dbId:', missing);
-        alert('Vienai vai vairākām izvēlētajām vietām nav derīga ID. Sazinies ar administratoru.');
+        showToast('Vienai vai vairākām izvēlētajām vietām nav derīga ID. Sazinies ar administratoru.', 'error');
         return;
       }
 
@@ -159,7 +164,7 @@
               msg = json.error || json.message || msg;
             } catch (_) {}
             if (res.status === 419) msg = 'CSRF token mismatch — iespējams lapa ir novecojusi. Atsvaidzini lapu un mēģini vēlreiz.';
-            alert(msg);
+            showToast(msg, 'error');
             finalizeBtn.disabled = false;
             finalizeBtn.textContent = prevText;
             return;
@@ -189,7 +194,7 @@
           let text = '';
           try { text = await checkoutResp.text(); } catch (_) {}
           console.error('[matchPurchase] Checkout failed', checkoutResp.status, text);
-          alert('Checkout failed: ' + (text || checkoutResp.statusText));
+          showToast('Maksājuma kļūda — lūdzu mēģini vēlreiz.', 'error');
           finalizeBtn.disabled = false;
           finalizeBtn.textContent = prevText;
           return;
@@ -197,18 +202,32 @@
 
         const data = await checkoutResp.json().catch(() => ({}));
         if (data && data.url) {
+          // Mark that we're leaving for Stripe so pageshow can release on return
+          sessionStorage.setItem('stripeCheckoutPending', '1');
           window.location.href = data.url;
           return;
         }
 
-        alert(data.error || data.message || 'Checkout failed (no redirect).');
+        showToast(data.error || data.message || 'Maksājuma kļūda — lūdzu mēģini vēlreiz.', 'error');
       } catch (err) {
         console.error('[matchPurchase] Exception:', err);
-        alert('Radās kļūda apstrādes laikā. Pārbaudi savienojumu vai mēģini vēlreiz.');
+        showToast('Radās kļūda apstrādes laikā. Pārbaudi savienojumu vai mēģini vēlreiz.', 'error');
       } finally {
         finalizeBtn.disabled = false;
         finalizeBtn.textContent = prevText;
       }
     });
+  });
+
+  // Atbrīvo rezervācijas ja lietotājs atgriežas no Stripe ar pārlūka atpakaļ pogu.
+  // Pārbauda sessionStorage karogu neatkarīgi no tā vai lapa tika kešota vai no jauna ielādēta.
+  window.addEventListener('pageshow', function () {
+    if (sessionStorage.getItem('stripeCheckoutPending') === '1') {
+      sessionStorage.removeItem('stripeCheckoutPending');
+      safeFetch('/payment/release-reservation', {
+        method: 'POST',
+        credentials: 'include',
+      }).catch(function () {});
+    }
   });
 })();

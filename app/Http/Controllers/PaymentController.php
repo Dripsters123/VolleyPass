@@ -87,7 +87,7 @@ class PaymentController extends Controller
 
         DB::beginTransaction();
         try {
-            $reservationWindow = Carbon::now()->addMinutes(15);
+            $reservationWindow = Carbon::now()->addMinutes(30);
             foreach ($seats as $s) {
                 $seatId = $s['seat_id'] ?? null;
                 if (! $seatId) {
@@ -198,7 +198,7 @@ class PaymentController extends Controller
         $this->stripeDebugLog('success.called', ['session_id' => $sessionId, 'query' => $request->query()]);
 
         if (! $sessionId) {
-            return redirect()->route('home')->with('error', 'No session ID provided.');
+            return redirect()->route('home')->with('error', 'Nav norādīts sesijas ID.');
         }
 
         try {
@@ -207,7 +207,7 @@ class PaymentController extends Controller
         } catch (\Throwable $e) {
             $this->stripeDebugLog('success.retrieve_error', $e->getMessage());
             Log::error('Stripe session retrieve failed: ' . $e->getMessage());
-            return redirect()->route('home')->with('error', 'Could not verify payment session.');
+            return redirect()->route('home')->with('error', 'Neizdevās pārbaudīt maksājuma sesiju.');
         }
 
         $this->stripeDebugLog('success.session', $session);
@@ -239,7 +239,7 @@ class PaymentController extends Controller
             $existing = Ticket::where('stripe_payment_intent', $paymentIntentId)->first();
             if ($existing) {
                 $this->stripeDebugLog('success.ticket_exists', $existing->toArray());
-                return redirect()->route('tickets.index')->with('success', 'Ticket purchased successfully!');
+                return redirect()->route('tickets.index')->with('success', 'Biļete veiksmīgi iegādāta!');
             }
 
             DB::beginTransaction();
@@ -300,7 +300,7 @@ class PaymentController extends Controller
             DB::rollBack();
             $this->stripeDebugLog('success.finalize_error', $e->getMessage());
             Log::error('Finalize purchase (success) failed: ' . $e->getMessage());
-            return redirect()->route('home')->with('error', 'Could not finalize purchase.');
+            return redirect()->route('home')->with('error', 'Neizdevās pabeigt pirkumu.');
         }
 
         try {
@@ -313,13 +313,41 @@ class PaymentController extends Controller
             Log::warning('Failed to queue TicketPurchased email: ' . $e->getMessage());
         }
 
-        return redirect()->route('tickets.index')->with('success', 'Ticket purchased successfully!');
+        return redirect()->route('tickets.index')->with('success', 'Biļete veiksmīgi iegādāta!');
     }
 
-    // Rāda atcelšanas lapu pēc Stripe maksājuma atcelšanas
-    public function cancel()
+    // Rāda atcelšanas lapu pēc Stripe maksājuma atcelšanas un atbrīvo rezervētās sēdvietas
+    public function cancel(Request $request)
     {
+        $user = $request->user();
+        if ($user) {
+            Seat::where('reserved_by', $user->id)
+                ->whereNull('ticket_id')
+                ->update([
+                    'reserved_by' => null,
+                    'reserved_until' => null,
+                ]);
+        }
+
         return view('payment.cancel');
+    }
+
+    // Atbrīvo lietotāja rezervētās sēdvietas (izmanto kad tiek nospiests pārlūka atpakaļ poga)
+    public function releaseReservation(Request $request)
+    {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated'], 401);
+        }
+
+        Seat::where('reserved_by', $user->id)
+            ->whereNull('ticket_id')
+            ->update([
+                'reserved_by' => null,
+                'reserved_until' => null,
+            ]);
+
+        return response()->json(['status' => 'released']);
     }
 
 

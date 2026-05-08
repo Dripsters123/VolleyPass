@@ -30,20 +30,13 @@
     function updateCanvasViewport() {
         if (!canvas || !wrapper || !canvasStage) return;
 
-        if (isMobileViewport()) {
-            canvasScale = 1;
-            canvas.style.transform = 'none';
-            canvasStage.style.width = CANVAS_W + 'px';
-            canvasStage.style.height = CANVAS_H + 'px';
-            return;
-        }
-
         var wrapperStyles = window.getComputedStyle(wrapper);
         var paddingX = (parseFloat(wrapperStyles.paddingLeft) || 0) + (parseFloat(wrapperStyles.paddingRight) || 0);
         var availableWidth = Math.max(1, wrapper.clientWidth - paddingX);
         canvasScale = Math.min(1, availableWidth / CANVAS_W);
         if (!isFinite(canvasScale) || canvasScale <= 0) canvasScale = 1;
 
+        canvas.style.transformOrigin = 'top left';
         canvas.style.transform = 'scale(' + canvasScale + ')';
         canvasStage.style.width = Math.round(CANVAS_W * canvasScale) + 'px';
         canvasStage.style.height = Math.round(CANVAS_H * canvasScale) + 'px';

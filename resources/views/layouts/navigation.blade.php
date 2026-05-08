@@ -199,6 +199,7 @@
                     {{-- Notifications bell --}}
                     <div class="relative" x-data="{ notifMenu: false }">
                         <button @click="notifMenu = !notifMenu" @click.outside="notifMenu = false"
+                                aria-label="Paziņojumi"
                                 class="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
@@ -253,13 +254,14 @@
                     @php $pendingCount = \App\Models\MatchRequest::where('status', 'pending')->count() + \App\Models\ProductRequest::where('status', 'pending')->count(); @endphp
                     <a href="{{ route('admin.match_requests.inbox') }}"
                        title="Admin Inbox"
+                       aria-label="Admin iesūtne"
                        class="relative flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
                                   d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m4 0l2 2 4-4"/>
                         </svg>
                         @if($pendingCount > 0)
-                            <span class="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+                            <span class="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-600 text-[10px] font-bold text-white">
                                 {{ $pendingCount > 9 ? '9+' : $pendingCount }}
                             </span>
                         @endif
@@ -337,6 +339,8 @@
 
             {{-- Mobile hamburger --}}
             <button @click="open = !open"
+                    :aria-label="open ? 'Aizvērt izvēlni' : 'Atvērt izvēlni'"
+                    :aria-expanded="open"
                     class="md:hidden flex items-center justify-center w-9 h-9 rounded-lg text-gray-400 hover:text-white hover:bg-white/8 transition-colors">
                 <svg x-show="!open" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>

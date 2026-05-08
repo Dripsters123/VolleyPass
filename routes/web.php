@@ -28,6 +28,7 @@ Route::get('/contacts', fn () => view('pages.contacts'))->name('contacts');
 Route::middleware('auth')->group(function () {
     Route::post('/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/payment/success', [PaymentController::class, 'success'])->name('payment.success');
+    Route::post('/payment/release-reservation', [PaymentController::class, 'releaseReservation'])->name('payment.release');
 });
 Route::get('/payment-cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 

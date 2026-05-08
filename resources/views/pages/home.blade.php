@@ -38,6 +38,8 @@
                 <div class="relative w-52 h-52 md:w-64 md:h-64">
                     <div class="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400/30 to-blue-600/30 blur-2xl"></div>
                     <img src="{{ asset('images/volleyball.png') }}" alt="Volleyball"
+                         width="256" height="256"
+                         fetchpriority="high"
                          class="relative w-full h-full object-contain drop-shadow-2xl">
                 </div>
             </div>

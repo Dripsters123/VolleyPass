@@ -12,7 +12,7 @@
                 </h1>
                 <p class="mt-1 text-gray-400">Tavs volejbola kopsavilkums un gaidāmās spēles.</p>
             </div>
-            <img src="{{ asset('images/volleyball.png') }}" alt="" class="h-16 w-16 opacity-60 hidden sm:block">
+            <img src="{{ asset('images/volleyball.png') }}" alt="" width="64" height="64" loading="lazy" class="h-16 w-16 opacity-60 hidden sm:block">
         </div>
     </section>
 

@@ -13,7 +13,7 @@
             <div class="relative z-10 text-center px-12">
                 <div class="flex items-center justify-center gap-3 mb-8">
                     <span class="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-blue-600">
-                        <img src="/images/volleyball.png" alt="" class="w-7 h-7">
+                        <img src="/images/volleyball.png" alt="" width="28" height="28" loading="lazy" class="w-7 h-7">
                     </span>
                     <span class="text-2xl font-extrabold text-white tracking-tight">VolleyPass</span>
                 </div>

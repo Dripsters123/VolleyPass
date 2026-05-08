@@ -92,7 +92,8 @@
                 </span>
               </div>
             </div>
-            <div class="p-5 bg-gray-50 overflow-x-auto">
+            <div class="p-5 bg-gray-50 overflow-hidden">
+              <div id="arena-preview-wrap" style="overflow:hidden;">
               <div id="arena-preview"
                    style="position:relative;width:{{ $arena->width ?? 600 }}px;height:{{ $arena->height ?? 420 }}px;background:#fff;border:1.5px solid #e5e7eb;border-radius:16px;background-image:linear-gradient(rgba(148,163,184,.1) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.1) 1px,transparent 1px);background-size:50px 50px;margin:0 auto;">
                 @foreach($arena->elements as $el)
@@ -115,6 +116,7 @@
                   @endif
                 @endforeach
               </div>
+              </div>{{-- /arena-preview-wrap --}}
             </div>
             @auth
               @if($match->match_state !== 'completed' && $match->is_local)
@@ -451,6 +453,24 @@
   <script src="{{ asset('js/purchases/matchPurchase.js') }}"></script>
 
   <script>
+    // ── Arena preview mobile scaling ────────────────────────────────
+    (function () {
+      function scaleArenaPreview() {
+        var wrap = document.getElementById('arena-preview-wrap');
+        var preview = document.getElementById('arena-preview');
+        if (!wrap || !preview) return;
+        var container = wrap.parentElement;
+        var available = container ? container.clientWidth - 40 : window.innerWidth - 40;
+        var previewW = preview.offsetWidth || parseInt(preview.style.width) || 600;
+        var scale = previewW > available ? available / previewW : 1;
+        preview.style.transformOrigin = 'top left';
+        preview.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
+        wrap.style.height = scale < 1 ? Math.round((preview.offsetHeight || parseInt(preview.style.height) || 420) * scale) + 'px' : '';
+      }
+      document.addEventListener('DOMContentLoaded', scaleArenaPreview);
+      window.addEventListener('resize', scaleArenaPreview);
+    })();
+
     function limitScoreInput(el) {
       const sanitized = (el.value || '').replace(/\D/g, '').slice(0, 3);
       if (sanitized === '') {
@@ -484,7 +504,7 @@
       if(rightPanel && window.innerWidth<768) rightPanel.style.display='none';
       const modalCloseBtn=document.getElementById('modalCloseBtn');
       const seatModal=document.getElementById('seatSelectionModal');
-      if(modalCloseBtn && seatModal){ modalCloseBtn.addEventListener('click',()=>seatModal.classList.add('hidden')); }
+      if(modalCloseBtn && seatModal){ modalCloseBtn.addEventListener('click',()=>{ seatModal.classList.add('hidden'); }); }
       const addSetBtn=document.getElementById('addSetBtn');
       const removeSetBtn=document.getElementById('removeSetBtn');
       const container=document.getElementById('setsContainer');

@@ -80,7 +80,7 @@ class ArenaController extends Controller
             'elements' => $elements,
         ]);
 
-        return redirect()->route('arenas.edit', $arena)->with('success', 'Arena created successfully!');
+        return redirect()->route('arenas.edit', $arena)->with('success', 'Arēna veiksmīgi izveidota!');
     }
 
     // Rāda konkrētu arēnu
@@ -140,7 +140,7 @@ class ArenaController extends Controller
             'is_public' => $request->boolean('is_public', $arena->is_public),
         ]);
 
-        return response()->json(['success' => true, 'message' => 'Arena updated successfully!']);
+        return response()->json(['success' => true, 'message' => 'Arēna veiksmīgi saglabāta!']);
     }
 
     // Dzēš arēnu
@@ -150,7 +150,7 @@ class ArenaController extends Controller
 
         $arena->delete();
 
-        return redirect()->route('arenas.index')->with('success', 'Arena deleted successfully!');
+        return redirect()->route('arenas.index')->with('success', 'Arēna veiksmīgi dzēsta!');
     }
 
     // Izveido arēnas kopiju
@@ -159,7 +159,7 @@ class ArenaController extends Controller
         $this->authorize('view', $arena);
 
         $duplicate = Arena::create([
-            'name' => $arena->name . ' (Copy)',
+            'name' => $arena->name . ' (Kopija)',
             'description' => $arena->description,
             'user_id' => Auth::id(),
             'width' => $arena->width,
@@ -169,7 +169,7 @@ class ArenaController extends Controller
             'elements' => $arena->elements,
         ]);
 
-        return redirect()->route('arenas.edit', $duplicate)->with('success', 'Arena duplicated successfully!');
+        return redirect()->route('arenas.edit', $duplicate)->with('success', 'Arēna veiksmīgi dublēta!');
     }
 
     // Pievieno vai noņem arēnu no izlasēm
