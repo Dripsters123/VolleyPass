@@ -29,7 +29,6 @@ class LocalMatchSeeder extends Seeder
         $users = User::factory()->count(6)->create();
         $users->push($admin);
 
-        // Load default arena layouts seeded by ArenaSeeder
         $arenas = [
             2 => Arena::where('name', 'Pludmales volejbols (2v2)')->first(),
             4 => Arena::where('name', 'Kompaktā halle (4v4)')->first(),

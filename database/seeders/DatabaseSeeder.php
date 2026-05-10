@@ -8,9 +8,7 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
+   
     public function run(): void
     {
         $admin = User::factory()->create([
@@ -22,7 +20,6 @@ class DatabaseSeeder extends Seeder
             'password' => 'password'
         ]);
 
-        // Give admin a starting wallet balance
         Wallet::firstOrCreate(
             ['user_id' => $admin->id],
             ['coins' => 500]

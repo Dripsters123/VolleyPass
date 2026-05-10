@@ -2,17 +2,17 @@
 
     <div class="min-h-[calc(100vh-4rem)] flex">
 
-        {{-- Left panel – branding (hidden on mobile) --}}
+      
         <div class="hidden lg:flex lg:w-1/2 relative bg-gray-950 flex-col items-center justify-center overflow-hidden">
-            {{-- Background image --}}
+            
             <div class="absolute inset-0">
                 <img src="/images/slide4.jpg" alt="" class="w-full h-full object-cover opacity-30">
                 <div class="absolute inset-0 bg-gradient-to-br from-gray-950/80 via-gray-950/60 to-blue-900/40"></div>
             </div>
-            {{-- Glow orbs --}}
+            
             <div class="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-orange-500/20 blur-3xl"></div>
             <div class="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full bg-blue-600/20 blur-3xl"></div>
-            {{-- Content --}}
+           
             <div class="relative z-10 text-center px-12">
                 <div class="flex items-center justify-center gap-3 mb-8">
                     <span class="flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-400 to-blue-600">
@@ -30,11 +30,11 @@
             </div>
         </div>
 
-        {{-- Right panel – form --}}
+       
         <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 py-12">
             <div class="w-full max-w-sm">
 
-                {{-- Mobile logo --}}
+              
                 <div class="flex items-center justify-center gap-2 mb-8 lg:hidden">
                     <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-blue-600">
                         <img src="/images/volleyball.png" alt="" class="w-5 h-5">

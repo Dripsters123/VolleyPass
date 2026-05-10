@@ -99,9 +99,10 @@
           const data = await res.json().catch(() => ({}));
 
           if (!res.ok) {
-            const err = (data && (data.error || data.message)) ? (data.error || data.message) : ('Server error ' + res.status);
+            const err = (data && (data.error || data.message)) ? (data.error || data.message) : ('Servera kļūda ' + res.status);
             discountInfo.style.color = '#dc2626';
             discountInfo.textContent = `Kļūda: ${err}`;
+            showToast(err, 'error');
             appliedDiscountCode = null;
             appliedDiscountPercent = 0;
           } else {
@@ -116,6 +117,7 @@
           }
         } catch (err) {
           discountInfo.textContent = 'Tīkla kļūda pārbaudot kodu.';
+          showToast('Tīkla kļūda pārbaudot atlaižu kodu.', 'error');
           appliedDiscountCode = null;
           appliedDiscountPercent = 0;
         } finally {

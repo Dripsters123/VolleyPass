@@ -34,7 +34,7 @@
             <div class="p-4 bg-red-50 border border-red-200 rounded-xl text-red-800 text-sm">{{ session('error') }}</div>
         @endif
 
-        {{-- Main info card --}}
+       
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
             <div class="flex flex-col md:flex-row gap-0">
                 @if($productRequest->image_path)
@@ -67,7 +67,6 @@
             </div>
         </div>
 
-        {{-- Contact and request details --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             @php
                 $typeMap = [
@@ -117,7 +116,7 @@
             </div>
         </div>
 
-        {{-- Requester card --}}
+       
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Iesniedzējs</h4>
             <div class="flex items-center gap-3">
@@ -138,7 +137,7 @@
             </div>
         </div>
 
-        {{-- Admin actions --}}
+        
         @if(in_array($productRequest->status, ['pending', 'reviewing']))
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4" x-data="{ rejectOpen: false }">
             <h4 class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Darbības</h4>

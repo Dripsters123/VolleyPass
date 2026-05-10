@@ -21,7 +21,7 @@ class SeatController extends Controller
      public function reserve(Request $request, $seatId)
     {
         if (! $request->user()) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         $user = $request->user();

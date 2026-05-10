@@ -15,7 +15,6 @@
         </a>
     </div>
 
-    {{-- Tabs --}}
     <div class="border-b border-gray-200 mb-6">
         <nav class="-mb-px flex gap-6">
             <button @click="tab = 'active'"
@@ -43,7 +42,6 @@
         <div class="mb-4 bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-xl text-sm">{{ session('success') }}</div>
     @endif
 
-    {{-- Active tab --}}
     <div x-show="tab === 'active'" x-cloak>
         @php $activeRequests = $requests->filter(fn($r) => in_array($r->status, ['pending', 'reviewing'])); @endphp
         @if($activeRequests->isEmpty())
@@ -109,7 +107,6 @@
         @endif
     </div>
 
-    {{-- History tab --}}
     <div x-show="tab === 'history'" x-cloak>
         @php $historyRequests = $requests->filter(fn($r) => in_array($r->status, ['accepted', 'rejected', 'appealed'])); @endphp
         @if($historyRequests->isEmpty())

@@ -9,7 +9,6 @@
     <div class="py-12">
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
-            {{-- Statistics section --}}
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-5">Statistika</h3>
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -78,7 +77,7 @@
                 </div>
             </div>
 
-            {{-- Profile info --}}
+           
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 hover:shadow-xl transition duration-300">
                 <h3 class="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Profila informācija</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-6">Atjauniniet savu vārdu, e-pastu un citas pamatinformācijas detaļas.</p>
@@ -88,7 +87,7 @@
                 </div>
             </div>
 
-            {{-- Password --}}
+         
             <div class="bg-white dark:bg-gray-800 shadow-lg rounded-2xl p-8 hover:shadow-xl transition duration-300">
                 <h3 class="text-xl font-semibold text-gray-800 dark:text-white mb-1">Mainīt paroli</h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Izmantojiet garu, nejaušu paroli drošībai.</p>
@@ -115,7 +114,7 @@
                 </div>
             </div>
 
-            {{-- Delete account --}}
+          
             <div class="bg-white shadow-lg rounded-2xl p-8 hover:shadow-xl transition duration-300 border-t border-red-100">
                 <h3 class="text-2xl font-semibold text-red-600 mb-4">Dzēst kontu</h3>
                 <p class="text-gray-500 mb-6">

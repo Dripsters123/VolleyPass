@@ -99,7 +99,7 @@ class TeamController extends Controller
         return back()->with('success', 'Komanda dzēsta.');
     }
 
-    // API — atgriež lietotāja komandas JSON formātā (maèa pieteikuma veidlapai)
+    // API — atgriež lietotāja komandas JSON formātā (mača pieteikuma veidlapai)
     public function api()
     {
         $teams = auth()->user()->teams()->latest()->get(['id', 'name', 'players_per_team', 'players', 'coach', 'logo']);

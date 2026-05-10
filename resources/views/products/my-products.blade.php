@@ -43,7 +43,7 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             @foreach($products as $product)
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden flex flex-col">
-                    {{-- Image + stock overlay --}}
+                   
                     <div class="relative h-44 bg-gray-50 overflow-hidden shrink-0">
                         @if($product->image_path)
                             <img src="{{ asset('storage/'.$product->image_path) }}"
@@ -57,7 +57,7 @@
                             </div>
                         @endif
 
-                        {{-- Status badge --}}
+                     
                         <div class="absolute top-2 left-2">
                             @if($product->status === 'sold' || $product->stock <= 0)
                                 <span class="px-2 py-0.5 bg-red-600 text-white text-xs font-semibold rounded-full">Izpārdots</span>
@@ -68,7 +68,7 @@
                             @endif
                         </div>
 
-                        {{-- Stock count --}}
+                        
                         <div class="absolute top-2 right-2">
                             @if($product->stock <= 0)
                                 <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs font-bold rounded-full">0 gb.</span>
@@ -80,7 +80,7 @@
                         </div>
                     </div>
 
-                    {{-- Info --}}
+                  
                     <div class="p-4 flex flex-col flex-1">
                         <h3 class="font-semibold text-gray-900 text-sm leading-snug mb-1 line-clamp-2">{{ $product->title }}</h3>
                         @if($product->category)
@@ -89,7 +89,7 @@
                         @endif
                         <span class="text-lg font-bold text-blue-700 mb-3">€{{ number_format($product->price, 2) }}</span>
 
-                        {{-- Restock form --}}
+                    
                         <div class="mt-auto border-t border-gray-100 pt-3">
                             <p class="text-xs text-gray-500 mb-2 font-medium">Papildināt noliktavu</p>
                             <form method="POST" action="{{ route('products.restock', $product) }}" class="flex gap-2">

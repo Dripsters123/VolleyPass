@@ -353,179 +353,182 @@
     </div>
 
     {{-- Mobile menu --}}
-    <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-gray-950 pb-4">
-        <div class="px-4 pt-3 space-y-1">
-            <a href="{{ route('local.matches.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M8 21h8M12 17v4M5 3h14l-1 8a6 6 0 01-12 0L5 3z"/>
-                </svg>
-                Mači
-            </a>
-            <a href="{{ route('calendar.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                </svg>
-                Kalendārs
-            </a>
-            <a href="{{ route('products.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
-                </svg>
-                Veikals
-            </a>
+    <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-gray-950">
+        <div class="overflow-y-auto max-h-[calc(100svh-4rem)] px-3 py-3">
+
+            {{-- Public links --}}
+            <div class="space-y-0.5">
+                <a href="{{ route('local.matches.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M8 21h8M12 17v4M5 3h14l-1 8a6 6 0 01-12 0L5 3z"/>
+                    </svg>
+                    Mači
+                </a>
+                <a href="{{ route('calendar.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    Kalendārs
+                </a>
+                <a href="{{ route('products.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+                    </svg>
+                    Veikals
+                </a>
+            </div>
+
             @auth
-            <a href="{{ route('tickets.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
-                </svg>
-                Biļetes
-            </a>
-            <a href="{{ route('orders.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
-                </svg>
-                Mani pasūtījūmi
-            </a>
-            <a href="{{ route('products.my') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-                </svg>
-                Mani produkti
-            </a>
-            <a href="{{ route('arenas.index') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
-                </svg>
-                Arēnas
-            </a>
-            <a href="{{ route('wallet.show') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm.75-11.25h-1.5v-1.5h1.5v1.5zm0 7.5h-1.5v-6h1.5v6z"/>
-                </svg>
-                Monētas
-                <span class="ml-auto text-xs font-bold text-yellow-400">{{ number_format($navCoins) }}</span>
-            </a>
+            {{-- Admin section – shown first for admins --}}
             @if(auth()->user()->role === 'admin')
+            <div class="mt-3 pt-3 border-t border-white/8 space-y-0.5">
+                <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-orange-400">Administrēšana</p>
                 <a href="{{ route('admin.matches.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
                     </svg>
                     Izveidot maču
                 </a>
                 <a href="{{ route('products.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
                     </svg>
                     Pievienot produktu
                 </a>
                 <a href="{{ route('admin.match_requests.inbox') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-orange-300 hover:text-orange-200 hover:bg-orange-500/10 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
                               d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0H4m4 0l2 2 4-4"/>
                     </svg>
-                    Admin Inbox
+                    Admin iesūtne
                 </a>
-                <a href="{{ route('match_requests.my') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Mani pieprasījumi
-                </a>
-                <a href="{{ route('teams.index') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Manas komandas
-                </a>
-                <a href="{{ route('teams.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Jauna komanda
-                </a>
-            @else
-                <a href="{{ route('match_requests.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Pieteikt pieprasījumu
-                </a>
-                <a href="{{ route('match_requests.my') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                    Mani pieprasījumi
-                </a>
-                <a href="{{ route('teams.index') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                    Manas komandas
-                </a>
-                <a href="{{ route('teams.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Jauna komanda
-                </a>
-                <a href="{{ route('product_requests.create') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
-                    </svg>
-                    Pieteikt produktu
-                </a>
+            </div>
             @endif
-            <a href="{{ route('profile.edit') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                </svg>
-                Profils
-            </a>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <button type="submit"
-                        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+            {{-- Account section --}}
+            <div class="mt-3 pt-3 border-t border-white/8 space-y-0.5">
+                <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Mans konts</p>
+                <a href="{{ route('tickets.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
-                              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                              d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
                     </svg>
-                    Iziet
-                </button>
-            </form>
+                    Biļetes
+                </a>
+                <a href="{{ route('orders.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    Mani pasūtījumi
+                </a>
+                <a href="{{ route('wallet.show') }}"
+                   class="flex items-center justify-between px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <span class="flex items-center gap-3">
+                        <svg class="w-5 h-5 shrink-0 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18a8 8 0 110-16 8 8 0 010 16zm.75-11.25h-1.5v-1.5h1.5v1.5zm0 7.5h-1.5v-6h1.5v6z"/>
+                        </svg>
+                        Monētas
+                    </span>
+                    <span class="text-sm font-bold text-yellow-400">{{ number_format($navCoins) }}</span>
+                </a>
+                <a href="{{ route('profile.edit') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    Profils
+                </a>
+            </div>
+
+            {{-- Content section --}}
+            <div class="mt-3 pt-3 border-t border-white/8 space-y-0.5">
+                <p class="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-gray-500">Saturs</p>
+                <a href="{{ route('products.my') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                    </svg>
+                    Mani produkti
+                </a>
+                <a href="{{ route('arenas.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                              d="M3 21h18M3 10h18M5 6l7-3 7 3M4 10v11M20 10v11M8 14v3M12 14v3M16 14v3"/>
+                    </svg>
+                    Arēnas
+                </a>
+                <a href="{{ route('teams.index') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Manas komandas
+                </a>
+                <a href="{{ route('match_requests.my') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                    </svg>
+                    Mani pieprasījumi
+                </a>
+            </div>
+
+            {{-- Non-admin quick actions --}}
+            @if(auth()->user()->role !== 'admin')
+            <div class="mt-3 pt-3 border-t border-white/8 space-y-0.5">
+                <a href="{{ route('match_requests.create') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Pieteikt maču
+                </a>
+                <a href="{{ route('teams.create') }}"
+                   class="flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-gray-300 hover:text-white hover:bg-white/8 transition-colors">
+                    <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    Jauna komanda
+                </a>
+            </div>
+            @endif
+
+            {{-- Logout --}}
+            <div class="mt-3 pt-3 border-t border-white/8 pb-2">
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit"
+                            class="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75"
+                                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Iziet
+                    </button>
+                </form>
+            </div>
             @else
-            <div class="pt-2 flex flex-col gap-2">
+            {{-- Guest --}}
+            <div class="mt-3 pt-3 border-t border-white/10 pb-2 flex flex-col gap-2">
                 <a href="{{ route('login') }}"
-                   class="block text-center px-4 py-2.5 rounded-lg text-sm font-medium border border-white/20 text-gray-300 hover:text-white hover:border-white/40 transition-colors">
+                   class="block text-center px-4 py-3 rounded-xl text-sm font-medium border border-white/20 text-gray-300 hover:text-white hover:border-white/40 transition-colors">
                     Ieiet
                 </a>
                 <a href="{{ route('register') }}"
-                   class="block text-center px-4 py-2.5 rounded-lg text-sm font-semibold bg-gradient-to-r from-orange-500 to-blue-600 hover:opacity-90 transition-opacity">
+                   class="block text-center px-4 py-3 rounded-xl text-sm font-semibold bg-gradient-to-r from-orange-500 to-blue-600 hover:opacity-90 transition-opacity">
                     Reģistrēties
                 </a>
             </div>

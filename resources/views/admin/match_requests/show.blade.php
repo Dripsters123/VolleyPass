@@ -1,7 +1,6 @@
 ﻿<x-app-layout>
 <div class="max-w-5xl mx-auto px-4 py-8">
 
-  {{-- ── Header ─────────────────────────────────────────────────── --}}
   @php
     $statusLabels = ['pending'=>'Gaida','reviewing'=>'Tiek izskatīts','accepted'=>'Apstiprināts','rejected'=>'Noraidīts','appealed'=>'Apelācija'];
     $statusColors = [
@@ -34,7 +33,7 @@
     </span>
   </div>
 
-  {{-- Flash messages --}}
+
   @if(session('success'))
     <div class="mb-5 p-4 bg-green-50 border border-green-200 rounded-xl text-green-800 text-sm">{{ session('success') }}</div>
   @endif
@@ -44,7 +43,6 @@
 
   @if(($req->request_type ?? '') !== 'score_update')
 
-    {{-- ── Meta cards ─────────────────────────────────────────── --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
       <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
         <div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Sākums</div>
@@ -81,13 +79,11 @@
       </div>
     </div>
 
-    {{-- ── Player roster prep ────────────────────────────────── --}}
     @php
       $homePlayers = is_array($req->home_players) ? $req->home_players : (json_decode($req->home_players ?? '[]', true) ?: []);
       $awayPlayers = is_array($req->away_players) ? $req->away_players : (json_decode($req->away_players ?? '[]', true) ?: []);
     @endphp
 
-    {{-- ── Arena layout canvas ─────────────────────────────────── --}}
     @if($req->arena_elements)
       @php $arenaElements = is_array($req->arena_elements) ? $req->arena_elements : json_decode($req->arena_elements, true); @endphp
       @if(!empty($arenaElements))
@@ -118,7 +114,7 @@
           var ctx = canvas.getContext('2d');
           ctx.fillStyle = '#f8fafc';
           ctx.fillRect(0, 0, cw, ch);
-          // grid dots
+         
           ctx.strokeStyle = '#e2e8f0';
           ctx.lineWidth = 0.5;
           var gs = Math.round(50 * scale);
@@ -163,7 +159,7 @@
       @endif
     @endif
 
-    {{-- ── Player rosters ──────────────────────────────────────── --}}
+
     <div class="grid md:grid-cols-2 gap-6 mb-6">
       <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
         <div class="flex items-center gap-3 mb-4">
@@ -224,7 +220,6 @@
 
 
   @else
-    {{-- ── Score update request ────────────────────────────────── --}}
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6 space-y-3 text-gray-700">
       <div><span class="font-medium text-gray-500 text-sm">Mājas komanda:</span> {{ $req->home_team ?? '—' }}</div>
       <div><span class="font-medium text-gray-500 text-sm">Viesu komanda:</span> {{ $req->away_team ?? '—' }}</div>
@@ -245,7 +240,6 @@
     </div>
   @endif
 
-  {{-- ── Appeal & rejection info ─────────────────────────────── --}}
   @if($req->appeal_message)
     <div class="mb-4 p-5 bg-purple-50 border border-purple-200 rounded-2xl">
       <div class="font-semibold text-purple-800 mb-1">📢 Apelācija no lietotāja</div>
@@ -259,7 +253,6 @@
     </div>
   @endif
 
-  {{-- ── Admin action panel ─────────────────────────────────── --}}
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6" x-data="{ rejectOpen: false }">
     <h3 class="font-semibold text-gray-700 mb-4">Darbības</h3>
     <div class="flex flex-wrap gap-3">
@@ -320,7 +313,6 @@
     </div>
   </div>
 
-  {{-- Admin delete (cleanup) --}}
   <div class="mt-4 flex justify-end">
     <form method="POST" action="{{ route('admin.match_requests.admin_destroy', $req->id) }}">
       @csrf @method('DELETE')

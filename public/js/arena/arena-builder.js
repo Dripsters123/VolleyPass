@@ -7,6 +7,7 @@
 
     /* ── Stāvoklis ──────────────────────────────────────────────── */
     let elements       = [];
+    let history        = [];   // undo stack — snapshots of elements
     let selectedEl     = null;
     let dragEl         = null;
     let dragOffset     = { x: 0, y: 0 };
@@ -117,9 +118,11 @@
         var clearBtn = document.getElementById('clear-canvas');
         if (clearBtn) clearBtn.addEventListener('click', function () {
             if (!confirm('Notīrīt visus elementus?')) return;
+            snapshot();
             elements = [];
             render();
             select(null);
+            updateSeatCountLimit();
             notify('Visi elementi notīrīţi', 'success');
         });
 
@@ -204,6 +207,9 @@
         document.addEventListener('touchend',  onTouchEnd,  { passive: true });
         canvas.addEventListener('contextmenu', onContextMenu);
         document.addEventListener('keydown', onKeyDown);
+
+        var undoBtn = document.getElementById('undo-btn');
+        if (undoBtn) undoBtn.addEventListener('click', undo);
     }
 
     /* ── Kanvas klikšķi un velšana (peles un skāriena atbalsts) ─── */
@@ -243,9 +249,16 @@
     }
 
     function onKeyDown(e) {
-        if (e.key !== 'Delete' && e.key !== 'Backspace') return;
         var tag = (document.activeElement || {}).tagName || '';
         if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+        if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            undo();
+            return;
+        }
+
+        if (e.key !== 'Delete' && e.key !== 'Backspace') return;
         if (!selectedEl) return;
         var d = dataFor(selectedEl);
         if (d && d.type === 'seat') { e.preventDefault(); deleteElement(d.id); }
@@ -314,6 +327,8 @@
             }
         }
 
+        var moved = (d.x !== clamp(x, 0, CANVAS_W - d.width) || d.y !== clamp(y, 0, CANVAS_H - d.height));
+        if (moved || dragStart) snapshot();
         d.x = clamp(x, 0, CANVAS_W - d.width);
         d.y = clamp(y, 0, CANVAS_H - d.height);
         render();
@@ -322,8 +337,34 @@
     /* ══════════════════════════════════════════════════════════════
        Elementu pārvaldība — pievienot, dzēst, ģenerēt sēdvietu režģi
        ══════════════════════════════════════════════════════════════ */
+    /* ── Vēsture: momentuzņēmums un atsaukšana ─────────────────── */
+    function snapshot() {
+        history.push(JSON.stringify(elements));
+        if (history.length > 60) history.shift();
+        updateUndoBtn();
+    }
+
+    function undo() {
+        if (!history.length) { notify('Nav ko atsaukt', 'error'); return; }
+        elements = JSON.parse(history.pop());
+        render();
+        select(null);
+        updateSeatCountLimit();
+        updateUndoBtn();
+        notify('Darbība atsaukta', 'success');
+    }
+
+    function updateUndoBtn() {
+        var btn = document.getElementById('undo-btn');
+        if (!btn) return;
+        btn.disabled = history.length === 0;
+        btn.classList.toggle('opacity-40', history.length === 0);
+        btn.classList.toggle('cursor-not-allowed', history.length === 0);
+    }
+
     // Pievieno jaunu sēdvietu vai laukumu kanvasam
     function addElement(type, x, y) {
+        snapshot();
         if (type === 'court' && elements.some(function (e) { return e.type === 'court'; })) {
             notify('Atļauts tikai viens laukums', 'error');
             return;
@@ -364,6 +405,7 @@
 
     // Dzēš elementu pēc ID
     function deleteElement(id) {
+        snapshot();
         elements = elements.filter(function (e) { return e.id != id; });
         render();
         select(null);
@@ -372,6 +414,7 @@
 
     // Automātiski ģenerē sēdvietu režģi, izvairoties no laukuma
     function generateGrid() {
+        snapshot();
         var total = Math.max(1, parseInt(totalInput.value, 10) || 48);
         var cols  = Math.max(1, parseInt(colsInput.value, 10)  || 8);
         var court = elements.find(function (e) { return e.type === 'court'; });
@@ -481,6 +524,7 @@
     function setProp(id, prop, val) {
         var el = elements.find(function (e) { return e.id == id; });
         if (!el) return;
+        snapshot();
         if (prop === 'price') {
             el.price = parseFloat(val) || 0;
         } else if (prop === 'orientation' && el.type === 'court') {
@@ -499,6 +543,7 @@
     function courtSize(id, prop, delta) {
         var el = elements.find(function (e) { return e.id == id && e.type === 'court'; });
         if (!el) return;
+        snapshot();
         el[prop] = Math.max(80, el[prop] + delta);
         // Keep grid-unit ratios in sync so future slider moves stay correct
         el._gw = el.width  / GRID_SIZE;
@@ -615,6 +660,7 @@
         setProp:    setProp,
         courtSize:  courtSize,
         deleteEl:   deleteElement,
+        undo:       undo,
         getElements: getElements
     };
 })();

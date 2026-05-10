@@ -28,7 +28,7 @@ class Wallet extends Model
     public function debitCoins(int $coins, string $type = 'debit', array $meta = [])
     {
         if ($coins < 0) throw new \InvalidArgumentException("Coins must be positive");
-        if (intval($this->coins) < $coins) throw new \Exception('Insufficient coins');
+        if (intval($this->coins) < $coins) throw new \Exception('Nepietiek monētu');
 
         $this->coins = intval($this->coins) - $coins;
         $this->save();

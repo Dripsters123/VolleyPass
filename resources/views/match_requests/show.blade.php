@@ -1,7 +1,6 @@
 ﻿<x-app-layout>
 <div class="max-w-4xl mx-auto px-4 py-8">
 
-    {{-- Header --}}
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Mača pieprasījuma informācija</h1>
@@ -22,7 +21,6 @@
         </span>
     </div>
 
-    {{-- Rejection reason banner --}}
     @if($matchRequest->status === 'rejected' && $matchRequest->rejection_reason)
         <div class="mb-6 bg-red-50 border border-red-200 rounded-2xl p-5">
             <div class="flex items-start gap-3">
@@ -45,7 +43,6 @@
         </div>
     @endif
 
-    {{-- Match meta cards --}}
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
         <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
             <div class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Sākums</div>
@@ -65,13 +62,11 @@
         </div>
     </div>
 
-    {{-- Visual Volleyball Court --}}
     @php
         $homePlayers = is_array($matchRequest->home_players) ? $matchRequest->home_players : (json_decode($matchRequest->home_players ?? '[]', true) ?: []);
         $awayPlayers = is_array($matchRequest->away_players) ? $matchRequest->away_players : (json_decode($matchRequest->away_players ?? '[]', true) ?: []);
         $n = (int)($matchRequest->players_per_team ?? max(count($homePlayers), count($awayPlayers), 2));
 
-        // Standard volleyball positions by count
         $positions = [
             2 => [[25,65],[75,65]],
             4 => [[20,40],[80,40],[20,80],[80,80]],
@@ -84,12 +79,10 @@
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
         <h2 class="text-base font-semibold text-gray-700 mb-4">Volejbola laukums</h2>
 
-        {{-- Court SVG --}}
         <div class="w-full overflow-x-auto">
             <svg viewBox="0 0 100 100" class="w-full max-w-2xl mx-auto block rounded-xl" style="aspect-ratio:2/1; max-height:340px;"
                  xmlns="http://www.w3.org/2000/svg">
 
-                {{-- Court background --}}
                 <defs>
                     <linearGradient id="courtGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                         <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
@@ -98,28 +91,21 @@
                 </defs>
                 <rect width="100" height="100" fill="url(#courtGrad)" rx="3"/>
 
-                {{-- Court lines --}}
-                {{-- Outer boundary --}}
                 <rect x="3" y="8" width="94" height="84" fill="none" stroke="white" stroke-width="0.6" opacity="0.9"/>
 
-                {{-- Center line (net) --}}
                 <line x1="50" y1="8" x2="50" y2="92" stroke="white" stroke-width="1.2" opacity="0.95"/>
 
-                {{-- Attack lines (3m lines) --}}
                 <line x1="3" y1="8" x2="3" y2="92" stroke="white" stroke-width="0.3" opacity="0.5"/>
                 <line x1="29" y1="8" x2="29" y2="92" stroke="white" stroke-width="0.5" opacity="0.7"/>
                 <line x1="71" y1="8" x2="71" y2="92" stroke="white" stroke-width="0.5" opacity="0.7"/>
                 <line x1="97" y1="8" x2="97" y2="92" stroke="white" stroke-width="0.3" opacity="0.5"/>
 
-                {{-- Service zone markers --}}
                 <line x1="3" y1="92" x2="8" y2="92" stroke="white" stroke-width="0.6"/>
                 <line x1="97" y1="92" x2="92" y2="92" stroke="white" stroke-width="0.6"/>
 
-                {{-- Net post indicators --}}
                 <circle cx="50" cy="7" r="1.2" fill="white" opacity="0.8"/>
                 <circle cx="50" cy="93" r="1.2" fill="white" opacity="0.8"/>
 
-                {{-- Team labels --}}
                 <text x="26" y="5.5" text-anchor="middle" font-size="3" fill="white" font-weight="bold" opacity="0.9">
                     {{ \Illuminate\Support\Str::limit($matchRequest->home_team ?? 'Mājas', 14) }}
                 </text>
@@ -127,7 +113,6 @@
                     {{ \Illuminate\Support\Str::limit($matchRequest->away_team ?? 'Viesi', 14) }}
                 </text>
 
-                {{-- Home players (left side) --}}
                 @foreach($homePlayers as $i => $player)
                     @php
                         $pos = $homePos[$i] ?? [$homePos[0][0], $homePos[0][1]];
@@ -142,7 +127,6 @@
                     </g>
                 @endforeach
 
-                {{-- Away players (right side) --}}
                 @foreach($awayPlayers as $i => $player)
                     @php
                         $pos = $awayPos[$i] ?? [$awayPos[0][0], $awayPos[0][1]];
@@ -157,21 +141,20 @@
                     </g>
                 @endforeach
 
-                {{-- Net label --}}
+
                 <text x="50" y="97.5" text-anchor="middle" font-size="2.2" fill="white" opacity="0.7">TĪKLS</text>
             </svg>
         </div>
 
-        {{-- Legend --}}
         <div class="flex justify-center gap-6 mt-3 text-xs text-gray-500">
             <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full bg-blue-800"></span>{{ $matchRequest->home_team ?? 'Mājas komanda' }}</span>
             <span class="flex items-center gap-1.5"><span class="inline-block w-3 h-3 rounded-full bg-red-800"></span>{{ $matchRequest->away_team ?? 'Viesu komanda' }}</span>
         </div>
     </div>
 
-    {{-- Player rosters --}}
+
     <div class="grid md:grid-cols-2 gap-6 mb-8">
-        {{-- Home team --}}
+
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center gap-3 mb-4">
                 @if($matchRequest->home_logo)
@@ -202,7 +185,6 @@
             </ul>
         </div>
 
-        {{-- Away team --}}
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
             <div class="flex items-center gap-3 mb-4">
                 @if($matchRequest->away_logo)
@@ -234,7 +216,6 @@
         </div>
     </div>
 
-    {{-- Judges --}}
     @if(!empty($matchRequest->judges))
         @php
             $judges = is_array($matchRequest->judges) ? $matchRequest->judges : (json_decode($matchRequest->judges ?? '[]', true) ?: []);
@@ -251,7 +232,6 @@
         @endif
     @endif
 
-    {{-- Actions --}}
     <div class="flex justify-between items-center flex-wrap gap-3">
         <a href="{{ route('match_requests.my') }}"
            class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition">
@@ -276,7 +256,6 @@
         @endif
     </div>
 
-    {{-- Appeal form (shown only for rejected requests) --}}
     @if($matchRequest->status === 'rejected')
         <div class="mt-6 bg-orange-50 border border-orange-200 rounded-2xl p-6" x-data="{ open: false }">
             <div class="flex items-center justify-between">
@@ -309,7 +288,6 @@
             </div>
         </div>
 
-        {{-- Delete rejected request --}}
         <div class="mt-3 flex justify-end">
             <form method="POST" action="{{ route('match_requests.destroy', $matchRequest->id) }}">
                 @csrf @method('DELETE')

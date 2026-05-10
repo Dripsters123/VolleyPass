@@ -2,7 +2,7 @@
 
     <div class="min-h-[calc(100vh-4rem)] flex">
 
-        {{-- Left panel – branding (hidden on mobile) --}}
+      
         <div class="hidden lg:flex lg:w-1/2 relative bg-gray-950 flex-col items-center justify-center overflow-hidden">
             <div class="absolute inset-0">
                 <img src="/images/slide4.jpg" alt="" class="w-full h-full object-cover opacity-30">
@@ -27,11 +27,11 @@
             </div>
         </div>
 
-        {{-- Right panel – form --}}
+       
         <div class="w-full lg:w-1/2 flex items-center justify-center bg-white px-6 py-12">
             <div class="w-full max-w-sm">
 
-                {{-- Mobile logo --}}
+                
                 <div class="flex items-center justify-center gap-2 mb-8 lg:hidden">
                     <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-orange-400 to-blue-600">
                         <img src="/images/volleyball.png" alt="" class="w-5 h-5">

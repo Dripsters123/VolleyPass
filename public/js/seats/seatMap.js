@@ -333,6 +333,39 @@
           canvasContainer.appendChild(courtElement);
         }
       });
+
+      // Mazāk platiem ekrāniem (mobilajiem) samazina kanvasa mērogu, lai viss redzams bez horizontālās ritināšanas
+      canvasContainer.style.touchAction = 'pan-x pan-y pinch-zoom';
+      function applyCanvasScale() {
+        // Only scale on mobile; on desktop the container scrolls instead
+        if (window.innerWidth > 768) {
+          canvasContainer.style.transform = '';
+          container.style.minHeight = container._origMinHeight || '';
+          container.style.height = '';
+          return;
+        }
+        const rawW = arenaWidth || parseFloat(canvasContainer.style.minWidth) || 600;
+        const rawH = arenaHeight || parseFloat(canvasContainer.style.minHeight) || 400;
+        // getBoundingClientRect gives actual rendered width even when clientWidth is 0
+        const rect = container.getBoundingClientRect();
+        const available = (rect.width > 0 ? rect.width : window.innerWidth) - 8;
+        if (rawW > available) {
+          const scale = available / rawW;
+          canvasContainer.style.transformOrigin = 'top left';
+          canvasContainer.style.transform = 'scale(' + scale + ')';
+          // Collapse container height to the scaled visual height so nothing is clipped
+          container.style.minHeight = Math.ceil(rawH * scale + 16) + 'px';
+          container.style.height = Math.ceil(rawH * scale + 16) + 'px';
+        } else {
+          canvasContainer.style.transform = '';
+          container.style.minHeight = container._origMinHeight || '';
+          container.style.height = '';
+        }
+      }
+      container._origMinHeight = container.style.minHeight;
+      // Use a short delay so the modal has time to paint before measuring
+      setTimeout(applyCanvasScale, 80);
+      window.addEventListener('resize', applyCanvasScale);
     }
 
     function createCustomSeat(seatData) {
@@ -756,7 +789,9 @@ scaleWrapper.appendChild(gridRoot);
 
     container._seatMap.toggleByKey = function (key) {
       if (!key) return false;
-      const el = container.querySelector(`[data-key="${CSS && CSS.escape ? CSS.escape(key) : key}"]`);
+      const escaped = CSS && CSS.escape ? CSS.escape(key) : key;
+      const el = container.querySelector(`[data-id="${escaped}"]`) ||
+                 container.querySelector(`[data-key="${escaped}"]`);
       if (!el) return false;
       if (el.dataset.taken === '1' || el.dataset.reserved === '1') return false;
       el.click();

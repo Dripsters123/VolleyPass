@@ -83,10 +83,9 @@
     const totalPriceEl = document.getElementById('totalPrice');
     const finalizeBtn = document.getElementById('finalizePurchaseBtn');
 
-    const mobileOverlay = document.getElementById('mobileSummaryOverlay');
-    const mobileSeatsList = document.getElementById('mobileSelectedSeatsList');
-    const mobileTotalPrice = document.getElementById('mobileTotalPrice');
-    const mobileFinalizeBtn = document.getElementById('mobileFinalizeBtn');
+    const mobileSeatCount   = document.getElementById('mobileSeatCount');
+    const mobileSeatTotal   = document.getElementById('mobileSeatTotal');
+    const mobileFinalizeBtn = document.getElementById('mobileFinalizePurchaseBtn');
 
     const summaryToggleBtn = document.getElementById('summaryToggleBtn');
     const summaryPanel = document.getElementById('summaryPanel');
@@ -135,20 +134,16 @@
         selectedSeatsList.innerHTML = '<div class="text-gray-500 text-sm italic">Nav izvēlētu vietu</div>';
         if (totalPriceEl) totalPriceEl.classList.add('hidden');
         finalizeBtn.disabled = true;
-        if (mobileOverlay && mobileSeatsList) {
-          mobileSeatsList.innerHTML = '<div class="text-gray-500 text-sm italic">Nav izvēlētu vietu</div>';
-          if (mobileTotalPrice) mobileTotalPrice.textContent = '';
-          if (mobileFinalizeBtn) mobileFinalizeBtn.disabled = true;
-        }
+        if (mobileFinalizeBtn) mobileFinalizeBtn.disabled = true;
+        if (mobileSeatCount) mobileSeatCount.textContent = 'Nav izvēlētu vietu';
+        if (mobileSeatTotal) mobileSeatTotal.textContent = '';
         return;
       }
 
       let total = 0;
-      const previewCount = isMobile ? 1 : seats.length;
 
-      seats.forEach((s, idx) => {
+      seats.forEach((s) => {
         total += (s.price || 0);
-        if (idx >= previewCount && isMobile) return;
         const card = document.createElement('div');
         card.className = 'bg-white p-2 rounded-lg border flex justify-between items-center shadow-sm';
         card.style.marginBottom = '6px';
@@ -183,32 +178,13 @@
       finalizeBtn.disabled = false;
       if (mobileFinalizeBtn) mobileFinalizeBtn.disabled = false;
 
-      if (mobileOverlay && mobileSeatsList && mobileTotalPrice) {
-        mobileSeatsList.innerHTML = '';
-        seats.slice(0, 1).forEach(s => {
-          const r = document.createElement('div');
-          r.className = 'p-2 border-b flex justify-between items-center';
-
-          let seatLabel, seatInfo;
-          if (s.seatData) {
-            seatLabel = s.seatData.number || s.seatData.id || 'Custom Seat';
-            seatInfo = `Custom ${seatLabel}`;
-          } else {
-            seatLabel = s.sideLabel || 'Nezināma tribīne';
-            seatInfo = `R${s.row} — V${s.number}`;
-          }
-
-          r.innerHTML = `
-    <div>
-      <div class="font-semibold text-indigo-700">${seatLabel}</div>
-      <div>${seatInfo}</div>
-    </div>
-    <div>€${(s.price ?? 0).toFixed(2)}</div>
-  `;
-          mobileSeatsList.appendChild(r);
-        });
-
-        mobileTotalPrice.textContent = `Kopā: €${total.toFixed(2)}`;
+      // Update mobile bottom bar
+      if (mobileSeatCount) {
+        const c = seats.length;
+        mobileSeatCount.textContent = c === 1 ? '1 vieta izvēlēta' : `${c} vietas izvēlētas`;
+      }
+      if (mobileSeatTotal) {
+        mobileSeatTotal.textContent = `Kopā: €${total.toFixed(2)}`;
       }
 
       Array.from(selectedSeatsList.querySelectorAll('.remove-seat-btn')).forEach(btn => {
@@ -320,12 +296,6 @@
       modal.classList.remove('hidden');
       modal.classList.add('flex');
 
-      if (window.innerWidth <= 768 && summaryPanel) {
-        summaryPanel.classList.add('mobile-pinned-summary');
-      } else if (summaryPanel) {
-        summaryPanel.classList.remove('mobile-pinned-summary');
-      }
-
       currentSeatIdMap = parseJsonAttr(buyBtn, 'data-seat-ids', {}) || parseJsonAttr(buyBtn, 'data-seatIds', {}) || currentSeatIdMap;
       const matchId = buyBtn.dataset.matchId;
       if (matchId) {
@@ -402,7 +372,6 @@
         }
       } catch (e) {}
       window.currentSelectedSeat = [];
-      if (summaryPanel) summaryPanel.classList.remove('mobile-pinned-summary');
     }
 
   
@@ -412,15 +381,15 @@
 
     if (summaryToggleBtn && summaryPanel) {
       summaryToggleBtn.addEventListener('click', () => {
-        const wasHidden = summaryPanel.classList.contains('hidden');
-        summaryPanel.classList.toggle('hidden');
-        if (wasHidden && !summaryPanel.classList.contains('hidden')) {
-          if (window.innerWidth <= 768) summaryPanel.classList.add('mobile-pinned-summary');
+        const isVisible = !summaryPanel.classList.contains('hidden');
+        if (isVisible) {
+          summaryPanel.classList.add('hidden');
+          summaryPanel.style.display = '';
+        } else {
+          summaryPanel.classList.remove('hidden');
+          summaryPanel.style.display = 'flex';
           requestAnimationFrame(() => {
             updateSummaryUI(window.currentSelectedSeat || []);
-            requestAnimationFrame(() => {
-              try { summaryPanel.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
-            });
           });
         }
       });
@@ -437,16 +406,8 @@
       }
     });
 
-    if (mobileOverlay) {
-      mobileOverlay.addEventListener('click', (e) => {
-        if (e.target === mobileOverlay) mobileOverlay.classList.add('hidden');
-      });
-    }
     if (mobileFinalizeBtn) {
-      mobileFinalizeBtn.addEventListener('click', () => {
-        const finalize = document.getElementById('finalizePurchaseBtn');
-        if (finalize) finalize.click();
-      });
+      mobileFinalizeBtn.addEventListener('click', () => finalizeBtn.click());
     }
 
     window.addEventListener('focus', () => {

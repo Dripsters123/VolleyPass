@@ -1,122 +1,5 @@
-<x-app-layout>
-  <style>
-    .arena-canvas {
-      position: relative;
-      width: 1000px;
-      height: 700px;
-      min-width: 1000px;
-      border: 2px dashed #d1d5db;
-      background-color: #f9fafb;
-      background-image:
-        linear-gradient(rgba(148,163,184,0.32) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148,163,184,0.32) 1px, transparent 1px);
-      background-size: 50px 50px;
-      overflow: hidden;
-      border-radius: 16px;
-      box-shadow: inset 0 0 0 1px rgba(148,163,184,0.18);
-    }
-
-    .canvas-wrapper {
-      overflow: auto;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      background: #f8fafc;
-      padding: 14px;
-    }
-
-    .arena-element {
-      position: absolute;
-      cursor: move;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      transition: box-shadow 0.2s;
-    }
-
-    .arena-element:hover {
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    }
-
-    .arena-element.selected {
-      box-shadow: 0 0 0 3px #3b82f6;
-    }
-
-    .seat-element {
-      width: 44px;
-      height: 44px;
-      background-color: #0284c7;
-      color: white;
-      font-size: 12px;
-      border: 2px solid #0369a1;
-      border-radius: 10px;
-      box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18);
-    }
-
-    .court-element {
-      width: 260px;
-      height: 150px;
-      background-color: #f59e0b;
-      color: #92400e;
-      font-size: 14px;
-      border: 2px solid #b45309;
-      border-radius: 14px;
-      box-shadow: 0 3px 9px rgba(15, 23, 42, 0.16);
-    }
-
-    .element-palette {
-      display: grid;
-      gap: 12px;
-    }
-
-    .palette-item {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 12px 16px;
-      border: 1px solid #e2e8f0;
-      border-radius: 18px;
-      cursor: pointer;
-      background: white;
-      color: #0f172a;
-      font-weight: 600;
-      transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
-      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
-      width: 100%;
-      min-height: 48px;
-      text-align: center;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    .palette-item:hover {
-      transform: translateY(-1px);
-      border-color: #2563eb;
-      background-color: #eff6ff;
-    }
-
-    .palette-item:active {
-      cursor: grabbing;
-      transform: translateY(0);
-    }
-
-    .palette-item .item-icon {
-      width: 28px;
-      height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: #e0f2fe;
-      color: #0369a1;
-      border-radius: 9999px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-  </style>
+﻿<x-app-layout>
+  <link rel="stylesheet" href="{{ asset('css/match-request.css') }}">
 
   <div class="max-w-3xl mx-auto p-6">
     <h1 class="text-2xl font-bold mb-4">Rediģēt mača pieprasījumu</h1>
@@ -327,180 +210,27 @@
     </form>
   </div>
 
+  @php
+    $teamsConfig = isset($teams) ? $teams->keyBy('id')->map(fn($t) => [
+        'name' => $t->name,
+        'coach' => $t->coach,
+        'players_per_team' => $t->players_per_team,
+        'players' => $t->players,
+    ]) : null;
+    $arenasConfig = $arenas->map(fn($a) => [
+        'id' => $a->id, 'name' => $a->name, 'description' => $a->description,
+        'layout' => $a->layout, 'elements' => $a->elements,
+        'width' => $a->width, 'height' => $a->height,
+    ]);
+  @endphp
   <script>
-    (function(){
-      const select = document.getElementById('players_per_team');
-      const container = document.getElementById('playerFields');
-
-      const oldHome = @json(old('home_players', $request->home_players ?? []));
-      const oldAway = @json(old('away_players', $request->away_players ?? []));
-
-      function renderPlayers(n) {
-        n = Number(n) || 2;
-        let html = '';
-        html += '<div class="bg-gray-50 border rounded p-4">';
-        html += '<h3 class="font-semibold mb-2">Mājas komanda</h3>';
-        for (let i=0;i<n;i++){
-          const hf = (oldHome[i] && oldHome[i].first_name) ? oldHome[i].first_name : '';
-          const hl = (oldHome[i] && oldHome[i].last_name) ? oldHome[i].last_name : '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div>
-                <label class="text-sm">Vārds</label>
-                <input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis">
-              </div>
-              <div>
-                <label class="text-sm">Uzvārds</label>
-                <input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš">
-              </div>
-            </div>
-          `;
-        }
-        html += '</div>';
-
-        html += '<div class="bg-gray-50 border rounded p-4">';
-        html += '<h3 class="font-semibold mb-2">Viesu komanda</h3>';
-        for (let i=0;i<n;i++){
-          const af = (oldAway[i] && oldAway[i].first_name) ? oldAway[i].first_name : '';
-          const al = (oldAway[i] && oldAway[i].last_name) ? oldAway[i].last_name : '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div>
-                <label class="text-sm">Vārds</label>
-                <input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required placeholder="Piem.: Jānis">
-              </div>
-              <div>
-                <label class="text-sm">Uzvārds</label>
-                <input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required placeholder="Piem.: Bērziņš">
-              </div>
-            </div>
-          `;
-        }
-        html += '</div>';
-        container.innerHTML = html;
-      }
-
-      renderPlayers(select.value);
-      select.addEventListener('change', e => renderPlayers(e.target.value));
-
-      @if(isset($teams))
-      @php
-        $teamsById = $teams->keyBy('id')->map(function ($t) {
-            return ['name' => $t->name, 'coach' => $t->coach, 'players_per_team' => $t->players_per_team, 'players' => $t->players];
-        });
-      @endphp
-      const savedTeams = @json($teamsById);
-
-      function applyTeam(teamId, side) {
-        const team = savedTeams[teamId];
-        if (!team) return;
-        select.value = team.players_per_team;
-        renderPlayers(team.players_per_team);
-        const nameInput = document.querySelector(`input[name="${side}_team"]`);
-        if (nameInput && !nameInput.value) nameInput.value = team.name;
-        const coachInput = document.querySelector(`input[name="${side}_coach"]`);
-        if (coachInput && !coachInput.value) coachInput.value = team.coach || '';
-        (team.players || []).forEach((p, i) => {
-          const fn = document.querySelector(`input[name="${side}_players[${i}][first_name]"]`);
-          const ln = document.querySelector(`input[name="${side}_players[${i}][last_name]"]`);
-          if (fn) fn.value = p.first_name || '';
-          if (ln) ln.value = p.last_name || '';
-        });
-      }
-
-      const homeTeamSel = document.getElementById('loadHomeTeam');
-      const awayTeamSel = document.getElementById('loadAwayTeam');
-      if (homeTeamSel) homeTeamSel.addEventListener('change', e => { if (e.target.value) applyTeam(e.target.value, 'home'); });
-      if (awayTeamSel) awayTeamSel.addEventListener('change', e => { if (e.target.value) applyTeam(e.target.value, 'away'); });
-      @endif
-    })();
-
-    document.addEventListener('DOMContentLoaded', function() {
-      const arenaCards = document.querySelectorAll('.arena-selection-card');
-      const selectedArenaSummary = document.getElementById('selectedArenaSummary');
-      const arenaIdInput = document.getElementById('arena_id_input');
-      const arenaLayoutInput = document.getElementById('arena-layout-input');
-      const arenaElementsInput = document.getElementById('arena-elements-input');
-      const arenaWidthInput = document.getElementById('arena_width_input');
-      const arenaHeightInput = document.getElementById('arena_height_input');
-      const arenaNameInput = document.getElementById('arena_name');
-      const arenaDescriptionInput = document.getElementById('arena_description');
-      const resetArenaSelection = document.getElementById('resetArenaSelection');
-
-      @php
-          $arenaPayload = $arenas->map(function ($arena) {
-              return [
-                  'id' => $arena->id,
-                  'name' => $arena->name,
-                  'description' => $arena->description,
-                  'layout' => $arena->layout,
-                  'elements' => $arena->elements,
-                  'width' => $arena->width,
-                  'height' => $arena->height,
-              ];
-          });
-      @endphp
-      const arenas = @json($arenaPayload);
-
-      function updateSelectedArena(arena) {
-        if (!arena) {
-          selectedArenaSummary.innerHTML = '<div class="text-gray-500">Nav atlasīta arēna.</div>';
-          arenaIdInput.value = '';
-          arenaLayoutInput.value = '';
-          arenaElementsInput.value = '';
-          arenaWidthInput.value = 1000;
-          arenaHeightInput.value = 700;
-          arenaCards.forEach(card => card.classList.remove('ring-2', 'ring-blue-500', 'border-blue-500'));
-          return;
-        }
-
-        selectedArenaSummary.innerHTML = `
-          <div class="space-y-3">
-            <div class="text-sm font-semibold text-slate-900">${arena.name}</div>
-            <div class="text-sm text-gray-600">${arena.description || 'Bez apraksta'}</div>
-            <div class="flex flex-wrap gap-2 text-xs text-slate-500">
-              <span class="px-2 py-1 rounded-full bg-slate-100">${arena.width} x ${arena.height} px</span>
-              <span class="px-2 py-1 rounded-full bg-slate-100">Saglabāta arēna</span>
-            </div>
-          </div>
-        `;
-
-        arenaIdInput.value = arena.id;
-        arenaLayoutInput.value = JSON.stringify(arena.layout || []);
-        arenaElementsInput.value = JSON.stringify(arena.elements || []);
-        arenaWidthInput.value = arena.width || 1000;
-        arenaHeightInput.value = arena.height || 700;
-        arenaNameInput.value = arena.name;
-        if (arenaDescriptionInput) arenaDescriptionInput.value = arena.description || '';
-
-        arenaCards.forEach(card => {
-          const isSelected = Number(card.dataset.arenaId) === arena.id;
-          card.classList.toggle('ring-2', isSelected);
-          card.classList.toggle('ring-blue-500', isSelected);
-          card.classList.toggle('border-blue-500', isSelected);
-        });
-      }
-
-      arenaCards.forEach(card => {
-        card.addEventListener('click', function() {
-          const arenaId = Number(this.dataset.arenaId);
-          const arena = arenas.find(a => a.id === arenaId);
-          if (!arena) return;
-          updateSelectedArena(arena);
-        });
-      });
-
-      resetArenaSelection?.addEventListener('click', function() {
-        updateSelectedArena(null);
-      });
-
-      const preselectedArenaId = Number('{{ old('arena_id', $request->arena_id ?? '') }}');
-      if (preselectedArenaId) {
-        const arena = arenas.find(a => a.id === preselectedArenaId);
-        if (arena) {
-          updateSelectedArena(arena);
-        }
-      }
-    });
+  window.VPMatchRequestConfig = {
+      oldHome: @json(old('home_players', $request->home_players ?? [])),
+      oldAway: @json(old('away_players', $request->away_players ?? [])),
+      savedTeams: @json($teamsConfig),
+      arenas: @json($arenasConfig),
+      preselectedArenaId: {{ (int)(old('arena_id', $request->arena_id ?? 0)) }},
+  };
   </script>
+  <script src="{{ asset('js/matches/matchRequest.js') }}"></script>
 </x-app-layout>

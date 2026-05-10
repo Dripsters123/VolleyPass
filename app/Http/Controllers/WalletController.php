@@ -46,7 +46,7 @@ class WalletController extends Controller
 
         $user = $request->user();
         if (! $user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         $costMap = [
@@ -60,7 +60,7 @@ class WalletController extends Controller
         $cost = $costMap[$percent] ?? null;
 
         if ($cost === null) {
-            return response()->json(['error' => 'Invalid discount_percent'], 400);
+            return response()->json(['error' => 'Nederīgs atlaides procents'], 400);
         }
 
         DB::beginTransaction();
@@ -76,7 +76,7 @@ class WalletController extends Controller
 
             if ($wallet->coins < $cost) {
                 DB::rollBack();
-                return response()->json(['error' => 'Insufficient coins'], 400);
+                return response()->json(['error' => 'Nepietiek monētu'], 400);
             }
 
             $wallet->debitCoins($cost, 'buy_discount', [
@@ -102,7 +102,7 @@ class WalletController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Buy discount failed: '.$e->getMessage(), ['trace' => $e->getTraceAsString()]);
-            return response()->json(['error' => 'Could not complete purchase'], 500);
+            return response()->json(['error' => 'Neizdevās pabeigt pirkumu'], 500);
         }
     }
 
@@ -110,7 +110,7 @@ class WalletController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         $cards = DiscountCard::where('user_id', $user->id)

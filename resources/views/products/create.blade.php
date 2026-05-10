@@ -17,7 +17,7 @@
                 @csrf
 
                 <div class="lg:grid lg:grid-cols-5 lg:gap-8">
-                    {{-- Left: form fields --}}
+                   
                     <div class="lg:col-span-3 space-y-5">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nosaukums *</label>
@@ -131,7 +131,6 @@
                         </div>
                     </div>
 
-                    {{-- Right: image upload --}}
                     <div class="lg:col-span-2 mt-5 lg:mt-0 flex flex-col">
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Attēls</label>
                         <label id="imageDropZone"
@@ -166,51 +165,6 @@
         </div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const input = document.getElementById('imageInput');
-        const preview = document.getElementById('imagePreview');
-        const dropLabel = document.getElementById('imageDropLabel');
-        const chosen = document.getElementById('imageChosen');
-        const zone = document.getElementById('imageDropZone');
-        const errorMsg = document.getElementById('imageError');
-
-        function handleFile(file) {
-            if (!file) return;
-            if (file.type === 'image/gif') {
-                errorMsg.classList.remove('hidden');
-                input.value = '';
-                return;
-            }
-            errorMsg.classList.add('hidden');
-            if (!file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                preview.src = e.target.result;
-                preview.classList.remove('hidden');
-                dropLabel.classList.add('hidden');
-                chosen.textContent = file.name;
-                chosen.classList.remove('hidden');
-                zone.classList.add('border-blue-400');
-                zone.classList.remove('border-gray-300');
-            };
-            reader.readAsDataURL(file);
-        }
-
-        input.addEventListener('change', function () { handleFile(this.files[0]); });
-        zone.addEventListener('dragover', function (e) { e.preventDefault(); zone.classList.add('border-blue-400'); });
-        zone.addEventListener('dragleave', function () { if (preview.classList.contains('hidden')) zone.classList.remove('border-blue-400'); });
-        zone.addEventListener('drop', function (e) {
-            e.preventDefault();
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                const dt = new DataTransfer();
-                dt.items.add(file);
-                input.files = dt.files;
-                handleFile(file);
-            }
-        });
-    });
-    </script>
+    <script src="{{ asset('js/products/imageDropzone.js') }}"></script>
 </x-app-layout>
 

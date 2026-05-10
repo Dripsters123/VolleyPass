@@ -26,7 +26,8 @@
         @endif
 
         {{-- Tabs --}}
-        <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-8 w-fit">
+        <div class="-mx-1 overflow-x-auto mb-8">
+        <div class="flex gap-1 bg-gray-100 p-1 rounded-xl w-max min-w-full sm:w-fit sm:min-w-0 px-1">
             <button @click="tab = 'mine'"
                     :class="tab === 'mine' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
                     class="px-5 py-2 rounded-lg text-sm font-medium transition-all">
@@ -45,6 +46,7 @@
                 Noklusējuma izkārtojumi
                 <span class="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-200 text-gray-600">{{ $defaultLayouts->count() }}</span>
             </button>
+        </div>
         </div>
 
         {{-- My Arenas --}}

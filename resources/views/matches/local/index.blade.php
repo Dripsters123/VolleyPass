@@ -1,6 +1,5 @@
 <x-app-layout title="Volejbola mači – VolleyPass">
 
-  {{-- Page header --}}
   <section class="bg-gray-950 border-b border-white/10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex items-center justify-between gap-4">
       <div>
@@ -20,7 +19,6 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col lg:flex-row gap-8">
 
-      {{-- Filter sidebar --}}
       <aside class="hidden lg:block w-72 shrink-0">
         <div class="bg-white rounded-2xl border border-gray-200 p-5 sticky top-24">
           <p class="text-xs font-semibold uppercase tracking-widest text-gray-600 mb-4">Filtri</p>
@@ -105,10 +103,8 @@
         </div>
       </aside>
 
-      {{-- Match grid --}}
       <main class="flex-1">
 
-        {{-- Score-pending banner for match creators --}}
         @if($scorePendingMatches->isNotEmpty())
           <div class="mb-5 bg-amber-50 border border-amber-200 rounded-2xl p-4">
             <div class="flex items-start gap-3">
@@ -138,7 +134,6 @@
           </div>
         @endif
 
-        {{-- Tab navigation --}}
         <div class="flex gap-1 bg-gray-100 p-1 rounded-xl mb-5 w-fit">
           @foreach(['upcoming' => 'Gaidāmie', 'results_pending' => 'Rezultāti gaidāmi', 'completed' => 'Pabeigti'] as $key => $label)
             <a href="{{ route('local.matches.index', array_merge(request()->except('tab', 'page'), ['tab' => $key])) }}"
@@ -162,7 +157,6 @@
               <div class="h-1 w-full {{ $done ? 'bg-gray-300' : ($resultsPending ? 'bg-amber-400' : 'bg-gradient-to-r from-orange-400 to-blue-500') }}"></div>
 
               <div class="p-5 flex-1 flex flex-col">
-                {{-- Status badge --}}
                 @if($done)
                   <span class="self-start mb-3 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-50 text-red-600 border border-red-100">
                     Pabeigts
@@ -177,7 +171,6 @@
                   </span>
                 @endif
 
-                {{-- Teams --}}
                 <div class="flex items-center gap-3 mb-4">
                   <div class="flex-1 text-center">
                     @if($match->home_logo)
@@ -214,7 +207,6 @@
                   </div>
                 </div>
 
-                {{-- Date & price --}}
                 <div class="mt-auto flex items-center justify-between text-xs text-gray-500">
                   <div class="flex items-center gap-1.5">
                     <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -265,7 +257,6 @@
     </div>
   </div>
 
-  {{-- Mobile filter drawer --}}
   <div id="mobileFilterDrawer" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/50" id="mobileFilterBackdrop"></div>
     <div class="absolute top-0 left-0 right-0 bg-white rounded-b-2xl shadow-2xl p-5" style="max-height:90vh;overflow:auto;">

@@ -118,59 +118,10 @@
   </div>
 
   <script>
-    (function(){
-      const select = document.getElementById('players_per_team');
-      const container = document.getElementById('playerFields');
-      const preHome = {!! json_encode($p['home_players'] ?? []) !!};
-      const preAway = {!! json_encode($p['away_players'] ?? []) !!};
-
-      function renderPlayers(n) {
-        n = Number(n) || 2;
-        let html = '';
-        html += '<div class="bg-gray-50 border rounded p-4">';
-        html += '<h3 class="font-semibold mb-2">Mājas komanda</h3>';
-        for (let i=0;i<n;i++){
-          const hf = (preHome[i]?.first_name) ?? '';
-          const hl = (preHome[i]?.last_name) ?? '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div>
-                <label class="text-sm">Vārds</label>
-                <input name="home_players[${i}][first_name]" value="${hf}" class="w-full p-2 border rounded" required>
-              </div>
-              <div>
-                <label class="text-sm">Uzvārds</label>
-                <input name="home_players[${i}][last_name]" value="${hl}" class="w-full p-2 border rounded" required>
-              </div>
-            </div>
-          `;
-        }
-        html += '</div>';
-
-        html += '<div class="bg-gray-50 border rounded p-4">';
-        html += '<h3 class="font-semibold mb-2">Viesu komanda</h3>';
-        for (let i=0;i<n;i++){
-          const af = (preAway[i]?.first_name) ?? '';
-          const al = (preAway[i]?.last_name) ?? '';
-          html += `
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
-              <div>
-                <label class="text-sm">Vārds</label>
-                <input name="away_players[${i}][first_name]" value="${af}" class="w-full p-2 border rounded" required>
-              </div>
-              <div>
-                <label class="text-sm">Uzvārds</label>
-                <input name="away_players[${i}][last_name]" value="${al}" class="w-full p-2 border rounded" required>
-              </div>
-            </div>
-          `;
-        }
-        html += '</div>';
-        container.innerHTML = html;
-      }
-
-      renderPlayers(select.value);
-      select.addEventListener('change', e => renderPlayers(e.target.value));
-    })();
+  window.VPMatchRequestConfig = {
+      oldHome: {!! json_encode($p['home_players'] ?? []) !!},
+      oldAway: {!! json_encode($p['away_players'] ?? []) !!},
+  };
   </script>
+  <script src="{{ asset('js/matches/matchRequest.js') }}"></script>
 </x-app-layout>

@@ -16,11 +16,11 @@
         </div>
     </section>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div class="grid lg:grid-cols-3 gap-8 items-start">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 overflow-x-hidden">
+        <div class="grid lg:grid-cols-3 gap-8 items-start min-w-0">
 
             {{-- ── Left: Upcoming matches ── --}}
-            <section class="lg:col-span-2 space-y-6">
+            <section class="lg:col-span-2 space-y-6 min-w-0">
 
                 <div>
                     <div class="flex items-end justify-between mb-5">
@@ -41,7 +41,7 @@
                         <div class="space-y-3">
                             @foreach($upcomingMatches as $m)
                             <a href="{{ route('local.matches.show', $m['id']) }}"
-                               class="group flex items-center gap-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-md p-4 transition-all">
+                               class="group flex items-center gap-4 bg-white rounded-2xl border border-gray-200 hover:border-blue-300 hover:shadow-md p-4 transition-all min-w-0 overflow-hidden">
                                 <div class="w-1 self-stretch rounded-full bg-gradient-to-b from-orange-400 to-blue-500 shrink-0"></div>
                                 <div class="flex-1 min-w-0">
                                     <p class="font-semibold text-gray-900 truncate group-hover:text-blue-700 transition-colors">

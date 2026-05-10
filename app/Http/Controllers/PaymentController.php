@@ -55,7 +55,7 @@ class PaymentController extends Controller
         $discountCode = $request->input('discount_code');
 
         if (! $user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         if (is_array($request->input('discount_code'))) {
@@ -71,10 +71,10 @@ class PaymentController extends Controller
             $discountCode = trim($discountCode);
             $d = DiscountCard::where('code', $discountCode)->first();
             if (! $d || ! $d->active) {
-                return response()->json(['error' => 'Invalid or inactive discount code'], 400);
+                return response()->json(['error' => 'Nederīgs vai neaktīvs atlaižu kods'], 400);
             }
             if ($d->user_id && ((string)$d->user_id !== (string)$user->id)) {
-                return response()->json(['error' => 'Discount code belongs to another user'], 403);
+                return response()->json(['error' => 'Atlaižu kods pieder citam lietotājam'], 403);
             }
             $appliedDiscount = $d;
         } else {
@@ -126,7 +126,7 @@ class PaymentController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Checkout reservation error: ' . $e->getMessage());
-            return response()->json(['error' => 'Failed to reserve seats'], 500);
+            return response()->json(['error' => 'Neizdevās rezervēt vietas'], 500);
         }
 
         $discountPercent = $appliedDiscount ? (int)$appliedDiscount->discount_percent : ($newUserPromo ? 20 : 0);
@@ -187,7 +187,7 @@ class PaymentController extends Controller
         } catch (\Throwable $e) {
             Log::error('Stripe session creation failed: ' . $e->getMessage());
             $this->stripeDebugLog('checkout.create_error', $e->getMessage());
-            return response()->json(['error' => 'Payment provider error'], 500);
+            return response()->json(['error' => 'Maksājumu sistēmas kļūda'], 500);
         }
     }
 
@@ -337,7 +337,7 @@ class PaymentController extends Controller
     {
         $user = $request->user();
         if (! $user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         Seat::where('reserved_by', $user->id)
@@ -512,18 +512,18 @@ class PaymentController extends Controller
 
         $user = $request->user();
         if (! $user) {
-            return response()->json(['error' => 'Unauthenticated'], 401);
+            return response()->json(['error' => 'Nav autorizēts'], 401);
         }
 
         $code = trim($request->input('discount_code'));
         $d = DiscountCard::where('code', $code)->first();
 
         if (! $d || ! $d->active) {
-            return response()->json(['error' => 'Invalid or inactive discount code'], 400);
+            return response()->json(['error' => 'Nederīgs vai neaktīvs atlaižu kods'], 400);
         }
 
         if ($d->user_id && ((string) $d->user_id !== (string) $user->id)) {
-            return response()->json(['error' => 'Discount code belongs to another user'], 403);
+            return response()->json(['error' => 'Atlaižu kods pieder citam lietotājam'], 403);
         }
 
         $percent = (int) $d->discount_percent;

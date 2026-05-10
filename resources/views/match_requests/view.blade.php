@@ -1,4 +1,3 @@
-{{-- resources/views/match_requests/view.blade.php --}}
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between">
@@ -31,10 +30,9 @@
     </x-slot>
 
     @php
-        // avoid colliding with request() helper — use $mr as model variable
+
         $mr = $request;
 
-        // Try to find a verification row (if you have that model/table)
         $verification = null;
         try {
             if (!empty($mr->match_id)) {
@@ -43,7 +41,7 @@
                     ->latest()
                     ->first();
             } else {
-                // best-effort fallback by team+date (non-exact)
+
                 if (!empty($mr->home_team) && !empty($mr->away_team) && !empty($mr->start_time)) {
                     $m = \App\Models\VolleyballMatch::where('home_team_name', $mr->home_team)
                         ->where('away_team_name', $mr->away_team)
@@ -61,7 +59,6 @@
             $verification = null;
         }
 
-        // derive a score display (prefer verification then requested_* then notes)
         $scoreDisplay = null;
         $scoreSource = null;
         if (isset($verification) && $verification) {
@@ -136,7 +133,6 @@
                 </div>
             </div>
 
-            {{-- Requested score --}}
             <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
                 <h3 class="text-lg font-medium mb-3">Iesniegtais rezultāts</h3>
 
@@ -160,7 +156,6 @@
                 @endif
             </div>
 
-            {{-- Players --}}
             <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
                 <h3 class="text-lg font-medium mb-3">Spēlētāji</h3>
 
@@ -191,7 +186,6 @@
                 </div>
             </div>
 
-            {{-- Coaches --}}
             @if($mr->home_coach || $mr->away_coach)
                 <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
                     <h3 class="text-lg font-medium mb-3">Treneri</h3>
@@ -208,7 +202,6 @@
                 </div>
             @endif
 
-            {{-- Judges --}}
             @php
                 $judgesList = is_array($mr->judges) ? $mr->judges : (json_decode($mr->judges ?? '[]', true) ?: []);
             @endphp
@@ -223,7 +216,6 @@
                 </div>
             @endif
 
-            {{-- Arena --}}
             @if(!empty($mr->arena_name))
                 <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
                     <h3 class="text-lg font-medium mb-3">Arēna</h3>
@@ -232,7 +224,6 @@
                         <div class="text-xs text-gray-500 mt-1">Izmērs: {{ $mr->arena_width }} × {{ $mr->arena_height }} px</div>
                     @endif
 
-                    {{-- Arena layout canvas --}}
                     @php
                         $arenaElements = is_array($mr->arena_elements) ? $mr->arena_elements : (json_decode($mr->arena_elements ?? '[]', true) ?: []);
                     @endphp
@@ -292,7 +283,6 @@
                 </div>
             @endif
 
-            {{-- Logos --}}
             @if($mr->home_logo || $mr->away_logo)
                 <div class="bg-white shadow-sm rounded-lg p-6 mb-6">
                     <h3 class="text-lg font-medium mb-3">Logo</h3>

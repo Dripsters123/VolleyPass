@@ -1,6 +1,5 @@
 <x-app-layout>
 
-  {{-- ── Match hero header ── --}}
   <section class="bg-gray-950 border-b border-white/10">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <a href="{{ route('local.matches.index') }}"
@@ -72,10 +71,8 @@
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="flex flex-col md:flex-row gap-8">
 
-      {{-- ── Main content ── --}}
       <div class="flex-1 space-y-8">
 
-        {{-- Arena layout – prominent, full-width --}}
         @if($arena && is_array($arena->elements) && count($arena->elements))
           <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
             <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -120,7 +117,7 @@
                   @endif
                 @endforeach
               </div>
-              </div>{{-- /arena-preview-wrap --}}
+              </div>
             </div>
             @auth
               @if($match->match_state !== 'completed' && $match->is_local)
@@ -157,7 +154,6 @@
             @endauth
           </div>
         @elseif($match->match_state !== 'completed' && $match->is_local)
-          {{-- No arena configured – show simple buy button --}}
           @auth
             <div class="bg-white rounded-2xl border border-gray-200 p-5 flex items-center justify-between">
               <p class="text-sm text-gray-600">Biļetes cena:
@@ -190,7 +186,6 @@
           @endauth
         @endif
 
-        {{-- Match details --}}
         <div class="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 class="font-bold text-gray-900 mb-4">Mača informācija</h2>
           <div class="grid sm:grid-cols-2 gap-x-8 gap-y-3 text-sm">
@@ -251,7 +246,6 @@
           </div>
         </div>
 
-        {{-- Players --}}
         <div class="grid sm:grid-cols-2 gap-5">
           <div class="bg-white rounded-2xl border border-gray-200 p-5">
             <h3 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -291,7 +285,6 @@
           </div>
         </div>
 
-        {{-- Photo gallery --}}
         @php $photos = $match->media->where('type','photo')->take(8); @endphp
         @if($photos->isNotEmpty())
           <div class="bg-white rounded-2xl border border-gray-200 p-5">
@@ -317,7 +310,6 @@
 
       </div>
 
-      {{-- ── Right sidebar ── --}}
       <div class="w-full md:w-72 shrink-0">
         <div id="rightPanel" class="space-y-4">
 
@@ -418,39 +410,61 @@
     </div>
   </div>
 
-  <div id="seatSelectionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50">
-    <div class="max-w-6xl mx-auto my-6 bg-white rounded-xl shadow-lg overflow-hidden">
-      <div class="flex justify-between items-center p-4 border-b">
-        <h2 class="text-lg font-bold">Izvēlies vietas</h2>
+  <div id="seatSelectionModal" class="hidden fixed inset-0 z-50 flex flex-col bg-black/60 md:items-center md:justify-center md:p-6">
+
+    <div class="flex flex-col bg-white w-full h-full md:max-w-6xl md:h-[88vh] md:rounded-2xl md:shadow-2xl overflow-hidden">
+
+      <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 shrink-0">
+        <h2 class="text-base font-bold text-gray-900">Izvēlies vietas</h2>
         <div class="flex items-center gap-2">
-          <button id="summaryToggleBtn" class="md:hidden px-2 py-1 bg-gray-200 rounded">Kopsavilkums</button>
-          <button id="modalCloseBtn" class="px-3 py-1 bg-gray-300 rounded">Aizvērt</button>
+
+          <button id="modalCloseBtn"
+                  class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                  aria-label="Aizvērt">
+            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
         </div>
       </div>
-      <div class="flex flex-col md:flex-row md:h-[70vh] h-auto">
-        <div class="seat-map-viewport flex-1 bg-gray-50 p-4 overflow-auto">
-          <div id="seatMap" class="w-full h-full"></div>
+
+      <div class="flex flex-col md:flex-row flex-1 overflow-y-auto md:overflow-hidden">
+
+        <div class="seat-map-viewport shrink-0 max-h-[50vh] md:max-h-none md:flex-1 md:min-h-0 bg-gray-50 p-2 md:p-4 overflow-auto">
+          <div id="seatMap" class="w-full min-h-[280px]"></div>
         </div>
-        <aside id="summaryPanel" class="w-full md:w-96 bg-white border-t md:border-t-0 md:border-l md:border-gray-200 p-4 flex flex-col">
-          <h3 id="summaryHeader" class="font-semibold mb-3">Izvēlētās vietas</h3>
-          <div id="selectedSeatsList" class="flex-1 overflow-y-auto space-y-2 pr-1">
-            <div class="text-gray-500 text-sm italic">Nav izvēlētu vietu</div>
-          </div>
-          <div class="mt-3">
-            <label class="text-sm font-medium mb-1">Atlaides kods</label>
-            <div class="flex gap-2">
-              <input id="discountCodeInput" type="text" placeholder="Ievadi kodu" class="flex-1 border rounded px-3 py-2 text-sm">
-              <button id="applyDiscountBtn" class="px-3 py-2 bg-green-600 text-white rounded text-sm">Pielietot</button>
-              <button id="clearDiscountBtn" class="px-3 py-2 bg-gray-200 rounded text-sm">Notīrīt</button>
+
+        <aside id="summaryPanel"
+               class="flex flex-col w-full md:w-80 shrink-0 bg-white border-t md:border-t-0 md:border-l border-gray-200 md:overflow-y-auto">
+          <div class="p-4 flex flex-col flex-1 min-h-0">
+            <h3 id="summaryHeader" class="font-semibold text-gray-900 mb-3">Izvēlētās vietas</h3>
+            <div id="selectedSeatsList" class="flex-1 overflow-y-auto space-y-2 pr-1" style="max-height:220px">
+              <div class="text-gray-500 text-sm italic">Nav izvēlētu vietu</div>
             </div>
-            <div id="discountInfo" class="mt-2 text-sm text-gray-600"></div>
+            <div class="mt-3 pt-3 border-t border-gray-100">
+              <label class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5 block">Atlaides kods</label>
+              <div class="flex gap-1.5">
+                <input id="discountCodeInput" type="text" placeholder="Ievadi kodu"
+                       class="flex-1 min-w-0 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                <button id="applyDiscountBtn"
+                        class="shrink-0 px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 whitespace-nowrap">Pielietot</button>
+                <button id="clearDiscountBtn"
+                        class="shrink-0 px-2 py-2 bg-gray-100 rounded-lg text-sm hover:bg-gray-200" aria-label="Notīrīt kodu">✕</button>
+              </div>
+              <div id="discountInfo" class="mt-2 text-sm text-gray-600"></div>
+            </div>
+            <div id="totalPrice" class="mt-3 text-right font-semibold text-gray-900 hidden"></div>
+            <button id="finalizePurchaseBtn"
+                    class="mt-3 w-full bg-indigo-600 text-white py-2.5 rounded-xl font-semibold hover:bg-indigo-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    disabled>
+              Apstiprināt pirkumu
+            </button>
           </div>
-          <div id="totalPrice" class="mt-4 text-right font-semibold text-gray-700 hidden"></div>
-          <button id="finalizePurchaseBtn" class="mt-4 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
-            Apstiprināt pirkumu
-          </button>
         </aside>
       </div>
+
+
+
     </div>
   </div>
 
@@ -460,75 +474,7 @@
   <script src="{{ asset('js/seats/seatModalHandlers.js') }}"></script>
   <script src="{{ asset('js/purchases/matchPurchase.js') }}"></script>
 
-  <script>
-    // ── Arena preview mobile scaling ────────────────────────────────
-    (function () {
-      function scaleArenaPreview() {
-        var wrap = document.getElementById('arena-preview-wrap');
-        var preview = document.getElementById('arena-preview');
-        if (!wrap || !preview) return;
-        var container = wrap.parentElement;
-        var available = container ? container.clientWidth - 40 : window.innerWidth - 40;
-        var previewW = preview.offsetWidth || parseInt(preview.style.width) || 600;
-        var scale = previewW > available ? available / previewW : 1;
-        preview.style.transformOrigin = 'top left';
-        preview.style.transform = scale < 1 ? 'scale(' + scale + ')' : '';
-        wrap.style.height = scale < 1 ? Math.round((preview.offsetHeight || parseInt(preview.style.height) || 420) * scale) + 'px' : '';
-      }
-      document.addEventListener('DOMContentLoaded', scaleArenaPreview);
-      window.addEventListener('resize', scaleArenaPreview);
-    })();
-
-    function limitScoreInput(el) {
-      const sanitized = (el.value || '').replace(/\D/g, '').slice(0, 3);
-      if (sanitized === '') {
-        el.value = '';
-        return;
-      }
-      const value = Math.min(parseInt(sanitized, 10), 100);
-      el.value = Number.isNaN(value) ? '' : String(value);
-    }
-
-    (function(){
-      const thumbs = Array.from(document.querySelectorAll('.gallery-thumb img'));
-      const srcs = thumbs.map(i => i.src);
-      const modal = document.getElementById('galleryModal');
-      const galleryImg = document.getElementById('galleryImg');
-      const counter = document.getElementById('galleryCounter');
-      let idx = 0;
-      let autoplay = null;
-      function openGallery(i){ if(!srcs.length) return; idx=i||0; galleryImg.src=srcs[idx]; counter.textContent=(idx+1)+' / '+srcs.length; modal.classList.remove('hidden'); startAutoplay(); }
-      function closeGallery(){ modal.classList.add('hidden'); stopAutoplay(); }
-      function next(){ idx=(idx+1)%srcs.length; galleryImg.src=srcs[idx]; counter.textContent=(idx+1)+' / '+srcs.length; }
-      function prev(){ idx=(idx-1+srcs.length)%srcs.length; galleryImg.src=srcs[idx]; counter.textContent=(idx+1)+' / '+srcs.length; }
-      function startAutoplay(){ stopAutoplay(); autoplay=setInterval(next,3000); }
-      function stopAutoplay(){ if(autoplay){clearInterval(autoplay); autoplay=null;} }
-      document.querySelectorAll('.gallery-thumb').forEach((btn,i)=>{ btn.addEventListener('click',()=>openGallery(i)); });
-      document.getElementById('galleryClose')?.addEventListener('click',closeGallery);
-      document.getElementById('galleryNext')?.addEventListener('click',()=>{ next(); startAutoplay(); });
-      document.getElementById('galleryPrev')?.addEventListener('click',()=>{ prev(); startAutoplay(); });
-      document.getElementById('galleryModal')?.addEventListener('click',(ev)=>{ if(ev.target.id==='galleryModal') closeGallery(); });
-      const rightPanel = document.getElementById('rightPanel');
-      if(rightPanel && window.innerWidth<768) rightPanel.style.display='none';
-      const modalCloseBtn=document.getElementById('modalCloseBtn');
-      const seatModal=document.getElementById('seatSelectionModal');
-      if(modalCloseBtn && seatModal){ modalCloseBtn.addEventListener('click',()=>{ seatModal.classList.add('hidden'); }); }
-      const addSetBtn=document.getElementById('addSetBtn');
-      const removeSetBtn=document.getElementById('removeSetBtn');
-      const container=document.getElementById('setsContainer');
-      if(addSetBtn && removeSetBtn && container){
-        let setCount=container.querySelectorAll('.set-row').length;
-        addSetBtn.addEventListener('click',()=>{ if(setCount>=5) return alert('Maksimālais setu skaits ir 5!'); setCount++; const div=document.createElement('div'); div.classList.add('grid','grid-cols-3','gap-2','items-center','set-row'); div.innerHTML=`<label class="text-xs text-gray-600 text-center">Sets ${setCount}</label><input type="number" name="sets[${setCount}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Mājas" required><input type="number" name="sets[${setCount}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Viesu" required>`; container.appendChild(div); });
-        removeSetBtn.addEventListener('click',()=>{ if(container.querySelectorAll('.set-row').length>3){ container.lastElementChild.remove(); setCount--; }});
-      }
-      const adminAddSetBtn=document.getElementById('adminAddSetBtn');
-      const adminRemoveSetBtn=document.getElementById('adminRemoveSetBtn');
-      const adminContainer=document.getElementById('adminSetsContainer');
-      if(adminAddSetBtn && adminRemoveSetBtn && adminContainer){
-        let adminSetCount=adminContainer.querySelectorAll('.set-row').length;
-        adminAddSetBtn.addEventListener('click',()=>{ if(adminSetCount>=5) return alert('Maksimālais setu skaits ir 5!'); adminSetCount++; const div=document.createElement('div'); div.classList.add('grid','grid-cols-3','gap-2','items-center','set-row'); div.innerHTML=`<label class="text-xs text-gray-600 text-center">Sets ${adminSetCount}</label><input type="number" name="sets[${adminSetCount}][home]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Mājas" required><input type="number" name="sets[${adminSetCount}][away]" min="0" max="100" inputmode="numeric" oninput="limitScoreInput(this)" class="p-2 border rounded text-center" placeholder="Viesu" required>`; adminContainer.appendChild(div); });
-        adminRemoveSetBtn.addEventListener('click',()=>{ if(adminContainer.querySelectorAll('.set-row').length>3){ adminContainer.lastElementChild.remove(); adminSetCount--; }});
-      }
-    })();
-  </script>
+  <script src="{{ asset('js/arena/arenaPreview.js') }}"></script>
+  <script src="{{ asset('js/matches/gallery.js') }}"></script>
+  <script src="{{ asset('js/matches/scoreForm.js') }}"></script>
 </x-app-layout>

@@ -10,7 +10,7 @@
   @endif
 
   <div class="mt-4 flex flex-col md:flex-row gap-8">
-    {{-- Image --}}
+    
     <div class="w-full md:w-2/5 shrink-0">
       @if($product->image_path)
         <img src="{{ asset('storage/'.$product->image_path) }}" class="w-full aspect-square object-cover rounded-2xl shadow-sm">
@@ -43,7 +43,7 @@
           @else
             <span class="px-2.5 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">Izpārdots</span>
           @endif
-          {{-- Review summary pill --}}
+          
           @if($likes + $dislikes > 0)
             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
               <svg class="w-3.5 h-3.5 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.099-5.5A2 2 0 0015.455 9H13V5a1 1 0 00-1-1 1 1 0 00-1 1v.5L8.5 10a1 1 0 01-.5.866V10.333z"/></svg>
@@ -141,7 +141,7 @@
     </div>
   </div>
 
-  {{-- Disclaimer --}}
+
   <div class="mt-8 flex gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
     <svg class="w-5 h-5 shrink-0 mt-0.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -152,7 +152,7 @@
     </div>
   </div>
 
-  {{-- Reviews section --}}
+ 
   <div class="mt-10">
     <div class="flex items-center gap-4 mb-6">
       <h2 class="text-xl font-bold text-gray-900">Vērtējumi</h2>
@@ -161,7 +161,7 @@
       @endif
     </div>
 
-    {{-- Like / Dislike buttons --}}
+
     @auth
       @if($product->user_id !== auth()->id())
         <div class="flex items-center gap-3 mb-8">
