@@ -311,7 +311,7 @@
                     <form method="POST" action="{{ route('match_requests.cancel', $mr->id) }}">
                         @csrf
                         @method('DELETE')
-                        <button type="button" onclick="vpConfirm('Vai tie�am atcelt �o pieprasijumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Atcelt</button>
+                        <button type="button" onclick="vpConfirm('Vai tiešam atcelt šo pieprasījumu?', () => this.closest('form').submit(), { danger: true, confirmText: 'Atcelt' })" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Atcelt</button>
                     </form>
                 @endif
             </div>

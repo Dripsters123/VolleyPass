@@ -2,13 +2,14 @@
 <div class="max-w-5xl mx-auto px-4 py-8">
 
   @php
-    $statusLabels = ['pending'=>'Gaida','reviewing'=>'Tiek izskatīts','accepted'=>'Apstiprināts','rejected'=>'Noraidīts','appealed'=>'Apelācija'];
+    $statusLabels = ['pending'=>'Gaida','reviewing'=>'Tiek izskatīts','accepted'=>'Apstiprināts','rejected'=>'Noraidīts','appealed'=>'Apelācija','cancelled'=>'Atcelts'];
     $statusColors = [
       'pending'   => 'bg-yellow-100 text-yellow-700',
       'reviewing' => 'bg-blue-100 text-blue-700',
       'accepted'  => 'bg-green-100 text-green-700',
       'rejected'  => 'bg-red-100 text-red-700',
       'appealed'  => 'bg-purple-100 text-purple-700',
+      'cancelled' => 'bg-gray-100 text-gray-600',
     ];
   @endphp
 
@@ -255,6 +256,10 @@
 
   <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6" x-data="{ rejectOpen: false }">
     <h3 class="font-semibold text-gray-700 mb-4">Darbības</h3>
+
+    @if($req->status === 'cancelled')
+      <p class="text-sm text-gray-500 italic">Šis pieprasījums ir atcelts no lietotāja puses. Nekādas darbības nav iespējamas.</p>
+    @else
     <div class="flex flex-wrap gap-3">
 
       @if($req->status !== 'accepted')
@@ -292,6 +297,7 @@
         </a>
       @endif
     </div>
+    @endif
 
     <div x-show="rejectOpen" x-transition class="mt-5 p-5 bg-red-50 border border-red-200 rounded-xl">
       <form method="POST" action="{{ route('admin.match_requests.reject', $req->id) }}">

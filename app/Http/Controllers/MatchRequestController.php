@@ -340,14 +340,7 @@ $arenaLayout = $validated['arena_layout'] ?? [];
             return back()->with('error', 'Tikai neapstiprinātus pieprasījumus var atcelt.');
         }
 
-        if ($req->home_logo) {
-            Storage::disk('public')->delete($req->home_logo);
-        }
-        if ($req->away_logo) {
-            Storage::disk('public')->delete($req->away_logo);
-        }
-
-        $req->delete();
+        $req->update(['status' => 'cancelled']);
         return back()->with('success', 'Jūsu mača pieprasījums ir atcelts.');
     }
 
