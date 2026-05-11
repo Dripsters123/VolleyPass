@@ -230,5 +230,5 @@
       preselectedArenaId: {{ (int)(old('arena_id', 0)) }},
   };
   </script>
-  <script src="{{ asset('js/matchRequest.js') }}"></script>
+  <script src="{{ asset('js/matches/matchRequest.js') }}"></script>
 </x-app-layout>
